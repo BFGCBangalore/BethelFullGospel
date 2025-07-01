@@ -1,8 +1,4 @@
 /* General Styles */
-
- @import url('https://fonts.cdnfonts.com/css/bubble-bash');
-
-                
 body {
     font-family: 'Poppins', sans-serif;
     margin: 0;
@@ -19,6 +15,11 @@ body {
 }
 
 /* Header */
+#colorchange{
+    background: linear-gradient(90deg, #d53369 0%, #daae51 100%);
+    background-clip:text ;
+    color: transparent;
+}
 header {
     background: linear-gradient(135deg, #5bddf0, #07f3d3);
     color: #fff;
@@ -97,10 +98,7 @@ nav ul li a:hover {
   
 
 /* Home Section - Slideshow */
-
-
 .hero {
-    
     position: relative;
     height: 100vh;
     overflow: hidden;
@@ -170,11 +168,6 @@ nav ul li a:hover {
     background: #ff4a3d;
 }
 
-#fontchange{
-  font-family: 'Bubble Bash', sans-serif;
-                                                
-}
-
 /* About Us Section */
 .about {
     padding: 60px 0;
@@ -236,7 +229,10 @@ nav ul li a:hover {
 
 .service-item:hover .service-card {
     transform: rotateY(180deg);
+    
 }
+
+
 
 .front, .back {
     width: 100%;
@@ -1183,5 +1179,137 @@ html {
   border-radius: 8px;
   box-shadow: 0 0 5px rgba(0,0,0,0.1);
 }
+
+
+
+/* mobile compatibility */
+
+/* Responsive Images and Videos */
+img, video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Touch-friendly buttons and links */
+
+
+/* Mobile-specific adjustments */
+
+  /* Adjust font sizes for mobile */
+ 
+
+.hamburger {
+  display: none;
+  font-size: 2rem;
+  color: white;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  nav ul {
+    display: none;
+    flex-direction: column;
+    background: #07f3d3;
+    position: absolute;
+    top: 70px;
+    right: 0;
+    width: 200px;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  }
+  nav ul.show {
+    display: flex;
+  }
+  .hamburger {
+    display: block;
+  }
+}
+
+input, button, textarea, select {
+  font-size: 1rem;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+
+/* Header & Nav Adjustments */
+
+
+header .container {
+    flex-wrap: wrap;
+}
+
+.hamburger {
+    display: none;
+    font-size: 2rem;
+    color: white;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    nav ul {
+        display: none;
+        flex-direction: column;
+        background: rgba(7, 243, 211, 0.9);
+        position: absolute;
+        top: 70px;
+        right: 0;
+        width: 200px;
+        padding: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        z-index: 1001;
+    }
+
+    nav ul.show {
+        display: flex;
+    }
+
+    .hamburger {
+        display: block;
+    }
+
+    nav ul li a {
+        display: block;
+        background-color: transparent;
+        padding: 10px 16px;
+        border-radius: 6px;
+        color: white;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    nav ul li a:hover,
+    nav ul li a.active {
+        background-color: rgba(255, 255, 255, 0.2);
+        color: #ffdd57;
+    }
+}
+
+/* Header Link Styles */
+nav ul li a {
+    background-color: transparent;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+nav ul li a:hover,
+nav ul li a.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffdd57;
+}
+
+/* Ensure spacing below fixed header on mobile */
+@media (max-width: 768px) {
+    header {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+    }
+    .hero {
+        margin-top: 70px;
+    }
+}
+
 
 

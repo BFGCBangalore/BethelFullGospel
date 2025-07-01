@@ -182,6 +182,7 @@ const mediaData = {
       'videos/youth camp 2023/youth2.jpg',
       'videos/youth camp 2023/youth7.jpg',
       'videos/youth camp 2023/Youth1.jpg',
+      'videos/youth camp 2023/YouthMeet.jpeg',
     
       
     ],
@@ -192,17 +193,19 @@ const mediaData = {
   },
   christmas: {
     images: [
+      'videos/christmas_2024/Childrens3.jpeg',
+      'videos/christmas_2024/Childrens4.jpeg',
        'videos/christmas_2024/VBC2024.jpeg',
       'videos/christmas_2024/VBC2025_1.jpeg',
        'videos/christmas_2024/VBC2025.jpeg',
       'videos/christmas_2024/VBC2.jpeg',
       'videos/christmas_2024/VBC3.jpeg',
       'videos/christmas_2024/VBC4.jpeg',
+      'videos/christmas_2024/VBC22.jpeg',
+      
     ],
     videos: [
-      'videos/VBC2023.mp4',
-      'videos/christmas_2024/VBC7.jpeg',
-      'videos/christmas_2024/VBC6.jpeg',
+      'videos/christmas_2024/SundaySchoolVideo.mp4',
     ]
   }
 };
@@ -219,7 +222,7 @@ function openEventModal(eventKey) {
   videoPage = 1;
 
   document.getElementById('eventModalTitle').textContent =
-    eventKey === 'youthCamp' ? 'Youth Camp 2023' : 'Christmas Celebration';
+    eventKey === 'youthCamp' ? 'Youth Camp' : 'Childrens Sunday Club';
 
   loadImagePage();
   loadVideoPage();
@@ -360,4 +363,42 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   });
 });
 
+function closeEventModal() {
+  document.getElementById('eventModal').style.display = 'none';
+}
+
+
+// Push state when modal opens
+function openEventModal(eventKey) {
+  currentEvent = eventKey;
+  imagePage = 1;
+  videoPage = 1;
+
+  document.getElementById('eventModalTitle').textContent =
+    eventKey === 'youthCamp' ? 'Youth Camp' : 'Childrens Sunday Club';
+
+  loadImagePage();
+  loadVideoPage();
+
+  document.getElementById('eventModal').style.display = 'flex';
+
+  // Push modal open state into browser history
+  history.pushState({ modal: true }, null, '');
+}
+
+// Handle back button
+window.addEventListener('popstate', (event) => {
+  const modal = document.getElementById('eventModal');
+  if (modal && modal.style.display === 'flex') {
+    modal.style.display = 'none';
+  }
+});
+
+
+function closeEventModal() {
+  document.getElementById('eventModal').style.display = 'none';
+  if (history.state && history.state.modal) {
+    history.back();
+  }
+}
 
