@@ -208,11 +208,10 @@
       border: 1px solid var(--border-strong);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
     }
-    .logo-wreath img {
+    .logo-wreath .cross {
       position: relative;
-      width: 44px; height: 44px;
-      object-fit: contain;
-      filter: drop-shadow(0 4px 14px rgba(108,92,255,0.55));
+      width: 42px; height: 52px;
+      filter: drop-shadow(0 4px 14px rgba(108,92,255,0.6));
       animation: breathe 4s ease-in-out infinite;
     }
     @keyframes breathe {
@@ -405,7 +404,7 @@
       .btn { width: 100%; justify-content: center; }
       h1 { font-size: clamp(1.35rem, 5.5vw, 1.7rem); }
       .logo-wreath { width: 66px; height: 66px; margin-bottom: 12px; }
-      .logo-wreath img { width: 38px; height: 38px; }
+      .logo-wreath .cross { width: 36px; height: 44px; }
       .tagline { font-size: 0.86rem; margin-bottom: 16px; }
       .progress-wrap { margin-bottom: 16px; }
       .dotline { margin-top: 14px; }
@@ -436,7 +435,25 @@
       <div class="logo-wreath" aria-hidden="true">
         <div class="halo"></div>
         <div class="ring"></div>
-        <img src="logo.png" alt="">
+        <svg class="cross" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="crossGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#6c5cff"/>
+              <stop offset="55%"  stop-color="#ff6aa9"/>
+              <stop offset="100%" stop-color="#ffb86c"/>
+            </linearGradient>
+            <linearGradient id="crossHi" x1="50%" y1="0%" x2="50%" y2="100%">
+              <stop offset="0%"   stop-color="rgba(255,255,255,0.55)"/>
+              <stop offset="60%"  stop-color="rgba(255,255,255,0)"/>
+            </linearGradient>
+          </defs>
+          <g>
+            <rect x="17" y="3"  width="6"  height="44" rx="1.6" fill="url(#crossGrad)"/>
+            <rect x="9"  y="14" width="22" height="6"  rx="1.6" fill="url(#crossGrad)"/>
+            <rect x="17.6" y="3.6" width="2" height="42" rx="1" fill="url(#crossHi)"/>
+            <rect x="9.6"  y="14.6" width="20.8" height="2" rx="1" fill="url(#crossHi)"/>
+          </g>
+        </svg>
       </div>
 
       <div class="badge">
