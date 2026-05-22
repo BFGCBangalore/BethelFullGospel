@@ -1,75 +1,505 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Under Construction</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <title>Coming Soon · Bethel Full Gospel Church</title>
+  <meta name="description" content="Our new website is on the way. Please check back soon." />
+  <link rel="icon" type="image/png" href="./logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(120deg, #1e1e2f, #3a3a60);
-      font-family: 'Orbitron', sans-serif;
-      color: #fff;
+    /* ---------- Reset ---------- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    img, svg { display: block; max-width: 100%; }
+
+    /* ---------- Tokens (mirrors main site dark mode) ---------- */
+    :root {
+      --bg: #0b0f1a;
+      --surface: rgba(22, 26, 44, 0.55);
+      --surface-strong: rgba(22, 26, 44, 0.78);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --text: #ecedf5;
+      --muted: #a4a9c4;
+      --soft: #7a7f9a;
+
+      --brand: #6c5cff;
+      --brand-2: #ff6aa9;
+      --brand-3: #29d4c9;
+
+      --grad-1: linear-gradient(135deg, #6c5cff 0%, #ff6aa9 100%);
+      --grad-2: linear-gradient(135deg, #29d4c9 0%, #6c5cff 100%);
+
+      --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.55);
+      --shadow-glow: 0 16px 50px rgba(108, 92, 255, 0.45);
+
+      --ease: cubic-bezier(.22, 1, .36, 1);
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      color: var(--text);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* ---------- Aurora background (same as main site) ---------- */
+    .aurora {
+      position: fixed; inset: 0; z-index: -1;
+      overflow: hidden; pointer-events: none;
+    }
+    .blob {
+      position: absolute;
+      width: 60vmax; height: 60vmax;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: .35;
+      mix-blend-mode: screen;
+      animation: float 22s ease-in-out infinite;
+    }
+    .blob-1 { background: radial-gradient(circle, #6c5cff, transparent 60%); top: -25vmax; left: -15vmax; }
+    .blob-2 { background: radial-gradient(circle, #ff6aa9, transparent 60%); bottom: -30vmax; right: -20vmax; animation-delay: -6s; animation-duration: 28s; }
+    .blob-3 { background: radial-gradient(circle, #29d4c9, transparent 60%); top: 30vmax; left: 30vmax; animation-delay: -12s; animation-duration: 32s; }
+    @keyframes float {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(6vmax, -4vmax) scale(1.08); }
+      66% { transform: translate(-4vmax, 5vmax) scale(.96); }
+    }
+
+    /* ---------- Subtle grid wash ---------- */
+    .grid-wash {
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 45%, #000 0%, transparent 75%);
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 45%, #000 0%, transparent 75%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* ---------- Floating soft particles ---------- */
+    .stars { position: fixed; inset: 0; pointer-events: none; z-index: -1; overflow: hidden; }
+    .stars span {
+      position: absolute;
+      width: 2px; height: 2px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+      animation: drift linear infinite;
+    }
+    @keyframes drift {
+      0%   { transform: translateY(110vh); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translateY(-15vh); opacity: 0; }
+    }
+
+    /* ---------- Stage ---------- */
+    .stage {
+      position: relative;
+      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      padding: clamp(16px, 3vw, 32px);
+      gap: 16px;
+    }
+
+    /* ---------- Card ---------- */
+    .card-wrap {
+      position: relative;
+      width: min(560px, 100%);
+      isolation: isolate;
+    }
+    /* Rotating circular aurora glow behind the card */
+    .card-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -90px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg,
+        rgba(108, 92, 255, 0.95) 0%,
+        rgba(255, 106, 169, 0.85) 30%,
+        rgba(41, 212, 201, 0.85) 60%,
+        rgba(108, 92, 255, 0.95) 100%);
+      filter: blur(36px);
+      z-index: 0;
+      opacity: 0.85;
+      animation: spinAurora 12s linear infinite;
+      pointer-events: none;
+    }
+    /* Counter-rotating bloom for extra depth */
+    .card-wrap::after {
+      content: '';
+      position: absolute;
+      inset: -50px;
+      border-radius: 50%;
+      background: conic-gradient(from 180deg,
+        rgba(255, 106, 169, 0.7),
+        transparent 35%,
+        rgba(41, 212, 201, 0.6),
+        transparent 75%,
+        rgba(108, 92, 255, 0.7));
+      filter: blur(30px);
+      z-index: 0;
+      opacity: 0.7;
+      animation: spinAurora 18s linear infinite reverse;
+      pointer-events: none;
+    }
+    @keyframes spinAurora {
+      to { transform: rotate(360deg); }
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      padding: clamp(22px, 3vw, 36px) clamp(20px, 3vw, 40px);
+      background: var(--surface-strong);
+      -webkit-backdrop-filter: blur(28px) saturate(140%);
+      backdrop-filter: blur(28px) saturate(140%);
+      border: 1px solid var(--border-strong);
+      border-radius: 22px;
+      box-shadow: var(--shadow-lg), 0 0 40px rgba(108, 92, 255, 0.10);
+      text-align: center;
+      overflow: hidden;
+    }
+
+    /* Top highlight line */
+    .card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 15%; right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      pointer-events: none;
+    }
+    @keyframes rotate { to { transform: rotate(360deg); } }
+
+    /* ---------- Logo wreath ---------- */
+    .logo-wreath {
+      position: relative;
+      width: 76px; height: 76px;
+      margin: 0 auto 14px;
+      display: grid;
+      place-items: center;
+    }
+    .logo-wreath .halo {
+      position: absolute; inset: -4px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, #6c5cff, #ff6aa9, #29d4c9, #6c5cff);
+      filter: blur(10px);
+      opacity: 0.5;
+      animation: rotate 8s linear infinite;
+    }
+    .logo-wreath .ring {
+      position: absolute; inset: 0;
+      border-radius: 50%;
+      background: rgba(22, 26, 44, 0.9);
+      border: 1px solid var(--border-strong);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .logo-wreath img {
+      position: relative;
+      width: 44px; height: 44px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 14px rgba(108,92,255,0.55));
+      animation: breathe 4s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.06); }
+    }
+
+    /* ---------- Badge ---------- */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 13px;
+      border-radius: 100px;
+      background: rgba(108, 92, 255, 0.12);
+      border: 1px solid rgba(108, 92, 255, 0.32);
+      color: #cfc8ff;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .badge .dot {
+      width: 7px; height: 7px;
+      background: var(--brand-2);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--brand-2);
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    /* ---------- Title ---------- */
+    h1 {
+      font-size: clamp(1.5rem, 3.4vw, 2.1rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+    h1 .grad {
+      background: var(--grad-1);
+      -webkit-background-clip: text;
+              background-clip: text;
+      color: transparent;
+      display: inline-block;
+    }
+
+    .tagline {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+      max-width: 420px;
+      margin: 0 auto 20px;
+    }
+
+    /* ---------- Progress ---------- */
+    .progress-wrap { margin: 0 auto 20px; }
+    .progress {
+      position: relative;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 100px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background:
+        linear-gradient(90deg, #6c5cff 0%, #ff6aa9 50%, #29d4c9 100%);
+      background-size: 200% 100%;
+      border-radius: 100px;
+      box-shadow: 0 0 14px rgba(108, 92, 255, 0.55);
+      animation:
+        fill 2.4s cubic-bezier(.2,.7,.3,1) forwards,
+        shine 4s linear infinite 2.4s;
+    }
+    .progress-bar::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      right: 0;
+      width: 32px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+      filter: blur(4px);
+      animation: shimmer 1.8s ease-in-out infinite;
+    }
+    @keyframes fill { to { width: 68%; } }
+    @keyframes shine { to { background-position: -200% 0; } }
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.5; }
+      50%      { opacity: 1; }
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 0.72rem;
+      color: var(--soft);
+      letter-spacing: 0.04em;
+    }
+    .progress-meta .pct {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    /* ---------- Actions ---------- */
+    .actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 100px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: #fff;
+      background: var(--grad-1);
+      border: 1px solid transparent;
+      box-shadow: var(--shadow-glow);
+      transition: transform .35s var(--ease), box-shadow .35s var(--ease), filter .35s var(--ease);
+      white-space: nowrap;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+      box-shadow: 0 22px 60px rgba(108, 92, 255, 0.55);
+    }
+    .btn i { font-size: 0.92rem; }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: var(--border-strong);
+      color: var(--text);
+      box-shadow: none;
+    }
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ---------- Divider line of dots above footer ---------- */
+    .dotline {
+      display: flex; gap: 5px;
+      justify-content: center;
+      margin-top: 18px;
+      opacity: 0.7;
+    }
+    .dotline span {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--soft);
+      animation: pulseDot 1.4s ease-in-out infinite;
+    }
+    .dotline span:nth-child(2) { animation-delay: 0.18s; }
+    .dotline span:nth-child(3) { animation-delay: 0.36s; }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 0.25; transform: scale(1); }
+      50%      { opacity: 1;    transform: scale(1.3); }
+    }
+
+    /* ---------- Footer ---------- */
+    .foot {
+      font-size: 0.72rem;
+      color: var(--soft);
+      letter-spacing: 0.06em;
       text-align: center;
     }
+    .foot strong { color: var(--muted); font-weight: 600; }
 
-    .container {
-      max-width: 700px;
-      padding: 20px;
+    /* ---------- Reveal ---------- */
+    .card, .foot { opacity: 0; transform: translateY(14px); animation: rise .9s var(--ease) forwards; }
+    .foot { animation-delay: .15s; }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 520px) {
+      .card { padding: 26px 20px; border-radius: 20px; }
+      .actions { width: 100%; }
+      .btn { width: 100%; justify-content: center; }
+      h1 { font-size: clamp(1.35rem, 5.5vw, 1.7rem); }
+      .logo-wreath { width: 66px; height: 66px; margin-bottom: 12px; }
+      .logo-wreath img { width: 38px; height: 38px; }
+      .tagline { font-size: 0.86rem; margin-bottom: 16px; }
+      .progress-wrap { margin-bottom: 16px; }
+      .dotline { margin-top: 14px; }
     }
 
-    h1 {
-      font-size: 3rem;
-      color: #ffcc00;
-      text-shadow: 0 0 10px #ffcc00;
-      margin-bottom: 10px;
-    }
-
-    p {
-      font-size: 1.2rem;
-      color: #ddd;
-      margin-bottom: 20px;
-    }
-
-    .animation {
-      width: 300px;
-      height: 300px;
-      margin: 20px auto;
-    }
-
-    
-
-    .footer {
-      margin-top: 20px;
-      font-size: 0.9rem;
-      color: #aaa;
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001s !important;
+        animation-iteration-count: 1 !important;
+      }
+      .card { opacity: 1; transform: none; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="cross"></div>
-    <h1>🚧 Under Construction 🚧</h1>
-    <p>We're improving our Website<br />We’re working on something awesome. Please check back soon!</p>
-
-   <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <p> Have a Query? Contact - +91 9008768706</p>
-
-    
+  <!-- Aurora background (same as main site) -->
+  <div class="aurora" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
   </div>
+  <div class="grid-wash" aria-hidden="true"></div>
+  <div class="stars" id="stars" aria-hidden="true"></div>
+
+  <main class="stage">
+    <div class="card-wrap">
+    <section class="card" role="status" aria-live="polite">
+      <div class="logo-wreath" aria-hidden="true">
+        <div class="halo"></div>
+        <div class="ring"></div>
+        <img src="logo.png" alt="">
+      </div>
+
+      <div class="badge">
+        <span class="dot"></span>
+        Will be back soon
+      </div>
+
+      <h1>
+        Something <span class="grad">beautiful</span><br>
+        is on the way.
+      </h1>
+
+      <p class="tagline">
+        We&rsquo;re refreshing the online home of <strong style="color:var(--text);font-weight:600">Bethel Full Gospel Church</strong>.
+        Our new site goes live very soon &mdash; thank you for your patience.
+      </p>
+
+      <div class="progress-wrap">
+        <div class="progress"><div class="progress-bar"></div></div>
+        <div class="progress-meta">
+          <span>Building the new site</span>
+          <span><span class="pct">68%</span> complete</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a href="tel:+919060404011" class="btn">
+          <i class="fas fa-phone"></i>
+          <span>Call us</span>
+        </a>
+        <a href="mailto:bethelfgchurch@gmail.com" class="btn btn-ghost">
+          <i class="fas fa-envelope"></i>
+          <span>bethelfgchurch@gmail.com</span>
+        </a>
+      </div>
+
+      <div class="dotline" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+    </section>
+    </div>
+
+    <div class="foot">
+      &copy; <strong>Bethel Full Gospel Church</strong> &middot; Bangalore &middot; Est. 2006
+    </div>
+  </main>
+
+  <script>
+    // Floating soft particles
+    (function () {
+      const layer = document.getElementById('stars');
+      const COUNT = 28;
+      for (let i = 0; i < COUNT; i++) {
+        const s = document.createElement('span');
+        const size = (Math.random() * 1.6 + 1).toFixed(2);
+        s.style.left = (Math.random() * 100) + '%';
+        s.style.width = s.style.height = size + 'px';
+        s.style.opacity = (Math.random() * 0.5 + 0.2).toFixed(2);
+        s.style.animationDuration = (Math.random() * 18 + 14) + 's';
+        s.style.animationDelay = (Math.random() * -24) + 's';
+        layer.appendChild(s);
+      }
+    })();
+  </script>
 </body>
 </html>
