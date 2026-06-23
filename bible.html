@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0f1a" />
+
+  <title>Holy Bible – Bethel Full Gospel Church | English (KJV) & Kannada</title>
+  <meta name="description" content="Read and search the Holy Bible in KJV English and Kannada translations. Explore book by book, chapter by chapter, or search specific verses.">
+  
+  <link rel="icon" type="image/png" href="./logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Scroll progress bar -->
+  <div class="scroll-progress" aria-hidden="true"><span id="scrollProgress"></span></div>
+
+  <!-- Aurora background -->
+  <div class="aurora" aria-hidden="true">
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+    <span class="blob blob-3"></span>
+  </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container nav">
+      <a href="index.html#home" class="brand">
+        <img src="logo.png" alt="Bethel Full Gospel Church" class="brand-logo" />
+        <span class="brand-text">Bethel <span class="amp">Full</span> Gospel</span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav id="primaryNav">
+        <a href="index.html#home">Home</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#ourministries">Ministries</a>
+        <a href="index.html#gallery">Gallery</a>
+        <a href="index.html#events">Events</a>
+        <a href="bible.html" class="active">Bible</a>
+        <a href="index.html#contact">Contact</a>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+          <span class="theme-icon"></span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main style="padding-top: calc(var(--header-h) + 40px); padding-bottom: 60px;">
+    <section class="bible">
+      <div class="container">
+        <div class="section-head" data-num="📖" style="margin-bottom: 32px;">
+          <span class="eyebrow">Scripture Reader</span>
+          <h1 class="section-title">Explore the <span class="grad-text">Holy Bible</span></h1>
+        </div>
+
+        <h2 class="sr-only">Interactive Bible reader with KJV English and Kannada translations, verse search and full chapter reading</h2>
+
+        <div class="br">
+          <div class="br-header">
+            <div class="br-brand">
+              <div class="br-icon"><i class="fa-solid fa-book-open" aria-hidden="true"></i></div>
+              <div><div class="br-title">Holy Bible</div><div class="br-sub">KJV English · ಕನ್ನಡ ಭಾಷಾಂತರ</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <div class="font-row">
+                <button class="font-btn" id="fontDn" aria-label="Decrease font size">A-</button>
+                <span class="font-size-lbl" id="fontLbl">13px</span>
+                <button class="font-btn" id="fontUp" aria-label="Increase font size">A+</button>
+              </div>
+              <button class="btn btn-primary btn-sm" id="brPopOutBtn" title="Open Presenter View" onclick="window.open('presenter.html', 'PresenterView', 'width=1024,height=768')">
+                <i class="fa-solid fa-up-right-from-square"></i> Pop Out
+              </button>
+              <div class="lang-toggle">
+                <button class="lang-btn active" id="langEn">English</button>
+                <button class="lang-btn" id="langKn">ಕನ್ನಡ</button>
+                <button class="lang-btn" id="langBoth">Both</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="br-search">
+            <div class="br-search-input-wrapper" style="position:relative;flex:1;min-width:200px;">
+              <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;" aria-hidden="true"></i>
+              <input type="text" id="brSearchInput" placeholder="Search a verse — try 'John 3:16' or 'love' or 'ಅರಸ'" aria-label="Search Bible verses" style="width:100%;padding:10px 14px 10px 40px;border-radius:30px;border:1px solid var(--border-strong);background:var(--surface);color:var(--text);font-size:0.9rem;outline:none;">
+            </div>
+            <button id="brSearchBtn" class="btn btn-primary btn-sm" style="border-radius:30px;padding:9px 18px;font-size:0.85rem;height:auto;">Search</button>
+            <button id="brClearBtn" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0 8px;">Clear</button>
+          </div>
+
+          <div class="br-body">
+            <div class="br-sidebar" id="brSidebar">
+              <div class="sidebar-section" id="sidebarBooksSection">
+                <div class="sidebar-label">Books</div>
+                <div class="book-list" id="bookList"></div>
+              </div>
+              <div class="sidebar-section" id="sidebarChaptersSection" style="display:none;">
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom: 16px;">
+                  <button class="btn btn-secondary btn-sm" id="brSidebarBackBtn" style="padding: 6px 12px;"><i class="fa-solid fa-arrow-left"></i></button>
+                  <div class="sidebar-label" style="margin:0; font-size:1.1rem; color:var(--text);" id="sidebarSelectedBook"></div>
+                </div>
+                <div class="br-chapter-row" id="chapterRow"></div>
+              </div>
+            </div>
+
+            <div id="brMain">
+              <div id="brSearchResults" style="display:none"></div>
+              <div id="brReadingPane" class="br-reading">
+                <div class="br-empty">
+                  <i class="fa-solid fa-book-open" aria-hidden="true" style="font-size:32px;color:var(--muted);"></i>
+                  <p>Select a book and chapter to begin reading</p>
+                  <p style="font-size:12px;color:var(--muted);">or search for any verse above</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="logo.png" alt="BFGC" class="footer-logo">
+        <p>Bethel Full Gospel Church<br><span class="muted small">Bangalore, India · Since 2006</span></p>
+      </div>
+
+      <div class="footer-cols">
+        <div class="quick-links">
+          <h3>Quick Links</h3>
+          <ul>
+            <li><a href="index.html#home">Home</a></li>
+            <li><a href="index.html#about">About Us</a></li>
+            <li><a href="index.html#services">Services</a></li>
+            <li><a href="index.html#ourministries">Ministries</a></li>
+            <li><a href="index.html#gallery">Gallery</a></li>
+            <li><a href="index.html#events">Events</a></li>
+            <li><a href="bible.html">Bible</a></li>
+            <li><a href="index.html#contact">Contact Us</a></li>
+          </ul>
+        </div>
+
+        <div class="social-media">
+          <h3>Follow Us</h3>
+          <ul>
+            <li><a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook"></i></a></li>
+            <li><a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a></li>
+            <li><a href="https://whatsapp.com/channel/0029Vb9wpaoLSmbbSAj6t032" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="container footer-base">
+      <p class="small muted">&copy; <span id="year"></span> Bethel Full Gospel Church. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, getDoc, getDocs, doc, setDoc, query, where, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { getStorage } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBwlAFcnTEMB6BR7ggxYE6zW-50DbWUhP8",
+      authDomain: "bfgc-website.firebaseapp.com",
+      projectId: "bfgc-website",
+      storageBucket: "bfgc-website.firebasestorage.app",
+      messagingSenderId: "547547229174",
+      appId: "1:547547229174:web:c5685fc38d342f97e3f5d7",
+      measurementId: "G-E91HYC7ZZF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+
+    // Expose on window so bible.js can access them
+    window.firebase = { app, analytics, db, auth, storage, collection, addDoc, getDoc, getDocs, doc, setDoc, query, where, writeBatch, serverTimestamp };
+    window.dispatchEvent(new Event("firebase-ready"));
+  </script>
+
+  <script src="bible.js"></script>
+
+  <!-- Scroll progress bar & Theme toggle handler for bible.html -->
+  <script>
+    // Sun/Moon theme toggle initialization matching main script.js
+    (function() {
+      const themeToggle = document.getElementById("themeToggle");
+      const savedTheme = localStorage.getItem("bfgc.theme") || "light";
+      document.documentElement.setAttribute("data-theme", savedTheme);
+
+      if (themeToggle) {
+        themeToggle.addEventListener("click", () => {
+          const current = document.documentElement.getAttribute("data-theme");
+          const next = current === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", next);
+          localStorage.setItem("bfgc.theme", next);
+        });
+      }
+
+      // Update dynamic footer year
+      const yearSpan = document.getElementById("year");
+      if (yearSpan) yearSpan.textContent = new Date().getFullYear();
+
+      // Mobile navbar toggle menu
+      window.toggleMenu = function() {
+        const nav = document.getElementById("primaryNav");
+        const btn = document.getElementById("navToggle");
+        if (!nav) return;
+        const open = nav.classList.toggle("is-open");
+        if (btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+      };
+
+      // Header offset on load if there's a hash
+      window.addEventListener("load", () => {
+        if (window.location.hash) {
+          const target = document.querySelector(window.location.hash);
+          if (target) {
+            const h = document.querySelector(".site-header")?.offsetHeight || 72;
+            window.scrollTo({ top: target.offsetTop - h - 12, behavior: "smooth" });
+          }
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
