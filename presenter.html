@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bible Presenter - Bethel Full Gospel Church</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400;500;600&display=swap');
+    
+    :root {
+      --bg: #0b0f1a;
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.4);
+      --highlight: #6c5cff;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+    }
+    
+    /* Background Logo & Name */
+    .bg-watermark {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0.04;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .bg-watermark img {
+      width: 35vw;
+      max-width: 450px;
+      margin-bottom: 2rem;
+      filter: grayscale(100%) contrast(150%);
+    }
+    .bg-watermark h1 {
+      font-family: "Fraunces", serif;
+      font-size: 3.5vw;
+      text-align: center;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+    }
+
+    /* Verse Content */
+    .content-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 90%;
+      max-width: 1600px;
+      text-align: center;
+    }
+    
+    .reference {
+      font-family: "Fraunces", serif;
+      color: var(--highlight);
+      font-size: 3em;
+      margin-bottom: 0.5em;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    
+    .verse-en {
+      font-size: 4em;
+      line-height: 1.3;
+      margin-bottom: 0.5em;
+      font-weight: 500;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    
+    .verse-kn {
+      font-size: 3.5em;
+      line-height: 1.4;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 500;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    /* Fullscreen Button */
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    body:hover .controls {
+      opacity: 1;
+    }
+    .btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      backdrop-filter: blur(4px);
+      font-family: "Inter", sans-serif;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Empty State */
+    .empty-state {
+      font-size: 2em;
+      color: var(--muted);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-watermark">
+    <img src="logo.png" alt="Church Logo">
+    <h1>Bethel Full Gospel Church</h1>
+  </div>
+
+  <div class="content-wrapper" id="displayArea">
+    <div class="empty-state">Waiting for verse selection...</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="fsBtn" onclick="toggleFullScreen()">Enter Fullscreen</button>
+  </div>
+
+  <script>
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(err => {
+              console.log(`Error attempting to enable fullscreen: ${err.message}`);
+          });
+      } else {
+          if (document.exitFullscreen) {
+              document.exitFullscreen();
+          }
+      }
+    }
+
+    document.addEventListener("fullscreenchange", () => {
+      const btn = document.getElementById('fsBtn');
+      if (document.fullscreenElement) {
+        btn.textContent = "Exit Fullscreen";
+      } else {
+        btn.textContent = "Enter Fullscreen";
+      }
+    });
+
+    function updateDisplay(state) {
+      const displayArea = document.getElementById('displayArea');
+      
+      if (!state || !state.ref) {
+        displayArea.innerHTML = '<div class="empty-state">Waiting for verse selection...</div>';
+        return;
+      }
+
+      // Base sizes. We scale them up based on the main site's font size.
+      // Main site default is 13px. Let's make Presenter default base factor 1.0.
+      const scaleFactor = (state.fontSize || 13) / 13;
+      
+      // Calculate dynamic em sizes
+      const refSize = (3 * scaleFactor).toFixed(2) + 'em';
+      const enSize = (4 * scaleFactor).toFixed(2) + 'em';
+      const knSize = (3.5 * scaleFactor).toFixed(2) + 'em';
+
+      let html = `<div class="reference" style="font-size: ${refSize}">${state.ref}</div>`;
+      
+      if (state.lang === 'en' || state.lang === 'both') {
+        html += `<div class="verse-en" style="font-size: ${enSize}">${state.enText}</div>`;
+      }
+      
+      if (state.lang === 'kn' || state.lang === 'both') {
+        html += `<div class="verse-kn" style="font-size: ${knSize}">${state.knText}</div>`;
+      }
+
+      displayArea.innerHTML = html;
+    }
+
+    // Listen to changes from the main window
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'presenter_state') {
+        if (e.newValue) {
+          try {
+            const state = JSON.parse(e.newValue);
+            updateDisplay(state);
+          } catch (err) { console.error(err); }
+        }
+      }
+    });
+
+    // Check immediately on load
+    const initial = localStorage.getItem('presenter_state');
+    if (initial) {
+      try { updateDisplay(JSON.parse(initial)); } catch (err) {}
+    }
+  </script>
+</body>
+</html>

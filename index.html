@@ -59,6 +59,7 @@
         <a href="#ourministries">Ministries</a>
         <a href="#gallery">Gallery</a>
         <a href="#events">Events</a>
+        <a href="bible.html">Bible</a>
         <a href="#contact">Contact</a>
         <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
           <span class="theme-icon"></span>
@@ -522,7 +523,7 @@
           <h3>Register for <span id="event-name"></span></h3>
           <p class="muted">We'll save your spot. You'll hear from us shortly.</p>
         </div>
-        <form id="event-form" action="https://formspree.io/f/movdlber" method="POST" class="form">
+        <form id="event-form" class="form">
           <label class="field">
             <span class="field-label">Full Name</span>
             <input type="text" name="name" placeholder="Your full name" required>
@@ -535,13 +536,20 @@
             <span class="field-label">Phone</span>
             <input type="tel" name="phone" placeholder="+91 9xxxx xxxxx" required>
           </label>
+          <p id="reg-error" class="error-text" style="display:none;">Something went wrong. Please try again.</p>
           <div class="reg-actions">
             <button type="button" class="btn btn-ghost" onclick="closeRegistration()">Cancel</button>
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" id="reg-submit-btn">
               Confirm Registration <span class="btn-arrow" aria-hidden="true">&rarr;</span>
             </button>
           </div>
         </form>
+        <div id="reg-success" class="reg-success" style="display:none;">
+          <div class="reg-success-icon">✓</div>
+          <h3>You're registered!</h3>
+          <p class="muted">We've saved your spot for <strong id="reg-success-event"></strong>.<br>See you there! 🙏</p>
+          <button class="btn btn-primary" onclick="closeRegistration()" style="margin-top:18px;">Done</button>
+        </div>
       </div>
     </div>
 
@@ -633,6 +641,7 @@
             <li><a href="#ourministries">Ministries</a></li>
             <li><a href="#gallery">Gallery</a></li>
             <li><a href="#events">Events</a></li>
+            <li><a href="bible.html">Bible</a></li>
             <li><a href="#contact">Contact Us</a></li>
           </ul>
         </div>
@@ -651,6 +660,35 @@
       <p class="small muted">&copy; <span id="year"></span> Bethel Full Gospel Church. All rights reserved.</p>
     </div>
   </footer>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { getStorage } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-storage.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBwlAFcnTEMB6BR7ggxYE6zW-50DbWUhP8",
+      authDomain: "bfgc-website.firebaseapp.com",
+      projectId: "bfgc-website",
+      storageBucket: "bfgc-website.firebasestorage.app",
+      messagingSenderId: "547547229174",
+      appId: "1:547547229174:web:c5685fc38d342f97e3f5d7",
+      measurementId: "G-E91HYC7ZZF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const storage = getStorage(app);
+
+    // Expose on window so script.js (non-module) can access them later
+    window.firebase = { app, analytics, db, auth, storage, collection, addDoc, serverTimestamp };
+    window.dispatchEvent(new Event("firebase-ready"));
+  </script>
 
   <script src="script.js"></script>
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>

@@ -402,6 +402,22 @@
     const reg = $("#event-registration");
     const span = $("#event-name");
     if (span) span.textContent = name;
+
+    // Reset to form view (in case previous submit showed success)
+    const form = $("#event-form");
+    const success = $("#reg-success");
+    const errMsg = $("#reg-error");
+    if (form) { form.style.display = ""; form.reset(); }
+    if (success) success.style.display = "none";
+    if (errMsg) errMsg.style.display = "none";
+
+    // Reset submit button
+    const btn = $("#reg-submit-btn");
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = 'Confirm Registration <span class="btn-arrow" aria-hidden="true">&rarr;</span>';
+    }
+
     if (reg) {
       reg.classList.add("is-open");
       document.body.style.overflow = "hidden";
@@ -412,6 +428,81 @@
     if (reg) reg.classList.remove("is-open");
     document.body.style.overflow = "";
   };
+
+  /* =========================================================
+     Firebase: Save event registrations to Firestore
+     ========================================================= */
+  window.addEventListener("firebase-ready", () => {
+    const form = document.getElementById("event-form");
+    if (!form) return;
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const { db, collection, addDoc, serverTimestamp } = window.firebase;
+      if (!db) { console.error("Firebase not ready"); return; }
+
+      const eventName = (document.getElementById("event-name")?.textContent || "").trim();
+      const name = form.querySelector('[name="name"]').value.trim();
+      const email = form.querySelector('[name="email"]').value.trim();
+      const phone = form.querySelector('[name="phone"]').value.trim();
+
+      const submitBtn = document.getElementById("reg-submit-btn");
+      const errMsg = document.getElementById("reg-error");
+      const originalHTML = submitBtn.innerHTML;
+
+      // Disable + show loading
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;">Saving\u2026</span>';
+      if (errMsg) errMsg.style.display = "none";
+
+      try {
+        // Save to Firestore
+        await addDoc(collection(db, "registrations"), {
+          eventName,
+          name,
+          email: email || null,
+          phone,
+          createdAt: serverTimestamp()
+        });
+
+        // Also send to Formspree in the background (does not redirect or show Formspree's thank you page)
+        try {
+          await fetch("https://formspree.io/f/movdlber", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Accept": "application/json"
+            },
+            body: JSON.stringify({
+              event: eventName,
+              name: name,
+              email: email || "N/A",
+              phone: phone
+            })
+          });
+        } catch (formspreeErr) {
+          console.warn("Formspree backup submission failed:", formspreeErr);
+        }
+
+        // Show success state
+        form.style.display = "none";
+        const success = document.getElementById("reg-success");
+        const successEvent = document.getElementById("reg-success-event");
+        if (successEvent) successEvent.textContent = eventName;
+        if (success) success.style.display = "block";
+
+      } catch (err) {
+        console.error("Registration error:", err);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalHTML;
+        if (errMsg) {
+          errMsg.textContent = "Something went wrong. Please try again.";
+          errMsg.style.display = "block";
+        }
+      }
+    });
+  });
 
   /* =========================================================
      Gallery modal — Photos / Videos tab switching
