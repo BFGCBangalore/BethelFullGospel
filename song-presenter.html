@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Presenter — Bethel Full Gospel Church</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400;500;600&display=swap');
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0b0f1a;
+            --text: #ffffff;
+            --muted: rgba(255,255,255,0.4);
+            --highlight: #6c5cff;
+            --transition-speed: 0.5s;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            cursor: none;
+        }
+
+        body.controls-visible {
+            cursor: default;
+        }
+
+        /* ── Subtle animated gradient background ── */
+        .bg-gradient {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% 45%, rgba(108,92,255,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 40% at 20% 80%, rgba(108,92,255,0.03) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 80% 20%, rgba(108,92,255,0.03) 0%, transparent 60%);
+            animation: bgPulse 12s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgPulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        /* ── Church logo watermark ── */
+        .watermark-logo {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            width: 280px;
+            height: 280px;
+            opacity: 0.04;
+            pointer-events: none;
+            filter: grayscale(100%) brightness(2);
+            transition: opacity 1s ease;
+        }
+
+        .watermark-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* ── Church name watermark ── */
+        .watermark-name {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
+            font-family: 'Fraunces', serif;
+            font-size: 1em;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.06);
+            pointer-events: none;
+            white-space: nowrap;
+            transition: opacity 1s ease;
+        }
+
+        /* ── Main content area ── */
+        .presenter-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 80px;
+        }
+
+        /* ── Slide label (Verse 1, Chorus, etc.) ── */
+        .slide-label {
+            font-family: 'Fraunces', serif;
+            font-size: 2.5em;
+            font-weight: 500;
+            color: var(--highlight);
+            margin-bottom: 0.4em;
+            letter-spacing: 0.04em;
+            text-transform: capitalize;
+            opacity: 0;
+            transform: translateY(-12px);
+            transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+        }
+
+        .slide-label.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── Lyrics blocks ── */
+        .lyrics-block {
+            text-align: center;
+            line-height: 1.55;
+            max-width: 90%;
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease;
+        }
+
+        .lyrics-block.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .lyrics-en {
+            font-size: 3.5em;
+            font-weight: 500;
+            color: var(--text);
+            text-shadow: 0 2px 20px rgba(0,0,0,0.5), 0 0 60px rgba(108,92,255,0.08);
+            margin-bottom: 0.35em;
+        }
+
+        .lyrics-kn,
+        .lyrics-hi {
+            font-size: 3em;
+            font-weight: 400;
+            color: rgba(255,255,255,0.78);
+            text-shadow: 0 2px 16px rgba(0,0,0,0.4);
+            margin-bottom: 0.3em;
+        }
+
+        .lyrics-divider {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--highlight), transparent);
+            margin: 0.3em auto 0.5em;
+            border-radius: 2px;
+            opacity: 0.5;
+        }
+
+        /* ── Waiting / idle state ── */
+        .waiting-message {
+            font-family: 'Fraunces', serif;
+            font-size: 2em;
+            color: var(--muted);
+            text-align: center;
+            letter-spacing: 0.04em;
+            opacity: 0;
+            transform: scale(0.97);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .waiting-message.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .waiting-message .dot-pulse {
+            display: inline-block;
+            animation: dotPulse 1.8s ease-in-out infinite;
+        }
+
+        .waiting-message .dot-pulse:nth-child(2) { animation-delay: 0.2s; }
+        .waiting-message .dot-pulse:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes dotPulse {
+            0%, 80%, 100% { opacity: 0.2; }
+            40% { opacity: 1; }
+        }
+
+        /* ── Blank screen overlay ── */
+        .blank-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: var(--bg);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+
+        .blank-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* ── Controls bar (hover) ── */
+        .controls-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px 24px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            pointer-events: none;
+        }
+
+        .controls-bar.visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .ctrl-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(108,92,255,0.25);
+            color: #fff;
+            transform: scale(1.08);
+        }
+
+        .ctrl-btn:active {
+            transform: scale(0.95);
+        }
+
+        .ctrl-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .ctrl-divider {
+            width: 1px;
+            height: 28px;
+            background: rgba(255,255,255,0.12);
+            margin: 0 4px;
+        }
+
+        .ctrl-hint {
+            font-size: 0.7em;
+            color: rgba(255,255,255,0.3);
+            margin-left: 12px;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Song title in top-left (hover) ── */
+        .song-title-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            padding: 20px 32px;
+            background: linear-gradient(rgba(0,0,0,0.6), transparent);
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            pointer-events: none;
+        }
+
+        .song-title-bar.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .song-title-text {
+            font-family: 'Fraunces', serif;
+            font-size: 1.15em;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 0.02em;
+        }
+
+        /* ── Keyboard shortcut toast ── */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            z-index: 300;
+            padding: 16px 32px;
+            background: rgba(108,92,255,0.2);
+            border: 1px solid rgba(108,92,255,0.3);
+            border-radius: 14px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.2em;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background gradient -->
+    <div class="bg-gradient"></div>
+
+    <!-- Church logo watermark -->
+    <div class="watermark-logo">
+        <img src="logo.png" alt="" aria-hidden="true">
+    </div>
+
+    <!-- Church name watermark -->
+    <div class="watermark-name">Bethel Full Gospel Church</div>
+
+    <!-- Blank screen overlay -->
+    <div class="blank-overlay" id="blankOverlay"></div>
+
+    <!-- Song title bar (appears on hover) -->
+    <div class="song-title-bar" id="songTitleBar">
+        <div class="song-title-text" id="songTitleText"></div>
+    </div>
+
+    <!-- Main content -->
+    <div class="presenter-container" id="presenterContainer">
+        <!-- Slide label -->
+        <div class="slide-label" id="slideLabel"></div>
+
+        <!-- Lyrics content -->
+        <div id="lyricsContent"></div>
+
+        <!-- Waiting message -->
+        <div class="waiting-message" id="waitingMessage">
+            Waiting for song selection<span class="dot-pulse">.</span><span class="dot-pulse">.</span><span class="dot-pulse">.</span>
+        </div>
+    </div>
+
+    <!-- Controls bar -->
+    <div class="controls-bar" id="controlsBar">
+        <button class="ctrl-btn" id="btnPrev" title="Previous slide (←)">
+            <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        </button>
+        <button class="ctrl-btn" id="btnNext" title="Next slide (→ / Space)">
+            <svg viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+        </button>
+        <div class="ctrl-divider"></div>
+        <button class="ctrl-btn" id="btnBlank" title="Blank screen (B)">
+            <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+        </button>
+        <button class="ctrl-btn" id="btnFullscreen" title="Fullscreen (F)">
+            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+        </button>
+        <span class="ctrl-hint">← → Space &nbsp;|&nbsp; F fullscreen &nbsp;|&nbsp; B blank</span>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        /* ══════════════════════════════════════════
+           Song Presenter — Bethel Full Gospel Church
+           ══════════════════════════════════════════ */
+
+        const STORAGE_KEY = 'song_presenter_state';
+        const CONTROLS_TIMEOUT = 2000;
+
+        // DOM refs
+        const slideLabel = document.getElementById('slideLabel');
+        const lyricsContent = document.getElementById('lyricsContent');
+        const waitingMessage = document.getElementById('waitingMessage');
+        const blankOverlay = document.getElementById('blankOverlay');
+        const controlsBar = document.getElementById('controlsBar');
+        const songTitleBar = document.getElementById('songTitleBar');
+        const songTitleText = document.getElementById('songTitleText');
+        const toast = document.getElementById('toast');
+        const btnPrev = document.getElementById('btnPrev');
+        const btnNext = document.getElementById('btnNext');
+        const btnBlank = document.getElementById('btnBlank');
+        const btnFullscreen = document.getElementById('btnFullscreen');
+
+        let controlsTimer = null;
+        let toastTimer = null;
+        let isBlank = false;
+        let currentState = null;
+
+        /* ── Toast ── */
+        function showToast(message, duration = 1200) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), duration);
+        }
+
+        /* ── Controls visibility ── */
+        function showControls() {
+            controlsBar.classList.add('visible');
+            songTitleBar.classList.add('visible');
+            document.body.classList.add('controls-visible');
+            clearTimeout(controlsTimer);
+            controlsTimer = setTimeout(hideControls, CONTROLS_TIMEOUT);
+        }
+
+        function hideControls() {
+            controlsBar.classList.remove('visible');
+            songTitleBar.classList.remove('visible');
+            document.body.classList.remove('controls-visible');
+        }
+
+        document.addEventListener('mousemove', showControls);
+        document.addEventListener('mousedown', showControls);
+
+        /* ── Fullscreen ── */
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+                showToast('Fullscreen');
+            } else {
+                document.exitFullscreen();
+                showToast('Exited Fullscreen');
+            }
+        }
+
+        /* ── Blank screen ── */
+        function toggleBlank() {
+            isBlank = !isBlank;
+            blankOverlay.classList.toggle('active', isBlank);
+            showToast(isBlank ? 'Screen Blanked' : 'Screen Restored');
+        }
+
+        /* ── Convert \n to <br> ── */
+        function nl2br(str) {
+            if (!str) return '';
+            return str.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+        }
+
+        /* ── Render lyrics ── */
+        function renderPresenter(state) {
+            currentState = state;
+
+            if (!state) {
+                // No data — show waiting
+                slideLabel.classList.remove('visible');
+                slideLabel.textContent = '';
+
+                // Fade out lyrics
+                const blocks = lyricsContent.querySelectorAll('.lyrics-block');
+                blocks.forEach(b => b.classList.remove('visible'));
+
+                setTimeout(() => {
+                    lyricsContent.innerHTML = '';
+                    waitingMessage.classList.add('visible');
+                }, blocks.length ? 400 : 0);
+
+                songTitleText.textContent = '';
+                return;
+            }
+
+            waitingMessage.classList.remove('visible');
+
+            const scaleFactor = (state.fontSize || 13) / 13;
+
+            // Song title in hover bar
+            songTitleText.textContent = state.songTitle || '';
+
+            // Determine which languages to show
+            const lang = state.lang || 'en';
+            const showEn = lang === 'en' || lang === 'en+kn' || lang === 'en+hi' || lang === 'all';
+            const showKn = lang === 'kn' || lang === 'en+kn' || lang === 'all';
+            const showHi = lang === 'hi' || lang === 'en+hi' || lang === 'all';
+
+            // Build slide label
+            if (state.slideLabel) {
+                slideLabel.textContent = state.slideLabel;
+                slideLabel.style.fontSize = `${2.5 * scaleFactor}em`;
+                // Trigger reflow for re-animation
+                slideLabel.classList.remove('visible');
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        slideLabel.classList.add('visible');
+                    });
+                });
+            } else {
+                slideLabel.classList.remove('visible');
+                slideLabel.textContent = '';
+            }
+
+            // Build lyrics HTML
+            let html = '';
+            let blockIndex = 0;
+
+            if (showEn && state.en) {
+                html += `<div class="lyrics-block lyrics-en" style="font-size:${3.5 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.en)}</div>`;
+                blockIndex++;
+            }
+
+            if (showEn && showKn && state.en && state.kn) {
+                html += `<div class="lyrics-divider" style="transition-delay:${blockIndex * 0.08}s"></div>`;
+            }
+
+            if (showKn && state.kn) {
+                html += `<div class="lyrics-block lyrics-kn" style="font-size:${3 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.kn)}</div>`;
+                blockIndex++;
+            }
+
+            if ((showEn || showKn) && showHi && state.hi && (state.en || state.kn)) {
+                html += `<div class="lyrics-divider" style="transition-delay:${blockIndex * 0.08}s"></div>`;
+            }
+
+            if (showHi && state.hi) {
+                html += `<div class="lyrics-block lyrics-hi" style="font-size:${3 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.hi)}</div>`;
+                blockIndex++;
+            }
+
+            // Fade out existing, then replace
+            const existingBlocks = lyricsContent.querySelectorAll('.lyrics-block');
+            existingBlocks.forEach(b => b.classList.remove('visible'));
+
+            // Apply alignment from control panel
+            lyricsContent.style.textAlign = state.align || 'center';
+
+            setTimeout(() => {
+                lyricsContent.innerHTML = html;
+
+                // Trigger fade-in
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        const newBlocks = lyricsContent.querySelectorAll('.lyrics-block');
+                        newBlocks.forEach(b => b.classList.add('visible'));
+                    });
+                });
+            }, existingBlocks.length ? 350 : 0);
+        }
+
+        /* ── Read state from localStorage ── */
+        function readState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return null;
+                return JSON.parse(raw);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        /* ── Listen for storage changes ── */
+        window.addEventListener('storage', (e) => {
+            if (e.key === STORAGE_KEY || e.key === null) {
+                renderPresenter(readState());
+            }
+        });
+
+        // Also poll periodically for same-tab changes
+        let lastStateJSON = '';
+        setInterval(() => {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw !== lastStateJSON) {
+                lastStateJSON = raw;
+                renderPresenter(readState());
+            }
+        }, 300);
+
+        /* ── Keyboard shortcuts ── */
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+
+            if (key === 'f') {
+                e.preventDefault();
+                toggleFullscreen();
+            } else if (key === 'b') {
+                e.preventDefault();
+                toggleBlank();
+            } else if (key === 'arrowright' || key === ' ') {
+                e.preventDefault();
+                // Dispatch next slide event to control page
+                localStorage.setItem('song_presenter_nav', JSON.stringify({ action: 'next', ts: Date.now() }));
+                showToast('Next →');
+            } else if (key === 'arrowleft') {
+                e.preventDefault();
+                localStorage.setItem('song_presenter_nav', JSON.stringify({ action: 'prev', ts: Date.now() }));
+                showToast('← Previous');
+            } else if (key === 'escape') {
+                if (isBlank) {
+                    toggleBlank();
+                }
+            }
+        });
+
+        /* ── Button clicks ── */
+        btnPrev.addEventListener('click', () => {
+            localStorage.setItem('song_presenter_nav', JSON.stringify({ action: 'prev', ts: Date.now() }));
+            showToast('← Previous');
+        });
+
+        btnNext.addEventListener('click', () => {
+            localStorage.setItem('song_presenter_nav', JSON.stringify({ action: 'next', ts: Date.now() }));
+            showToast('Next →');
+        });
+
+        btnBlank.addEventListener('click', toggleBlank);
+        btnFullscreen.addEventListener('click', toggleFullscreen);
+
+        /* ── Initial render ── */
+        renderPresenter(readState());
+        lastStateJSON = localStorage.getItem(STORAGE_KEY);
+    </script>
+</body>
+</html>

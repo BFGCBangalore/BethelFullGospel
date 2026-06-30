@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sunday Service — Bethel Full Gospel Church</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --color-background-primary: #ffffff;
+      --color-background-secondary: #f8f9fa;
+      --color-background-tertiary: #f1f3f5;
+      --color-border-secondary: #e9ecef;
+      --color-border-tertiary: #dee2e6;
+      --color-text-primary: #212529;
+      --color-text-secondary: #6c757d;
+      --border-radius-md: 8px;
+      --border-radius-lg: 12px;
+      --primary-color: #534AB7;
+      --primary-hover: #3C3489;
+      --primary-light: #EEEDFE;
+      --danger-color: #E24B4A;
+      --danger-light: #FCEBEB;
+      --success-color: #3B6D11;
+      --success-light: #EAF3DE;
+      --warning-color: #854F0B;
+      --warning-light: #FAEEDA;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--color-background-secondary);
+      color: var(--color-text-primary);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ========== AUTH SCREEN ========== */
+    .auth-wrapper {
+      display: none;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #e8e5fc 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-wrapper::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(83,74,183,0.08) 0%, transparent 70%);
+      top: -100px; right: -100px;
+      border-radius: 50%;
+    }
+    .auth-wrapper::after {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(83,74,183,0.06) 0%, transparent 70%);
+      bottom: -80px; left: -80px;
+      border-radius: 50%;
+    }
+    .auth-wrapper.active { display: flex; }
+
+    .auth-card {
+      background: var(--color-background-primary);
+      padding: 48px 40px;
+      border-radius: 20px;
+      border: 1px solid rgba(0,0,0,0.06);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(83,74,183,0.1), 0 1px 3px rgba(0,0,0,0.04);
+      position: relative;
+      z-index: 1;
+      animation: cardIn 0.5s ease;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .auth-logo img { height: 64px; margin-bottom: 20px; filter: drop-shadow(0 2px 8px rgba(83,74,183,0.15)); }
+    .auth-card h2 { font-size: 22px; font-weight: 600; margin-bottom: 6px; color: var(--color-text-primary); }
+    .auth-sub { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 28px; }
+    .input-group { text-align: left; margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: var(--color-text-secondary); }
+    .input-group input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-md);
+      font-family: inherit;
+      font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      background: var(--color-background-secondary);
+    }
+    .input-group input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(83,74,183,0.1); background: #fff; }
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      font-family: inherit;
+      margin-top: 8px;
+    }
+    .btn-login:hover { background: var(--primary-hover); }
+    .btn-login:active { transform: scale(0.98); }
+    .error-msg { color: #d32f2f; font-size: 12px; margin-top: 12px; background: #fcebeb; padding: 8px 12px; border-radius: var(--border-radius-md); }
+
+    /* Premium Help Desk Button */
+    .help-desk-btn {
+      display: flex; align-items: center; gap: 12px;
+      margin: 28px auto 0; padding: 8px 20px 8px 8px; width: fit-content;
+      background: var(--color-background-secondary);
+      border: 1px solid var(--color-border-tertiary); border-radius: 999px;
+      text-decoration: none; transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .help-desk-btn:hover {
+      background: #fff; box-shadow: 0 12px 30px rgba(34, 197, 94, 0.12), 0 4px 10px rgba(34, 197, 94, 0.05);
+      border-color: rgba(34, 197, 94, 0.3); transform: translateY(-2px);
+    }
+    .hdb-avatars { position: relative; display: flex; align-items: center; justify-content: center; }
+    .hdb-pic { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .hdb-icon {
+      position: absolute; bottom: -4px; right: -6px; width: 22px; height: 22px;
+      background: #22c55e; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      border: 2px solid #fff; font-size: 12px; box-shadow: 0 2px 6px rgba(34, 197, 94, 0.3);
+    }
+    .hdb-info { display: flex; flex-direction: column; text-align: left; justify-content: center; }
+    .hdb-title { font-size: 11px; color: var(--color-text-secondary); line-height: 1.3; }
+    .hdb-subtitle { font-size: 13px; font-weight: 600; color: var(--color-text-primary); line-height: 1.3; transition: color 0.2s; }
+    .help-desk-btn:hover .hdb-subtitle { color: #15803d; }
+
+    /* ========== DASHBOARD LAYOUT ========== */
+    .d {
+      display: none;
+      grid-template-columns: 220px 1fr;
+      height: 100vh;
+      background: var(--color-background-tertiary);
+      overflow: hidden;
+      transition: grid-template-columns 0.3s ease;
+    }
+    .d.sidebar-collapsed { grid-template-columns: 0px 1fr; }
+    .d.sidebar-collapsed .sidebar { padding: 0; border: none; }
+    .d.active { display: grid; }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--color-background-primary);
+      border-right: 0.5px solid var(--color-border-tertiary);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+    }
+    .sb-brand { padding: 16px 16px 14px; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; gap: 10px; }
+    .sb-logo { width: 34px; height: 34px; border-radius: 10px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sb-logo i { font-size: 18px; color: var(--primary-color); }
+    .sb-name { font-size: 13px; font-weight: 600; color: var(--color-text-primary); line-height: 1.3; }
+    .sb-sub { font-size: 10px; color: var(--color-text-secondary); }
+    .sb-nav { padding: 12px 10px; flex: 1; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+    .nav-section-label { font-size: 10px; font-weight: 600; color: var(--color-text-secondary); letter-spacing: .08em; text-transform: uppercase; padding: 12px 8px 4px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 9px; padding: 8px 10px;
+      border-radius: var(--border-radius-md); font-size: 13px; color: var(--color-text-secondary);
+      cursor: pointer; border: none; background: none; font-family: var(--font-sans);
+      width: 100%; text-align: left; transition: all 0.15s; text-decoration: none;
+    }
+    .nav-item:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+    .nav-item.active { background: var(--primary-light); color: var(--primary-hover); font-weight: 500; }
+    .nav-item i { font-size: 17px; flex-shrink: 0; }
+    .sb-bottom { padding: 10px; border-top: 0.5px solid var(--color-border-tertiary); }
+    .sb-user { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: var(--border-radius-md); transition: background 0.15s; }
+    .sb-user:hover { background: var(--color-background-secondary); }
+    .sb-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--primary-light); color: var(--primary-hover); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sb-uname { font-size: 11px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sb-urole { font-size: 10px; color: var(--color-text-secondary); }
+    
+    .developer-tag {
+      display: flex; align-items: center; gap: 10px; padding: 10px; margin-bottom: 8px;
+      border-radius: var(--border-radius-md); background: #f0fdf4; border: 1px solid #bbf7d0;
+      color: #166534; transition: all 0.2s; cursor: pointer; text-decoration: none;
+    }
+    .developer-tag:hover { background: #dcfce7; transform: translateY(-1px); }
+    .developer-tag img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #86efac; }
+    .developer-tag .dev-title { font-size: 11px; font-weight: 600; line-height: 1.2; color: #166534; }
+    .developer-tag .dev-sub { font-size: 10px; color: #15803d; opacity: 0.9; margin-top: 2px; }
+    .developer-tag i { font-size: 18px; color: #22c55e; margin-left: auto; }
+
+    /* Main Content Area */
+    .main { display: flex; flex-direction: column; min-width: 0; height: 100vh; }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px; background: var(--color-background-primary);
+      border-bottom: 0.5px solid var(--color-border-tertiary);
+    }
+    .tb-left { display: flex; align-items: center; gap: 12px; }
+    .tb-title { font-size: 16px; font-weight: 600; color: var(--color-text-primary); }
+    .tb-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+    .tb-right { display: flex; align-items: center; gap: 10px; }
+    .date-badge { font-size: 11px; color: var(--color-text-secondary); background: var(--color-background-secondary); padding: 5px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); }
+    .content { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; flex: 1; }
+
+    /* View Toggle */
+    .view-section { display: none; animation: fadeIn 0.3s ease; }
+    .view-section.active { display: flex; flex-direction: column; gap: 14px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ========== SEARCH & FILTERS ========== */
+    .search-bar {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--color-background-primary);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 8px 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-bar:focus-within { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(83,74,183,0.08); }
+    .search-bar i { color: var(--color-text-secondary); font-size: 18px; flex-shrink: 0; }
+    .search-bar input {
+      flex: 1; border: none; outline: none; font-family: inherit; font-size: 14px;
+      background: transparent; color: var(--color-text-primary);
+    }
+    .search-bar input::placeholder { color: #adb5bd; }
+
+    .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-pill {
+      padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--color-border-tertiary); background: var(--color-background-primary);
+      color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s;
+      font-family: inherit;
+    }
+    .filter-pill:hover { border-color: var(--primary-color); color: var(--primary-color); }
+    .filter-pill.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+    /* ========== SONG CARDS ========== */
+    .song-grid { display: flex; flex-direction: column; gap: 6px; }
+    .song-card {
+      display: flex; align-items: center; gap: 14px;
+      background: var(--color-background-primary);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 14px 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .song-card:hover { border-color: var(--primary-color); box-shadow: 0 2px 12px rgba(83,74,183,0.08); transform: translateY(-1px); }
+    .song-icon {
+      width: 42px; height: 42px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 18px;
+    }
+    .song-info { flex: 1; min-width: 0; }
+    .song-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
+    .song-meta { font-size: 11px; color: var(--color-text-secondary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .song-meta .tag { background: var(--color-background-secondary); padding: 1px 8px; border-radius: 999px; font-size: 10px; }
+    .song-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .song-actions button {
+      width: 32px; height: 32px; border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md);
+      background: var(--color-background-primary); cursor: pointer; display: flex; align-items: center;
+      justify-content: center; color: var(--color-text-secondary); transition: all 0.15s; font-size: 14px;
+    }
+    .song-actions button:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+    .song-actions .btn-del:hover { background: var(--danger-light); color: var(--danger-color); border-color: #f09595; }
+
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--color-text-secondary);
+      background: var(--color-background-primary); border-radius: var(--border-radius-lg);
+      border: 1px dashed var(--color-border-tertiary);
+    }
+    .empty-state i { font-size: 40px; margin-bottom: 12px; display: block; opacity: 0.4; }
+    .empty-state p { font-size: 14px; margin-bottom: 6px; }
+    .empty-state .sub { font-size: 12px; }
+
+    /* ========== ADD/EDIT SONG FORM ========== */
+    .form-panel {
+      background: var(--color-background-primary);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 24px;
+    }
+    .form-panel h3 { font-size: 16px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .form-field { display: flex; flex-direction: column; gap: 5px; }
+    .form-field label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); }
+    .form-field input, .form-field select, .form-field textarea {
+      padding: 10px 12px; border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md);
+      font-family: inherit; font-size: 13px; transition: border-color 0.2s, box-shadow 0.2s;
+      background: var(--color-background-secondary);
+    }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+      outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(83,74,183,0.08); background: #fff;
+    }
+    .form-field textarea { resize: vertical; min-height: 80px; line-height: 1.5; }
+
+    .slide-block {
+      background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg); padding: 18px; margin-bottom: 12px;
+      position: relative; animation: fadeIn 0.3s ease;
+    }
+    .slide-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .slide-label { font-size: 13px; font-weight: 600; color: var(--primary-color); display: flex; align-items: center; gap: 6px; }
+    .slide-remove {
+      width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--color-border-tertiary);
+      background: var(--color-background-primary); cursor: pointer; display: flex; align-items: center;
+      justify-content: center; color: var(--color-text-secondary); transition: all 0.15s; font-size: 13px;
+    }
+    .slide-remove:hover { background: var(--danger-light); color: var(--danger-color); border-color: #f09595; }
+
+    .btn-add-slide {
+      width: 100%; padding: 10px; border: 2px dashed var(--color-border-tertiary); border-radius: var(--border-radius-md);
+      background: transparent; color: var(--color-text-secondary); font-family: inherit; font-size: 13px;
+      font-weight: 500; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-add-slide:hover { border-color: var(--primary-color); color: var(--primary-color); background: rgba(83,74,183,0.03); }
+
+    .btn-save {
+      padding: 12px 32px; background: var(--primary-color); color: white; border: none;
+      border-radius: var(--border-radius-md); font-size: 14px; font-weight: 500; cursor: pointer;
+      transition: all 0.2s; font-family: inherit; display: flex; align-items: center; gap: 8px;
+    }
+    .btn-save:hover { background: var(--primary-hover); }
+    .btn-save:active { transform: scale(0.97); }
+    .btn-cancel {
+      padding: 12px 24px; background: var(--color-background-secondary); color: var(--color-text-secondary);
+      border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md);
+      font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit;
+    }
+    .btn-cancel:hover { background: var(--color-background-tertiary); }
+
+    /* ========== LIVE CONTROL ========== */
+    .live-panel {
+      display: none;
+      background: var(--color-background-primary);
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      overflow: hidden;
+      animation: fadeIn 0.3s ease;
+    }
+    .live-panel.active { display: flex; flex-direction: column; }
+    .live-body { display: flex; flex: 1; min-height: 0; }
+
+    /* Slide Sidebar */
+    .slide-sidebar {
+      width: 220px; min-width: 220px; border-right: 1px solid var(--color-border-tertiary);
+      overflow-y: auto; background: var(--color-background-secondary); padding: 10px;
+      display: flex; flex-direction: column; gap: 6px; max-height: 420px;
+    }
+    .slide-sidebar::-webkit-scrollbar { width: 4px; }
+    .slide-sidebar::-webkit-scrollbar-thumb { background: var(--color-border-tertiary); border-radius: 4px; }
+    .slide-mini {
+      padding: 10px 12px; border-radius: var(--border-radius-md); cursor: pointer;
+      border: 1.5px solid var(--color-border-tertiary); background: var(--color-background-primary);
+      transition: all 0.15s; text-align: left; font-family: inherit;
+    }
+    .slide-mini:hover { border-color: var(--primary-color); }
+    .slide-mini.active { border-color: var(--primary-color); background: var(--primary-light); }
+    .slide-mini.paused-on { border-color: #f59e0b; background: #fffbeb; }
+    .slide-mini-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--primary-color); margin-bottom: 4px;
+    }
+    .slide-mini.chorus .slide-mini-label { color: #7c3aed; }
+    .slide-mini.bridge .slide-mini-label { color: #2563eb; }
+    .slide-mini-text {
+      font-size: 11px; color: var(--color-text-secondary); line-height: 1.4;
+      display: -webkit-box; display: box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; box-orient: vertical; overflow: hidden; word-break: break-word; max-height: 2.8em;
+    }
+    .live-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    /* Pause badge */
+    .pause-badge {
+      display: none; position: absolute; top: 12px; right: 12px; z-index: 5;
+      background: #ef4444; color: white; padding: 4px 12px; border-radius: 999px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+      animation: pausePulse 1.5s ease-in-out infinite;
+    }
+    .pause-badge.active { display: flex; align-items: center; gap: 5px; }
+    @keyframes pausePulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .live-preview.paused { border: 2px solid #f59e0b; }
+    .nav-btn.btn-pause { color: #f59e0b; }
+    .nav-btn.btn-pause:hover { background: #fffbeb; border-color: #f59e0b; }
+    .nav-btn.btn-resume { background: #22c55e; color: white; border-color: #22c55e; }
+    .nav-btn.btn-resume:hover { background: #16a34a; }
+    @media (max-width: 768px) {
+      .live-body { flex-direction: column; }
+      .slide-sidebar { width: 100%; min-width: 100%; max-height: 150px; flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+      .slide-mini { min-width: 140px; }
+    }
+    .live-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--color-border-tertiary);
+      display: flex; align-items: center; justify-content: space-between;
+      background: linear-gradient(135deg, #f8f7ff, #f3f1ff);
+    }
+    .live-song-title { font-size: 16px; font-weight: 600; color: var(--color-text-primary); }
+    .live-controls-row {
+      padding: 14px 20px; border-bottom: 1px solid var(--color-border-tertiary);
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    }
+    .lang-toggle { display: flex; gap: 0; border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); overflow: hidden; }
+    .lang-btn {
+      padding: 6px 14px; border: none; background: var(--color-background-primary);
+      font-family: inherit; font-size: 12px; font-weight: 500; color: var(--color-text-secondary);
+      cursor: pointer; transition: all 0.15s; border-right: 1px solid var(--color-border-tertiary);
+    }
+    .lang-btn:last-child { border-right: none; }
+    .lang-btn:hover { background: var(--color-background-secondary); }
+    .lang-btn.active { background: var(--primary-color); color: white; }
+
+    .font-controls { display: flex; align-items: center; gap: 6px; }
+    .font-btn {
+      width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--color-border-tertiary);
+      background: var(--color-background-primary); cursor: pointer; font-family: inherit;
+      font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; color: var(--color-text-secondary);
+    }
+    .font-btn:hover { background: var(--color-background-secondary); }
+    .font-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+    .font-label { font-size: 11px; color: var(--color-text-secondary); min-width: 32px; text-align: center; }
+
+    .live-slide-search {
+      display: flex; align-items: center; gap: 8px; padding: 10px 20px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+      background: var(--color-background-primary);
+    }
+    .live-slide-search i { color: var(--color-text-secondary); font-size: 16px; }
+    .live-slide-search input {
+      flex: 1; border: none; outline: none; font-size: 13px; font-family: inherit;
+      color: var(--color-text-primary); background: transparent;
+    }
+
+    .slide-tabs {
+      padding: 14px 20px; border-bottom: 1px solid var(--color-border-tertiary);
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .slide-tab {
+      padding: 6px 16px; border-radius: 999px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--color-border-tertiary); background: var(--color-background-primary);
+      color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; font-family: inherit;
+    }
+    .slide-tab:hover { border-color: var(--primary-color); color: var(--primary-color); }
+    .slide-tab.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+    .slide-tab.chorus-tab { border-color: #dab6fc; }
+    .slide-tab.chorus-tab.active { background: #7c3aed; border-color: #7c3aed; }
+    .slide-tab.bridge-tab { border-color: #b6e0fc; }
+    .slide-tab.bridge-tab.active { background: #2563eb; border-color: #2563eb; }
+
+    .live-preview {
+      background: #0b0f1a; color: white; padding: 40px; min-height: 250px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; position: relative;
+    }
+    .live-preview .preview-label {
+      font-size: 16px; color: #6c5cff; font-weight: 600; margin-bottom: 16px; letter-spacing: 0.5px;
+    }
+    .live-preview .preview-text { font-size: 22px; line-height: 1.6; font-weight: 500; }
+    .live-preview .preview-text.kn, .live-preview .preview-text.hi { opacity: 0.85; font-size: 20px; margin-top: 12px; }
+    .live-preview .preview-empty { color: rgba(255,255,255,0.3); font-style: italic; font-size: 16px; }
+
+    .live-edit-panel {
+      display: none; padding: 16px 20px; background: var(--color-background-primary);
+      border-top: 1px solid var(--color-border-tertiary); animation: cardIn 0.3s ease;
+    }
+    .live-edit-panel.active { display: block; }
+    .live-edit-panel h4 { font-size: 13px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; color: var(--primary-color); }
+    .live-edit-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .live-edit-row label { font-size: 11px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 4px; display: block; }
+    .live-edit-row textarea {
+      width: 100%; min-height: 80px; border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-md); padding: 8px 10px; font-size: 12px;
+      font-family: inherit; resize: vertical; background: var(--color-background-secondary);
+      color: var(--color-text-primary); outline: none; transition: border-color 0.15s;
+    }
+    .live-edit-row textarea:focus { border-color: var(--primary-color); }
+    .live-edit-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    @media (max-width: 768px) { .live-edit-row { grid-template-columns: 1fr; } }
+
+    .live-nav {
+      padding: 14px 20px; border-top: 1px solid var(--color-border-tertiary);
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: var(--color-background-secondary);
+    }
+    .nav-btn {
+      padding: 8px 20px; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500;
+      border: 1px solid var(--color-border-tertiary); background: var(--color-background-primary);
+      cursor: pointer; transition: all 0.15s; font-family: inherit; color: var(--color-text-primary);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-btn:hover { background: var(--primary-light); color: var(--primary-color); border-color: var(--primary-color); }
+    .nav-btn.btn-clear { color: var(--danger-color); }
+    .nav-btn.btn-clear:hover { background: var(--danger-light); border-color: #f09595; }
+    .nav-btn.btn-popout { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+    .nav-btn.btn-popout:hover { background: var(--primary-hover); }
+
+    /* ========== TOAST ========== */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast {
+      padding: 12px 20px; border-radius: var(--border-radius-md);
+      font-size: 13px; font-weight: 500; font-family: var(--font-sans);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: flex; align-items: center; gap: 8px;
+      animation: toastIn 0.3s ease; min-width: 260px;
+    }
+    .toast.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .toast.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+
+    /* ========== MODAL ========== */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000;
+      align-items: center; justify-content: center; backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      background: var(--color-background-primary); border-radius: var(--border-radius-lg);
+      padding: 28px; max-width: 420px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+      animation: cardIn 0.3s ease;
+    }
+    .modal-box h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .modal-box p { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 20px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-actions button {
+      padding: 8px 20px; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500;
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+    }
+    .modal-btn-cancel { background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); color: var(--color-text-secondary); }
+    .modal-btn-danger { background: var(--danger-color); border: none; color: white; }
+    .modal-btn-danger:hover { background: #c0302f; }
+
+    /* ========== BULK IMPORT ========== */
+    .import-zone {
+      border: 2px dashed var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
+      padding: 60px 20px;
+      text-align: center;
+      background: var(--color-background-primary);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .import-zone.dragover {
+      border-color: var(--primary-color);
+      background: var(--primary-light);
+    }
+    .import-zone i { font-size: 48px; color: var(--primary-color); margin-bottom: 16px; display: block; }
+    .import-zone h4 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .import-zone p { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px; }
+    
+    .import-preview {
+      margin-top: 20px;
+      display: none;
+    }
+    .import-preview.active { display: block; }
+    .import-preview-list {
+      max-height: 250px; overflow-y: auto; border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-md); background: var(--color-background-primary); margin-bottom: 16px;
+    }
+    .import-item { padding: 10px 14px; border-bottom: 1px solid var(--color-border-tertiary); font-size: 13px; display: flex; justify-content: space-between; }
+    .import-item:last-child { border-bottom: none; }
+
+    /* ========== FLOATING DEV WIDGET ========== */
+    .floating-dev {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      display: flex; align-items: center; gap: 12px;
+      background: white; padding: 6px; border-radius: 999px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid var(--color-border-tertiary);
+      text-decoration: none; color: var(--color-text-primary);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 64px; height: 64px; overflow: hidden;
+    }
+    .floating-dev:hover { width: 240px; box-shadow: 0 14px 45px rgba(0,0,0,0.2); }
+    .floating-dev-img {
+      width: 52px; height: 52px; border-radius: 50%; object-fit: cover;
+      flex-shrink: 0; position: relative; z-index: 2; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .floating-dev-status {
+      position: absolute; bottom: 10px; left: 44px; width: 14px; height: 14px;
+      background: #22c55e; border-radius: 50%; border: 2px solid white; z-index: 3;
+    }
+    .floating-dev-text {
+      white-space: nowrap; opacity: 0; transform: translateX(-10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex: 1;
+    }
+    .floating-dev:hover .floating-dev-text { opacity: 1; transform: translateX(0); }
+    .floating-dev-title { font-size: 13px; font-weight: 600; line-height: 1.2; color: #111827; }
+    .floating-dev-sub { font-size: 11px; color: #059669; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+    .floating-dev-sub i { font-size: 14px; }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+      .d { grid-template-columns: 0px 1fr; }
+      .d .sidebar { position: fixed; left: -260px; top: 0; bottom: 0; width: 260px; z-index: 100; transition: left 0.3s ease; box-shadow: none; }
+      .d.sidebar-open .sidebar { left: 0; box-shadow: 4px 0 20px rgba(0,0,0,0.1); }
+      .form-row { grid-template-columns: 1fr; }
+      .form-row-2 { grid-template-columns: 1fr; }
+      .live-controls-row { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div id="login-screen" class="auth-wrapper active">
+    <div class="auth-card">
+      <div class="auth-logo"><img src="logo.png" alt="BFGC Logo"></div>
+      <h2>Sunday Service</h2>
+      <p class="auth-sub">Sign in to manage worship songs & lyrics</p>
+      <form id="login-form">
+        <div class="input-group">
+          <label for="login-email">Email</label>
+          <input type="email" id="login-email" required placeholder="admin@bfgc.in">
+        </div>
+        <div class="input-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-login" id="login-btn">Sign In</button>
+        <div id="login-error" class="error-msg" style="display:none;">Wrong password! Don't try to hack, Jesus is watching!</div>
+      </form>
+      
+      <a href="https://wa.me/919591542901" target="_blank" class="help-desk-btn">
+         <div class="hdb-avatars">
+            <img src="images/developer/rahulpic.jpeg" alt="Developer" class="hdb-pic">
+            <div class="hdb-icon"><i class="ti ti-brand-whatsapp"></i></div>
+         </div>
+         <div class="hdb-info">
+            <span class="hdb-title">Having trouble?</span>
+            <span class="hdb-subtitle">Chat with developer</span>
+         </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard-screen" class="d">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sb-brand">
+        <div class="sb-logo"><i class="ti ti-music" aria-hidden="true"></i></div>
+        <div><div class="sb-name">BFGC Worship</div><div class="sb-sub">Sunday Service</div></div>
+      </div>
+      <div class="sb-nav">
+        <div class="nav-section-label">Service</div>
+        <button class="nav-item active" data-view="library"><i class="ti ti-playlist" aria-hidden="true"></i>Song Library</button>
+        <button class="nav-item" data-view="add-song"><i class="ti ti-plus" aria-hidden="true"></i>Add Song</button>
+        <button class="nav-item" data-view="import"><i class="ti ti-file-import" aria-hidden="true"></i>Bulk Import (TXT)</button>
+        <div class="nav-section-label">Presenter</div>
+        <button class="nav-item" data-view="live"><i class="ti ti-broadcast" aria-hidden="true"></i>Live Control</button>
+        <button class="nav-item" id="btn-popout-sidebar"><i class="ti ti-external-link" aria-hidden="true"></i>Pop Out Display</button>
+        <div class="nav-section-label">Navigation</div>
+        <a href="bible.html" class="nav-item" style="text-decoration:none;"><i class="ti ti-book" aria-hidden="true"></i>Bible Reader</a>
+        <a href="index.html" class="nav-item" style="text-decoration:none;"><i class="ti ti-home" aria-hidden="true"></i>Main Website</a>
+      </div>
+      <div class="sb-bottom">
+        <a href="https://wa.me/919591542901" target="_blank" class="developer-tag">
+          <img src="images/developer/rahulpic.jpeg" alt="Rahul Suresh">
+          <div style="flex:1;min-width:0;">
+            <div class="dev-title">Facing issue?</div>
+            <div class="dev-sub">Call developer</div>
+          </div>
+          <i class="ti ti-brand-whatsapp"></i>
+        </a>
+        <div class="sb-user">
+          <div class="sb-avatar">W</div>
+          <div style="flex:1;min-width:0;">
+            <div class="sb-uname" id="user-email-display">Worship Leader</div>
+            <div class="sb-urole">Service Manager</div>
+          </div>
+          <button id="logout-btn" style="background:none;border:none;color:var(--color-text-secondary);cursor:pointer;padding:4px;" title="Logout">
+            <i class="ti ti-logout" style="font-size:16px;"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <div class="tb-left">
+          <button id="sidebar-toggle" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--color-text-primary);"><i class="ti ti-menu-2"></i></button>
+          <div>
+            <div class="tb-title" id="welcome-msg">Song Library</div>
+            <div class="tb-sub" id="topbar-sub">Manage your worship songs</div>
+          </div>
+        </div>
+        <div class="tb-right">
+          <div class="date-badge" id="date-badge"></div>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- VIEW: Song Library -->
+        <div id="view-library" class="view-section active">
+          <div class="search-bar">
+            <i class="ti ti-search"></i>
+            <input type="text" id="search-input" placeholder="Search songs by title, first line, or keyword...">
+          </div>
+          <div class="filter-pills" id="filter-pills"></div>
+          <div class="song-grid" id="song-grid"></div>
+        </div>
+
+        <!-- VIEW: Add/Edit Song -->
+        <div id="view-add-song" class="view-section">
+          <div class="form-panel">
+            <h3 id="form-title"><i class="ti ti-plus" aria-hidden="true"></i> Add New Song</h3>
+            <div class="form-row">
+              <div class="form-field"><label>English Title</label><input type="text" id="f-title-en" placeholder="e.g. How Great Is Our God"></div>
+              <div class="form-field"><label>ಕನ್ನಡ Title</label><input type="text" id="f-title-kn" placeholder="e.g. ನಮ್ಮ ದೇವರು ಎಷ್ಟು ಮಹಾನ್"></div>
+              <div class="form-field"><label>हिंदी Title</label><input type="text" id="f-title-hi" placeholder="e.g. हमारा परमेश्वर कितना महान है"></div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-field"><label>Author (optional)</label><input type="text" id="f-author" placeholder="e.g. Chris Tomlin"></div>
+              <div class="form-field">
+                <label>Category</label>
+                <select id="f-category">
+                  <option value="Worship">🙏 Worship</option>
+                  <option value="Praise">🎉 Praise</option>
+                  <option value="Communion">✝️ Communion</option>
+                  <option value="Prayer">🕊️ Prayer</option>
+                  <option value="Christmas">🎄 Christmas</option>
+                  <option value="Easter">🌅 Easter</option>
+                  <option value="Children">👶 Children</option>
+                  <option value="Hymns">📖 Hymns</option>
+                  <option value="General">🎵 General</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-field" style="margin-bottom:20px;">
+              <label>Tags (comma-separated, optional)</label>
+              <input type="text" id="f-tags" placeholder="e.g. praise, sunday, fast">
+            </div>
+
+            <h3 style="font-size:14px; margin-bottom:14px;"><i class="ti ti-list" aria-hidden="true"></i> Song Slides</h3>
+            <div id="slides-container"></div>
+            <button class="btn-add-slide" id="btn-add-slide"><i class="ti ti-plus"></i> Add Slide</button>
+
+            <div style="display:flex; gap:10px; margin-top:24px; justify-content:flex-end;">
+              <button class="btn-cancel" id="btn-form-cancel">Cancel</button>
+              <button class="btn-save" id="btn-save-song"><i class="ti ti-device-floppy"></i> Save Song</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW: Bulk Import -->
+        <div id="view-import" class="view-section">
+          <div class="form-panel">
+            <h3><i class="ti ti-file-import" aria-hidden="true"></i> Bulk Import Songs</h3>
+            <p style="font-size:13px; color:var(--color-text-secondary); margin-bottom:20px;">
+              Save your PowerPoint or Word documents as <strong>Plain Text (.txt)</strong> and drag them here. 
+              The system will automatically create slides based on empty lines.
+            </p>
+            
+            <div class="import-zone" id="drop-zone">
+              <i class="ti ti-upload"></i>
+              <h4>Drag & Drop .txt files here</h4>
+              <p>or click to browse files</p>
+              <input type="file" id="file-input" multiple accept=".txt" style="display:none;">
+            </div>
+
+            <div class="import-preview" id="import-preview">
+              <h4 style="font-size:14px; margin-bottom:10px;">Ready to Import (<span id="import-count">0</span> songs)</h4>
+              <div class="import-preview-list" id="import-list"></div>
+              <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button class="btn-cancel" id="btn-import-cancel">Cancel</button>
+                <button class="btn-save" id="btn-import-save"><i class="ti ti-device-floppy"></i> Save to Database</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW: Live Control -->
+        <div id="view-live" class="view-section">
+          <div id="live-no-song" class="empty-state">
+            <i class="ti ti-broadcast"></i>
+            <p>No song selected</p>
+            <p class="sub">Go to Song Library and click a song to start presenting</p>
+          </div>
+          <div id="live-panel" class="live-panel">
+            <div class="live-header">
+              <div class="live-song-title" id="live-title">Song Title</div>
+              <button class="nav-btn btn-popout" id="btn-popout-live" title="Pop out presenter"><i class="ti ti-external-link"></i> Pop Out</button>
+            </div>
+            <div class="live-controls-row">
+              <div class="lang-toggle" id="lang-toggle">
+                <button class="lang-btn active" data-lang="en">English</button>
+                <button class="lang-btn" data-lang="kn">ಕನ್ನಡ</button>
+                <button class="lang-btn" data-lang="hi">हिंदी</button>
+                <button class="lang-btn" data-lang="en+kn">EN+KN</button>
+                <button class="lang-btn" data-lang="en+hi">EN+HI</button>
+                <button class="lang-btn" data-lang="all">All</button>
+              </div>
+              <div class="font-controls">
+                <button class="font-btn" id="font-dn">A-</button>
+                <span class="font-label" id="font-label">13px</span>
+                <button class="font-btn" id="font-up">A+</button>
+              </div>
+              <div class="font-controls" id="align-toggle">
+                <button class="font-btn active" data-align="center" title="Center"><i class="ti ti-align-center" style="font-size:14px;"></i></button>
+                <button class="font-btn" data-align="left" title="Left"><i class="ti ti-align-left" style="font-size:14px;"></i></button>
+                <button class="font-btn" data-align="right" title="Right"><i class="ti ti-align-right" style="font-size:14px;"></i></button>
+              </div>
+            </div>
+            <div class="live-body">
+              <!-- Slide Sidebar -->
+              <div class="slide-sidebar" id="slide-sidebar"></div>
+              <!-- Main Preview Area -->
+              <div class="live-main">
+                <div class="live-slide-search">
+                  <i class="ti ti-search"></i>
+                  <input type="text" id="live-search-input" placeholder="Search lyrics to find a specific slide...">
+                </div>
+                <div class="slide-tabs" id="slide-tabs"></div>
+                <div class="live-preview" id="live-preview" style="position:relative;">
+                  <div class="pause-badge" id="pause-badge"><i class="ti ti-player-pause"></i> PAUSED</div>
+                  <div class="preview-empty">Select a slide to preview</div>
+                </div>
+                <div class="live-edit-panel" id="live-edit-panel">
+                  <h4><i class="ti ti-pencil"></i> Quick Edit Slide</h4>
+                  <div class="live-edit-row">
+                    <div>
+                      <label>English</label>
+                      <textarea id="live-edit-en" placeholder="English lyrics..."></textarea>
+                    </div>
+                    <div>
+                      <label>ಕನ್ನಡ</label>
+                      <textarea id="live-edit-kn" placeholder="ಕನ್ನಡ ಸಾಹಿತ್ಯ..."></textarea>
+                    </div>
+                    <div>
+                      <label>हिंदी</label>
+                      <textarea id="live-edit-hi" placeholder="हिंदी गीत..."></textarea>
+                    </div>
+                  </div>
+                  <div class="live-edit-actions">
+                    <button class="btn-cancel" id="btn-edit-cancel"><i class="ti ti-x"></i> Cancel</button>
+                    <button class="btn-save" id="btn-edit-save"><i class="ti ti-device-floppy"></i> Save & Update</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="live-nav">
+              <button class="nav-btn" id="btn-prev"><i class="ti ti-chevron-left"></i> Prev</button>
+              <button class="nav-btn" id="btn-edit-slide" title="Edit current slide"><i class="ti ti-pencil"></i> Edit Slide</button>
+              <button class="nav-btn btn-pause" id="btn-pause" title="Pause projector"><i class="ti ti-player-pause"></i> Pause</button>
+              <button class="nav-btn btn-clear" id="btn-black"><i class="ti ti-square"></i> Black Screen</button>
+              <button class="nav-btn" id="btn-next">Next <i class="ti ti-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="delete-modal">
+    <div class="modal-box">
+      <h3>Delete Song</h3>
+      <p id="delete-modal-text">Are you sure you want to delete this song? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="modal-btn-cancel" id="delete-cancel">Cancel</button>
+        <button class="modal-btn-danger" id="delete-confirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Floating Developer Widget -->
+  <a href="https://wa.me/919591542901" target="_blank" class="floating-dev" id="floating-dev" style="display:none;">
+    <img src="images/developer/rahulpic.jpeg" alt="Developer" class="floating-dev-img">
+    <div class="floating-dev-status"></div>
+    <div class="floating-dev-text">
+      <div class="floating-dev-title">Facing an issue?</div>
+      <div class="floating-dev-sub"><i class="ti ti-brand-whatsapp"></i> Chat with Developer</div>
+    </div>
+  </a>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+    // Firebase Init
+    const app = initializeApp({
+      apiKey: "AIzaSyBwlAFcnTEMB6BR7ggxYE6zW-50DbWUhP8",
+      authDomain: "bfgc-website.firebaseapp.com",
+      projectId: "bfgc-website",
+      storageBucket: "bfgc-website.firebasestorage.app",
+      messagingSenderId: "547547229174",
+      appId: "1:547547229174:web:c5685fc38d342f97e3f5d7",
+      measurementId: "G-E91HYC7ZZF"
+    });
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Clear presenter state on load so it starts empty
+    localStorage.removeItem('song_presenter_state');
+
+    // DOM
+    const loginScreen = document.getElementById('login-screen');
+    const dashboardScreen = document.getElementById('dashboard-screen');
+    const loginForm = document.getElementById('login-form');
+    const errorMsg = document.getElementById('login-error');
+
+    // ======================== AUTH ========================
+    let sessionInterval;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Continuous check for 5-hour session timeout
+        const TIMEOUT_MS = 5 * 60 * 60 * 1000; // 5 hours
+        
+        const checkSession = async () => {
+          const loginTime = localStorage.getItem('bfgc_login_time');
+          if (loginTime && (Date.now() - parseInt(loginTime) > TIMEOUT_MS)) {
+            // Session expired
+            clearInterval(sessionInterval);
+            localStorage.removeItem('bfgc_login_time');
+            await signOut(auth);
+            alert("Your session has expired. Please log in again.");
+            return true;
+          }
+          return false;
+        };
+
+        if (await checkSession()) return; // Logout immediately if already expired
+
+        // Otherwise, start checking every second so it logs out "in between work"
+        sessionInterval = setInterval(checkSession, 1000);
+
+        if (!localStorage.getItem('bfgc_login_time')) {
+          localStorage.setItem('bfgc_login_time', Date.now());
+        }
+
+        loginScreen.classList.remove('active');
+        dashboardScreen.classList.add('active');
+        document.getElementById('user-email-display').textContent = user.email;
+        document.getElementById('user-email-display').title = user.email;
+        const initial = user.email ? user.email.charAt(0).toUpperCase() : 'W';
+        document.querySelector('.sb-avatar').textContent = initial;
+        document.getElementById('floating-dev').style.display = 'flex';
+        await loadSongs();
+      } else {
+        clearInterval(sessionInterval);
+        dashboardScreen.classList.remove('active');
+        loginScreen.classList.add('active');
+        document.getElementById('floating-dev').style.display = 'none';
+      }
+    });
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const btn = document.getElementById('login-btn');
+      btn.textContent = "Authenticating...";
+      errorMsg.style.display = "none";
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        localStorage.setItem('bfgc_login_time', Date.now());
+        btn.textContent = "Sign In";
+        document.getElementById('login-password').value = "";
+      } catch (err) {
+        errorMsg.style.display = "block";
+        errorMsg.textContent = "Wrong password! Don't try to hack, Jesus is watching!";
+        btn.textContent = "Sign In";
+      }
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      localStorage.removeItem('bfgc_login_time');
+      localStorage.removeItem('song_presenter_state');
+      await signOut(auth);
+    });
+
+    // ======================== NAVIGATION ========================
+    const views = { library: 'view-library', 'add-song': 'view-add-song', import: 'view-import', live: 'view-live' };
+    const viewTitles = { 
+      library: ['Song Library', 'Manage your worship songs'], 
+      'add-song': ['Add Song', 'Create a new worship song'], 
+      import: ['Bulk Import', 'Import songs from text files'],
+      live: ['Live Control', 'Present lyrics on screen'] 
+    };
+    let currentView = 'library';
+
+    document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        switchView(btn.dataset.view);
+      });
+    });
+
+    function switchView(view) {
+      if (!views[view]) return;
+      currentView = view;
+      // Update nav
+      document.querySelectorAll('.nav-item[data-view]').forEach(n => n.classList.remove('active'));
+      document.querySelector(`.nav-item[data-view="${view}"]`)?.classList.add('active');
+      // Update views
+      document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+      document.getElementById(views[view])?.classList.add('active');
+      // Update topbar
+      const [title, sub] = viewTitles[view] || ['', ''];
+      document.getElementById('welcome-msg').textContent = title;
+      document.getElementById('topbar-sub').textContent = sub;
+      // Reset form when entering add-song
+      if (view === 'add-song' && !editingSongId) {
+        resetForm();
+      }
+    }
+
+    // Sidebar toggle
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+      dashboardScreen.classList.toggle('sidebar-collapsed');
+      dashboardScreen.classList.toggle('sidebar-open');
+    });
+
+    // Date badge
+    const dateBadge = document.getElementById('date-badge');
+    if (dateBadge) {
+      dateBadge.textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    // Pop out buttons
+    document.getElementById('btn-popout-sidebar')?.addEventListener('click', () => {
+      window.open('song-presenter.html', 'SongPresenter', 'width=1280,height=720');
+    });
+    document.getElementById('btn-popout-live')?.addEventListener('click', () => {
+      window.open('song-presenter.html', 'SongPresenter', 'width=1280,height=720');
+    });
+
+    // ======================== SONGS DATA ========================
+    let allSongs = [];
+    let editingSongId = null;
+    let currentFilter = 'All';
+
+    const CATEGORIES = ['All', 'Worship', 'Praise', 'Communion', 'Prayer', 'Christmas', 'Easter', 'Children', 'Hymns', 'General'];
+    const CAT_ICONS = { Worship: '🙏', Praise: '🎉', Communion: '✝️', Prayer: '🕊️', Christmas: '🎄', Easter: '🌅', Children: '👶', Hymns: '📖', General: '🎵' };
+    const CAT_COLORS = {
+      Worship: { bg: '#EEEDFE', fg: '#3C3489' }, Praise: { bg: '#FEF3C7', fg: '#92400E' },
+      Communion: { bg: '#FBEAF0', fg: '#72243E' }, Prayer: { bg: '#E1F5EE', fg: '#085041' },
+      Christmas: { bg: '#FCE7E7', fg: '#991B1B' }, Easter: { bg: '#FEF9C3', fg: '#854D0E' },
+      Children: { bg: '#DBEAFE', fg: '#1E40AF' }, Hymns: { bg: '#F3E8FF', fg: '#6B21A8' },
+      General: { bg: '#F1F5F9', fg: '#475569' }
+    };
+
+    async function loadSongs() {
+      try {
+        const snapshot = await getDocs(collection(db, "songs"));
+        allSongs = [];
+        snapshot.forEach(docSnap => {
+          allSongs.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+
+        allSongs.sort((a, b) => {
+          const tA = a.title?.en || a.title?.kn || a.title?.hi || '';
+          const tB = b.title?.en || b.title?.kn || b.title?.hi || '';
+          return tA.localeCompare(tB);
+        });
+        renderFilterPills();
+        renderSongList();
+      } catch (e) {
+        console.error("Error loading songs:", e);
+        showToast('Failed to load songs', 'error');
+      }
+    }
+
+
+    // ======================== FILTER PILLS ========================
+    function renderFilterPills() {
+      const container = document.getElementById('filter-pills');
+      container.innerHTML = '';
+      CATEGORIES.forEach(cat => {
+        const pill = document.createElement('button');
+        pill.className = 'filter-pill' + (currentFilter === cat ? ' active' : '');
+        pill.textContent = cat === 'All' ? 'All Songs' : `${CAT_ICONS[cat] || ''} ${cat}`;
+        pill.addEventListener('click', () => {
+          currentFilter = cat;
+          renderFilterPills();
+          renderSongList();
+        });
+        container.appendChild(pill);
+      });
+    }
+
+    // ======================== SONG LIST ========================
+    function renderSongList() {
+      const container = document.getElementById('song-grid');
+      const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+
+      let filtered = allSongs;
+
+      // Category filter
+      if (currentFilter !== 'All') {
+        filtered = filtered.filter(s => s.category === currentFilter);
+      }
+
+      // Search filter
+      if (searchTerm) {
+        filtered = filtered.filter(s => {
+          const searchable = [
+            s.title?.en, s.title?.kn, s.title?.hi,
+            s.author, s.category,
+            ...(s.tags || []),
+            ...(s.searchIndex || [])
+          ].filter(Boolean).join(' ').toLowerCase();
+          return searchable.includes(searchTerm);
+        });
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="ti ti-music-off"></i>
+            <p>${searchTerm || currentFilter !== 'All' ? 'No songs match your search' : 'No songs yet'}</p>
+            <p class="sub">${searchTerm || currentFilter !== 'All' ? 'Try a different search or category' : 'Click "Add Song" to create your first song!'}</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = '';
+      filtered.forEach(song => {
+        const title = song.title?.en || song.title?.kn || song.title?.hi || 'Untitled';
+        const subTitles = [song.title?.kn, song.title?.hi].filter(Boolean).join(' · ');
+        const cat = song.category || 'General';
+        const colors = CAT_COLORS[cat] || CAT_COLORS.General;
+        const slideCount = song.slides?.length || 0;
+
+        const card = document.createElement('div');
+        card.className = 'song-card';
+        card.innerHTML = `
+          <div class="song-icon" style="background:${colors.bg};color:${colors.fg}">${CAT_ICONS[cat] || '🎵'}</div>
+          <div class="song-info">
+            <div class="song-title">${escHtml(title)}</div>
+            <div class="song-meta">
+              ${subTitles ? `<span style="opacity:0.7">${escHtml(subTitles)}</span>` : ''}
+              <span class="tag" style="background:${colors.bg};color:${colors.fg}">${cat}</span>
+              ${song.author ? `<span>by ${escHtml(song.author)}</span>` : ''}
+              <span>${slideCount} slide${slideCount !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          <div class="song-actions">
+            <button class="btn-present" title="Present this song"><i class="ti ti-broadcast"></i></button>
+            <button class="btn-edit" title="Edit song"><i class="ti ti-pencil"></i></button>
+            <button class="btn-del" title="Delete song"><i class="ti ti-trash"></i></button>
+          </div>`;
+
+        // Click card to present
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.song-actions')) return;
+          openLiveControl(song);
+        });
+
+        card.querySelector('.btn-present').addEventListener('click', (e) => {
+          e.stopPropagation();
+          openLiveControl(song);
+        });
+
+        card.querySelector('.btn-edit').addEventListener('click', (e) => {
+          e.stopPropagation();
+          editSong(song);
+        });
+
+        card.querySelector('.btn-del').addEventListener('click', (e) => {
+          e.stopPropagation();
+          confirmDeleteSong(song);
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    document.getElementById('search-input').addEventListener('input', () => {
+      renderSongList();
+    });
+
+    // ======================== ADD/EDIT SONG FORM ========================
+    let slideCounter = 0;
+
+    function resetForm() {
+      editingSongId = null;
+      document.getElementById('form-title').innerHTML = '<i class="ti ti-plus" aria-hidden="true"></i> Add New Song';
+      document.getElementById('f-title-en').value = '';
+      document.getElementById('f-title-kn').value = '';
+      document.getElementById('f-title-hi').value = '';
+      document.getElementById('f-author').value = '';
+      document.getElementById('f-category').value = 'Worship';
+      document.getElementById('f-tags').value = '';
+      document.getElementById('slides-container').innerHTML = '';
+      slideCounter = 0;
+      addSlideBlock(); // Start with one empty slide
+    }
+
+    function addSlideBlock(data = null) {
+      slideCounter++;
+      const container = document.getElementById('slides-container');
+      const block = document.createElement('div');
+      block.className = 'slide-block';
+      block.dataset.slideNum = slideCounter;
+
+      const typeOptions = ['verse', 'chorus', 'bridge', 'intro', 'outro'].map(t => {
+        const selected = data?.type === t ? 'selected' : (t === 'verse' && !data ? 'selected' : '');
+        return `<option value="${t}" ${selected}>${t.charAt(0).toUpperCase() + t.slice(1)}</option>`;
+      }).join('');
+
+      block.innerHTML = `
+        <div class="slide-header">
+          <div class="slide-label"><i class="ti ti-file-text"></i> Slide ${slideCounter}</div>
+          <button class="slide-remove" title="Remove slide"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="form-field" style="margin-bottom:12px;">
+          <label>Slide Type</label>
+          <select class="slide-type" style="max-width:200px;">${typeOptions}</select>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>English Lyrics</label><textarea class="slide-en" placeholder="Paste English lyrics here..." rows="4">${escHtml(data?.en || '')}</textarea></div>
+          <div class="form-field"><label>ಕನ್ನಡ Lyrics</label><textarea class="slide-kn" placeholder="ಕನ್ನಡ ಸಾಹಿತ್ಯ ಇಲ್ಲಿ ಅಂಟಿಸಿ..." rows="4">${escHtml(data?.kn || '')}</textarea></div>
+          <div class="form-field"><label>हिंदी Lyrics</label><textarea class="slide-hi" placeholder="हिंदी गीत यहाँ पेस्ट करें..." rows="4">${escHtml(data?.hi || '')}</textarea></div>
+        </div>`;
+
+      block.querySelector('.slide-remove').addEventListener('click', () => {
+        block.remove();
+        renumberSlides();
+      });
+
+      container.appendChild(block);
+    }
+
+    function renumberSlides() {
+      const blocks = document.querySelectorAll('.slide-block');
+      blocks.forEach((b, i) => {
+        b.dataset.slideNum = i + 1;
+        b.querySelector('.slide-label').innerHTML = `<i class="ti ti-file-text"></i> Slide ${i + 1}`;
+      });
+      slideCounter = blocks.length;
+    }
+
+    document.getElementById('btn-add-slide').addEventListener('click', () => addSlideBlock());
+
+    document.getElementById('btn-form-cancel').addEventListener('click', () => {
+      editingSongId = null;
+      switchView('library');
+    });
+
+    // Save Song
+    document.getElementById('btn-save-song').addEventListener('click', async () => {
+      const titleEn = document.getElementById('f-title-en').value.trim();
+      const titleKn = document.getElementById('f-title-kn').value.trim();
+      const titleHi = document.getElementById('f-title-hi').value.trim();
+
+      if (!titleEn && !titleKn && !titleHi) {
+        showToast('Please enter at least one title', 'error');
+        return;
+      }
+
+      const slideBlocks = document.querySelectorAll('.slide-block');
+      if (slideBlocks.length === 0) {
+        showToast('Please add at least one slide', 'error');
+        return;
+      }
+
+      const slides = [];
+      const verseCounts = {};
+      slideBlocks.forEach((block, i) => {
+        const type = block.querySelector('.slide-type').value;
+        if (!verseCounts[type]) verseCounts[type] = 0;
+        verseCounts[type]++;
+        const label = type === 'chorus' ? 'Chorus' : type === 'bridge' ? 'Bridge' : type === 'intro' ? 'Intro' : type === 'outro' ? 'Outro' : `Verse ${verseCounts[type]}`;
+        slides.push({
+          type,
+          label,
+          order: i + 1,
+          en: block.querySelector('.slide-en').value.trim(),
+          kn: block.querySelector('.slide-kn').value.trim(),
+          hi: block.querySelector('.slide-hi').value.trim()
+        });
+      });
+
+      const tagsRaw = document.getElementById('f-tags').value.trim();
+      const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) : [];
+
+      // Build search index
+      const searchIndex = [
+        titleEn.toLowerCase(),
+        titleKn,
+        titleHi,
+        slides[0]?.en?.split('\n')[0]?.toLowerCase() || '',
+        slides[0]?.kn?.split('\n')[0] || '',
+        slides[0]?.hi?.split('\n')[0] || '',
+        ...tags
+      ].filter(s => s);
+
+      const songData = {
+        title: { en: titleEn, kn: titleKn, hi: titleHi },
+        author: document.getElementById('f-author').value.trim(),
+        category: document.getElementById('f-category').value,
+        tags,
+        searchIndex,
+        slides,
+        updatedAt: serverTimestamp()
+      };
+
+      const btn = document.getElementById('btn-save-song');
+      btn.innerHTML = '<i class="ti ti-loader-2 ti-spin"></i> Saving...';
+      btn.disabled = true;
+
+      try {
+        if (editingSongId) {
+          await updateDoc(doc(db, "songs", editingSongId), songData);
+          showToast('Song updated successfully!', 'success');
+        } else {
+          songData.createdAt = serverTimestamp();
+          await addDoc(collection(db, "songs"), songData);
+          showToast('Song added successfully!', 'success');
+        }
+        editingSongId = null;
+        await loadSongs();
+        switchView('library');
+      } catch (e) {
+        console.error("Error saving song:", e);
+        showToast('Failed to save song. Please try again.', 'error');
+      } finally {
+        btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save Song';
+        btn.disabled = false;
+      }
+    });
+
+    function editSong(song) {
+      editingSongId = song.id;
+      document.getElementById('form-title').innerHTML = '<i class="ti ti-pencil" aria-hidden="true"></i> Edit Song';
+      document.getElementById('f-title-en').value = song.title?.en || '';
+      document.getElementById('f-title-kn').value = song.title?.kn || '';
+      document.getElementById('f-title-hi').value = song.title?.hi || '';
+      document.getElementById('f-author').value = song.author || '';
+      document.getElementById('f-category').value = song.category || 'General';
+      document.getElementById('f-tags').value = (song.tags || []).join(', ');
+      document.getElementById('slides-container').innerHTML = '';
+      slideCounter = 0;
+      (song.slides || []).forEach(slide => addSlideBlock(slide));
+      if ((song.slides || []).length === 0) addSlideBlock();
+      switchView('add-song');
+    }
+
+    // ======================== DELETE SONG ========================
+    let deletingSongId = null;
+    const deleteModal = document.getElementById('delete-modal');
+
+    function confirmDeleteSong(song) {
+      deletingSongId = song.id;
+      const title = song.title?.en || song.title?.kn || song.title?.hi || 'this song';
+      document.getElementById('delete-modal-text').textContent = `Are you sure you want to delete "${title}"? This action cannot be undone.`;
+      deleteModal.classList.add('active');
+    }
+
+    document.getElementById('delete-cancel').addEventListener('click', () => {
+      deleteModal.classList.remove('active');
+      deletingSongId = null;
+    });
+
+    document.getElementById('delete-confirm').addEventListener('click', async () => {
+      if (!deletingSongId) return;
+      try {
+        await deleteDoc(doc(db, "songs", deletingSongId));
+        showToast('Song deleted', 'success');
+        deleteModal.classList.remove('active');
+        deletingSongId = null;
+        await loadSongs();
+      } catch (e) {
+        console.error("Error deleting song:", e);
+        showToast('Failed to delete song', 'error');
+      }
+    });
+
+    // ======================== LIVE CONTROL ========================
+    let liveSong = null;
+    let liveSlideIndex = 0;
+    let liveLang = 'en';
+    let liveFontSize = 13;
+    let liveAlign = 'center';
+    let isPaused = false;
+    let pausedSlideIndex = -1;
+
+    function openLiveControl(song) {
+      liveSong = song;
+      liveSlideIndex = 0;
+      isPaused = false;
+      pausedSlideIndex = -1;
+      updatePauseUI();
+      switchView('live');
+      document.getElementById('live-no-song').style.display = 'none';
+      const panel = document.getElementById('live-panel');
+      panel.classList.add('active');
+
+      const title = song.title?.en || song.title?.kn || song.title?.hi || 'Untitled';
+      document.getElementById('live-title').textContent = title;
+      document.getElementById('live-search-input').value = '';
+
+      renderSlideSidebar();
+      renderSlideTabs();
+      selectSlide(0);
+    }
+
+    document.getElementById('live-search-input').addEventListener('input', renderSlideTabs);
+
+    function renderSlideTabs() {
+      const container = document.getElementById('slide-tabs');
+      container.innerHTML = '';
+      if (!liveSong?.slides) return;
+
+      const searchTerm = document.getElementById('live-search-input').value.toLowerCase().trim();
+
+      liveSong.slides.forEach((slide, i) => {
+        if (searchTerm) {
+          const searchableText = [slide.en, slide.kn, slide.hi, slide.label].filter(Boolean).join(' ').toLowerCase();
+          if (!searchableText.includes(searchTerm)) {
+            return; // Skip this slide tab
+          }
+        }
+
+        const tab = document.createElement('button');
+        let extraClass = '';
+        if (slide.type === 'chorus') extraClass = ' chorus-tab';
+        else if (slide.type === 'bridge') extraClass = ' bridge-tab';
+        tab.className = 'slide-tab' + extraClass + (i === liveSlideIndex ? ' active' : '');
+        tab.textContent = slide.label || `Slide ${i + 1}`;
+        tab.addEventListener('click', () => selectSlide(i));
+        container.appendChild(tab);
+      });
+    }
+
+    function selectSlide(index) {
+      if (!liveSong?.slides || index < 0 || index >= liveSong.slides.length) return;
+      liveSlideIndex = index;
+
+      // Update tabs
+      document.querySelectorAll('.slide-tab').forEach((tab, i) => {
+        tab.classList.toggle('active', i === index);
+      });
+
+      // Update sidebar active state
+      updateSidebarActive();
+
+      // Update preview
+      updateLivePreview();
+      updatePresenterState();
+      // Close edit panel when switching slides
+      document.getElementById('live-edit-panel').classList.remove('active');
+    }
+
+    // ======================== SLIDE SIDEBAR ========================
+    function renderSlideSidebar() {
+      const sidebar = document.getElementById('slide-sidebar');
+      sidebar.innerHTML = '';
+      if (!liveSong?.slides) return;
+
+      liveSong.slides.forEach((slide, i) => {
+        const card = document.createElement('button');
+        let typeClass = '';
+        if (slide.type === 'chorus') typeClass = ' chorus';
+        else if (slide.type === 'bridge') typeClass = ' bridge';
+        card.className = 'slide-mini' + typeClass + (i === liveSlideIndex ? ' active' : '');
+        card.dataset.index = i;
+
+        const previewText = (slide.en || slide.kn || slide.hi || '').split('\n').slice(0, 2).join(' ').substring(0, 60);
+        card.innerHTML = `<div class="slide-mini-label">${escHtml(slide.label || 'Slide ' + (i + 1))}</div><div class="slide-mini-text">${escHtml(previewText || 'No lyrics')}</div>`;
+        card.addEventListener('click', () => selectSlide(i));
+        sidebar.appendChild(card);
+      });
+    }
+
+    function updateSidebarActive() {
+      const cards = document.querySelectorAll('.slide-mini');
+      cards.forEach(card => {
+        const idx = parseInt(card.dataset.index);
+        card.classList.toggle('active', idx === liveSlideIndex);
+        card.classList.toggle('paused-on', isPaused && idx === pausedSlideIndex);
+      });
+
+      // Auto-scroll sidebar to active card
+      const activeCard = document.querySelector('.slide-mini.active');
+      if (activeCard) {
+        activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    function updateLivePreview() {
+      const preview = document.getElementById('live-preview');
+      preview.style.textAlign = liveAlign;
+      if (!liveSong?.slides?.[liveSlideIndex]) {
+        preview.innerHTML = '<div class="preview-empty">Select a slide to preview</div>';
+        return;
+      }
+      const slide = liveSong.slides[liveSlideIndex];
+      let html = `<div class="preview-label">── ${escHtml(slide.label || '')} ──</div>`;
+
+      const showLangs = getActiveLangs();
+      showLangs.forEach(lang => {
+        const text = slide[lang];
+        if (text) {
+          html += `<div class="preview-text ${lang}">${text.replace(/\n/g, '<br>')}</div>`;
+        }
+      });
+
+      if (!showLangs.some(l => slide[l])) {
+        html += '<div class="preview-empty">No lyrics in selected language</div>';
+      }
+
+      preview.innerHTML = html;
+    }
+
+    function getActiveLangs() {
+      switch (liveLang) {
+        case 'en': return ['en'];
+        case 'kn': return ['kn'];
+        case 'hi': return ['hi'];
+        case 'en+kn': return ['en', 'kn'];
+        case 'en+hi': return ['en', 'hi'];
+        case 'all': return ['en', 'kn', 'hi'];
+        default: return ['en'];
+      }
+    }
+
+    function updatePresenterState() {
+      // If paused, don't update the projector
+      if (isPaused) return;
+
+      if (!liveSong?.slides?.[liveSlideIndex]) {
+        localStorage.removeItem('song_presenter_state');
+        return;
+      }
+      const slide = liveSong.slides[liveSlideIndex];
+      const title = liveSong.title?.en || liveSong.title?.kn || liveSong.title?.hi || '';
+      localStorage.setItem('song_presenter_state', JSON.stringify({
+        songTitle: title,
+        slideLabel: slide.label || '',
+        slideType: slide.type || 'verse',
+        en: slide.en || '',
+        kn: slide.kn || '',
+        hi: slide.hi || '',
+        lang: liveLang,
+        fontSize: liveFontSize,
+        align: liveAlign
+      }));
+    }
+
+    // Language toggle
+    document.getElementById('lang-toggle').addEventListener('click', (e) => {
+      const btn = e.target.closest('.lang-btn');
+      if (!btn) return;
+      liveLang = btn.dataset.lang;
+      document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      updateLivePreview();
+      updatePresenterState();
+    });
+
+    // Alignment toggle
+    document.getElementById('align-toggle').addEventListener('click', (e) => {
+      const btn = e.target.closest('.font-btn[data-align]');
+      if (!btn) return;
+      liveAlign = btn.dataset.align;
+      document.querySelectorAll('#align-toggle .font-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      updateLivePreview();
+      updatePresenterState();
+    });
+
+    // Font size
+    document.getElementById('font-dn').addEventListener('click', () => {
+      if (liveFontSize > 8) liveFontSize--;
+      document.getElementById('font-label').textContent = liveFontSize + 'px';
+      updatePresenterState();
+    });
+    document.getElementById('font-up').addEventListener('click', () => {
+      if (liveFontSize < 30) liveFontSize++;
+      document.getElementById('font-label').textContent = liveFontSize + 'px';
+      updatePresenterState();
+    });
+
+    // Navigation
+    document.getElementById('btn-prev').addEventListener('click', () => {
+      if (liveSlideIndex > 0) selectSlide(liveSlideIndex - 1);
+    });
+    document.getElementById('btn-next').addEventListener('click', () => {
+      if (liveSong?.slides && liveSlideIndex < liveSong.slides.length - 1) selectSlide(liveSlideIndex + 1);
+    });
+    document.getElementById('btn-black').addEventListener('click', () => {
+      isPaused = false;
+      updatePauseUI();
+      localStorage.removeItem('song_presenter_state');
+      document.getElementById('live-preview').innerHTML = '<div class="pause-badge" id="pause-badge"><i class="ti ti-player-pause"></i> PAUSED</div><div class="preview-empty" style="color:rgba(255,255,255,0.15);">Screen is blank</div>';
+      document.querySelectorAll('.slide-tab').forEach(t => t.classList.remove('active'));
+    });
+
+    // ======================== PAUSE / RESUME ========================
+    function updatePauseUI() {
+      const btn = document.getElementById('btn-pause');
+      const badge = document.getElementById('pause-badge');
+      const preview = document.getElementById('live-preview');
+
+      if (isPaused) {
+        btn.className = 'nav-btn btn-resume';
+        btn.innerHTML = '<i class="ti ti-player-play"></i> Resume';
+        btn.title = 'Resume projector';
+        if (badge) badge.classList.add('active');
+        preview.classList.add('paused');
+      } else {
+        btn.className = 'nav-btn btn-pause';
+        btn.innerHTML = '<i class="ti ti-player-pause"></i> Pause';
+        btn.title = 'Pause projector';
+        if (badge) badge.classList.remove('active');
+        preview.classList.remove('paused');
+      }
+      updateSidebarActive();
+    }
+
+    document.getElementById('btn-pause').addEventListener('click', () => {
+      if (!liveSong?.slides) return;
+
+      if (isPaused) {
+        // RESUME: push the current slide to the projector
+        isPaused = false;
+        pausedSlideIndex = -1;
+        updatePauseUI();
+        updatePresenterState();
+        showToast('Projector resumed!', 'success');
+      } else {
+        // PAUSE: freeze the projector on the current slide
+        isPaused = true;
+        pausedSlideIndex = liveSlideIndex;
+        updatePauseUI();
+        showToast('Projector paused — browse freely!', 'success');
+      }
+    });
+
+    // ======================== LIVE INLINE EDIT ========================
+    document.getElementById('btn-edit-slide').addEventListener('click', () => {
+      const editPanel = document.getElementById('live-edit-panel');
+      if (!liveSong?.slides?.[liveSlideIndex]) return;
+
+      const slide = liveSong.slides[liveSlideIndex];
+      document.getElementById('live-edit-en').value = slide.en || '';
+      document.getElementById('live-edit-kn').value = slide.kn || '';
+      document.getElementById('live-edit-hi').value = slide.hi || '';
+      editPanel.classList.toggle('active');
+    });
+
+    document.getElementById('btn-edit-cancel').addEventListener('click', () => {
+      document.getElementById('live-edit-panel').classList.remove('active');
+    });
+
+    document.getElementById('btn-edit-save').addEventListener('click', async () => {
+      if (!liveSong?.id || !liveSong?.slides?.[liveSlideIndex]) return;
+
+      const btn = document.getElementById('btn-edit-save');
+      btn.innerHTML = '<i class="ti ti-loader-2 ti-spin"></i> Saving...';
+      btn.disabled = true;
+
+      try {
+        // Update the local slide data
+        liveSong.slides[liveSlideIndex].en = document.getElementById('live-edit-en').value;
+        liveSong.slides[liveSlideIndex].kn = document.getElementById('live-edit-kn').value;
+        liveSong.slides[liveSlideIndex].hi = document.getElementById('live-edit-hi').value;
+
+        // Save to Firestore
+        await updateDoc(doc(db, "songs", liveSong.id), {
+          slides: liveSong.slides,
+          updatedAt: serverTimestamp()
+        });
+
+        // Also update the allSongs array so the library stays in sync
+        const idx = allSongs.findIndex(s => s.id === liveSong.id);
+        if (idx !== -1) allSongs[idx] = { ...liveSong };
+
+        // Refresh preview & projector immediately
+        updateLivePreview();
+        updatePresenterState();
+
+        document.getElementById('live-edit-panel').classList.remove('active');
+        showToast('Slide updated successfully!', 'success');
+      } catch (e) {
+        console.error('Error saving slide edit:', e);
+        showToast('Failed to save changes', 'error');
+      } finally {
+        btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save & Update';
+        btn.disabled = false;
+      }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (currentView !== 'live' || !liveSong) return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        if (liveSong.slides && liveSlideIndex < liveSong.slides.length - 1) selectSlide(liveSlideIndex + 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (liveSlideIndex > 0) selectSlide(liveSlideIndex - 1);
+      } else if (e.key === 'b' || e.key === 'B') {
+        document.getElementById('btn-black').click();
+      }
+    });
+
+    // Listen for presenter navigation requests (from song-presenter.html keyboard)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'song_presenter_nav' && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue);
+          const action = data.action || e.newValue;
+          if (action === 'next' && liveSong?.slides && liveSlideIndex < liveSong.slides.length - 1) {
+            selectSlide(liveSlideIndex + 1);
+          } else if (action === 'prev' && liveSlideIndex > 0) {
+            selectSlide(liveSlideIndex - 1);
+          }
+        } catch(err) {
+          // Fallback: treat as plain string
+          const action = e.newValue;
+          if (action === 'next' && liveSong?.slides && liveSlideIndex < liveSong.slides.length - 1) {
+            selectSlide(liveSlideIndex + 1);
+          } else if (action === 'prev' && liveSlideIndex > 0) {
+            selectSlide(liveSlideIndex - 1);
+          }
+        }
+        localStorage.removeItem('song_presenter_nav');
+      }
+    });
+
+    // ======================== TOAST ========================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `<i class="ti ti-${type === 'success' ? 'check' : 'alert-circle'}"></i> ${escHtml(message)}`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+
+    // ======================== UTILS ========================
+    function escHtml(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Initialize first slide on form
+    resetForm();
+
+    // ======================== BULK IMPORT ========================
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    let importedSongsData = [];
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => dropZone.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, () => dropZone.classList.remove('dragover'), false);
+    });
+
+    dropZone.addEventListener('drop', handleDrop, false);
+    fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      handleFiles(files);
+    }
+
+    async function handleFiles(files) {
+      importedSongsData = [];
+      const validFiles = Array.from(files).filter(f => f.name.endsWith('.txt'));
+      
+      if (validFiles.length === 0) {
+        showToast('Please upload .txt files only', 'error');
+        return;
+      }
+
+      for (const file of validFiles) {
+        const text = await file.text();
+        const title = file.name.replace('.txt', '').trim();
+        
+        // Split by empty lines to create slides
+        const chunks = text.split(/\n\s*\n/).map(c => c.trim()).filter(Boolean);
+        const slides = chunks.map((chunk, i) => {
+          return {
+            type: 'verse',
+            label: `Verse ${i + 1}`,
+            order: i + 1,
+            en: chunk,
+            kn: '',
+            hi: ''
+          };
+        });
+
+        if (slides.length > 0) {
+          importedSongsData.push({
+            title: { en: title, kn: '', hi: '' },
+            author: '',
+            category: 'General',
+            tags: [],
+            searchIndex: [title.toLowerCase()],
+            slides: slides
+          });
+        }
+      }
+
+      if (importedSongsData.length > 0) {
+        document.getElementById('import-preview').classList.add('active');
+        document.getElementById('import-count').textContent = importedSongsData.length;
+        
+        const listHtml = importedSongsData.map(s => 
+          `<div class="import-item"><span><strong>${escHtml(s.title.en)}</strong></span><span>${s.slides.length} slides</span></div>`
+        ).join('');
+        document.getElementById('import-list').innerHTML = listHtml;
+      }
+    }
+
+    document.getElementById('btn-import-cancel').addEventListener('click', () => {
+      importedSongsData = [];
+      document.getElementById('import-preview').classList.remove('active');
+      fileInput.value = '';
+    });
+
+    document.getElementById('btn-import-save').addEventListener('click', async () => {
+      if (importedSongsData.length === 0) return;
+      
+      const btn = document.getElementById('btn-import-save');
+      btn.innerHTML = '<i class="ti ti-loader-2 ti-spin"></i> Saving...';
+      btn.disabled = true;
+
+      try {
+        let count = 0;
+        for (const song of importedSongsData) {
+          song.createdAt = serverTimestamp();
+          song.updatedAt = serverTimestamp();
+          await addDoc(collection(db, "songs"), song);
+          count++;
+        }
+        showToast(`Successfully imported ${count} songs!`, 'success');
+        
+        // Reset and go to library
+        importedSongsData = [];
+        document.getElementById('import-preview').classList.remove('active');
+        fileInput.value = '';
+        await loadSongs();
+        switchView('library');
+      } catch (e) {
+        console.error("Error importing songs:", e);
+        showToast('Failed to import some songs', 'error');
+      } finally {
+        btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save to Database';
+        btn.disabled = false;
+      }
+    });
+
+  </script>
+</body>
+</html>
