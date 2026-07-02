@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <style>
     :root {
       --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
@@ -363,6 +364,13 @@
       overflow-y: auto; background: var(--color-background-secondary); padding: 10px;
       display: flex; flex-direction: column; gap: 6px; max-height: 420px;
     }
+    #quick-sidebar-wrap {
+      width: 220px; min-width: 220px; flex-shrink: 0;
+      display: flex; flex-direction: column;
+      border-right: 1px solid var(--color-border-tertiary);
+      background: var(--color-background-secondary);
+      max-height: 420px;
+    }
     .slide-sidebar::-webkit-scrollbar { width: 4px; }
     .slide-sidebar::-webkit-scrollbar-thumb { background: var(--color-border-tertiary); border-radius: 4px; }
     .slide-mini {
@@ -402,6 +410,7 @@
     @media (max-width: 768px) {
       .live-body { flex-direction: column; }
       .slide-sidebar { width: 100%; min-width: 100%; max-height: 150px; flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+      #quick-sidebar-wrap { width: 100%; min-width: 100%; border-right: none; max-height: 150px; }
       .slide-mini { min-width: 140px; }
     }
     .live-header {
@@ -422,7 +431,7 @@
     }
     .lang-btn:last-child { border-right: none; }
     .lang-btn:hover { background: var(--color-background-secondary); }
-    .lang-btn.active { background: var(--primary-color); color: white; }
+    .lang-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
 
     .font-controls { display: flex; align-items: center; gap: 6px; }
     .font-btn {
@@ -553,13 +562,24 @@
       transition: all 0.2s ease;
       cursor: pointer;
     }
+    .import-zone.compact {
+      padding: 16px;
+      border-width: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
     .import-zone.dragover {
       border-color: var(--primary-color);
       background: var(--primary-light);
     }
-    .import-zone i { font-size: 48px; color: var(--primary-color); margin-bottom: 16px; display: block; }
-    .import-zone h4 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .import-zone i { font-size: 48px; color: var(--primary-color); margin-bottom: 16px; display: block; transition: all 0.2s ease; }
+    .import-zone.compact i { font-size: 24px; margin-bottom: 0; }
+    .import-zone h4 { font-size: 18px; font-weight: 600; margin-bottom: 8px; transition: all 0.2s ease; }
+    .import-zone.compact h4 { font-size: 14px; margin-bottom: 0; font-weight: 500; }
     .import-zone p { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 4px; }
+    .import-zone.compact p { display: none; }
     
     .import-preview {
       margin-top: 20px;
@@ -567,7 +587,7 @@
     }
     .import-preview.active { display: block; }
     .import-preview-list {
-      max-height: 250px; overflow-y: auto; border: 1px solid var(--color-border-tertiary);
+      max-height: 400px; overflow-y: auto; border: 1px solid var(--color-border-tertiary);
       border-radius: var(--border-radius-md); background: var(--color-background-primary); margin-bottom: 16px;
     }
     .import-item { padding: 10px 14px; border-bottom: 1px solid var(--color-border-tertiary); font-size: 13px; display: flex; justify-content: space-between; }
@@ -658,8 +678,9 @@
         <div class="nav-section-label">Service</div>
         <button class="nav-item active" data-view="library"><i class="ti ti-playlist" aria-hidden="true"></i>Song Library</button>
         <button class="nav-item" data-view="add-song"><i class="ti ti-plus" aria-hidden="true"></i>Add Song</button>
-        <button class="nav-item" data-view="import"><i class="ti ti-file-import" aria-hidden="true"></i>Bulk Import (TXT)</button>
+        <button class="nav-item" data-view="import"><i class="ti ti-file-import" aria-hidden="true"></i>Bulk Import (TXT/PPTX)</button>
         <div class="nav-section-label">Presenter</div>
+        <button class="nav-item" data-view="quick"><i class="ti ti-bolt" aria-hidden="true"></i>Quick Presenter</button>
         <button class="nav-item" data-view="live"><i class="ti ti-broadcast" aria-hidden="true"></i>Live Control</button>
         <button class="nav-item" id="btn-popout-sidebar"><i class="ti ti-external-link" aria-hidden="true"></i>Pop Out Display</button>
         <div class="nav-section-label">Navigation</div>
@@ -761,15 +782,15 @@
           <div class="form-panel">
             <h3><i class="ti ti-file-import" aria-hidden="true"></i> Bulk Import Songs</h3>
             <p style="font-size:13px; color:var(--color-text-secondary); margin-bottom:20px;">
-              Save your PowerPoint or Word documents as <strong>Plain Text (.txt)</strong> and drag them here. 
-              The system will automatically create slides based on empty lines.
+              Drag & Drop <strong>.txt</strong> or <strong>.pptx</strong> files here. 
+              The system will automatically extract the lyrics. For .txt files, leave an empty line between slides.
             </p>
             
             <div class="import-zone" id="drop-zone">
               <i class="ti ti-upload"></i>
-              <h4>Drag & Drop .txt files here</h4>
+              <h4>Drag & Drop .txt or .pptx files here</h4>
               <p>or click to browse files</p>
-              <input type="file" id="file-input" multiple accept=".txt" style="display:none;">
+              <input type="file" id="file-input" multiple accept=".txt,.pptx" style="display:none;">
             </div>
 
             <div class="import-preview" id="import-preview">
@@ -861,6 +882,81 @@
             </div>
           </div>
         </div>
+
+        <!-- VIEW: Quick Presenter -->
+        <div id="view-quick" class="view-section">
+          <div class="live-panel active" style="display:flex; flex-direction:column; height: 100%;">
+            <div class="live-header">
+              <div class="live-song-title">⚡ Quick Presenter</div>
+              <button class="nav-btn btn-popout" id="btn-popout-quick" title="Pop out presenter"><i class="ti ti-external-link"></i> Pop Out</button>
+            </div>
+            
+            <div class="live-body" style="flex:1;">
+              <!-- Slide Sidebar Wrapper -->
+              <div id="quick-sidebar-wrap">
+                <div style="padding:10px; border-bottom:1px solid var(--color-border-tertiary); position:relative; flex-shrink:0;">
+                  <input type="text" id="quick-search" placeholder="Search slides..." style="width:100%; padding:6px 24px 6px 8px; border:1px solid var(--color-border-tertiary); border-radius:4px; font-size:12px; background:var(--color-background-primary); color:var(--color-text-primary);">
+                  <button id="quick-search-clear" style="position:absolute; right:18px; top:16px; background:none; border:none; cursor:pointer; color:var(--color-text-secondary); display:none; padding:0;"><i class="ti ti-x"></i></button>
+                </div>
+                <div class="slide-sidebar" id="quick-sidebar" style="flex:1; width:100%; min-width:0; border-right:none; max-height:none; padding-top:10px;">
+                  <!-- Mini slides go here -->
+                </div>
+              </div>
+              
+              <!-- Main Area -->
+              <div class="live-main" style="display:flex; flex-direction:column;">
+                
+                <!-- Controls Row -->
+                <div class="live-controls-row" style="padding: 10px 20px; border-bottom: 1px solid var(--color-border-tertiary);">
+                  <button class="nav-btn" id="btn-quick-import" style="color:var(--primary-color); border-color:var(--primary-color); margin-right:6px;" title="Import from file"><i class="ti ti-upload"></i> Choose File</button>
+                  <button class="nav-btn" id="btn-quick-add-slide"><i class="ti ti-plus"></i> Add Slide</button>
+                  <button class="nav-btn" id="btn-quick-delete-slide" style="color:var(--danger-color); border-color:transparent; margin-left:6px;"><i class="ti ti-trash"></i> Delete</button>
+                  <div style="flex:1"></div>
+                  <div class="font-controls">
+                    <button class="font-btn" id="quick-font-dn">A-</button>
+                    <span class="font-label" id="quick-font-label">13px</span>
+                    <button class="font-btn" id="quick-font-up">A+</button>
+                  </div>
+                  <div class="font-controls" id="quick-align-toggle">
+                    <button class="font-btn active" data-align="center" title="Center"><i class="ti ti-align-center" style="font-size:14px;"></i></button>
+                    <button class="font-btn" data-align="left" title="Left"><i class="ti ti-align-left" style="font-size:14px;"></i></button>
+                    <button class="font-btn" data-align="right" title="Right"><i class="ti ti-align-right" style="font-size:14px;"></i></button>
+                  </div>
+                </div>
+
+                <!-- Editor & Preview -->
+                <div style="display:flex; flex:1; min-height:0;">
+                  <!-- Text Editor -->
+                  <div style="flex:1; border-right: 1px solid var(--color-border-tertiary); display:flex; flex-direction:column; padding:16px; min-width: 0;">
+                    <label id="quick-editor-label" style="font-size:12px; font-weight:600; color:var(--color-text-secondary); margin-bottom:8px;">Slide Text (Type or Paste here)</label>
+                    <textarea id="quick-editor" style="flex:1; width:100%; border:1px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); padding:12px; font-size:14px; font-family:inherit; resize:none; outline:none; background:var(--color-background-secondary); color:var(--color-text-primary);" placeholder="The Lord is my shepherd..."></textarea>
+                  </div>
+                  
+                  <!-- Live Preview -->
+                  <div style="flex:1; display:flex; flex-direction:column; min-width: 0;">
+                     <div class="live-preview" id="quick-preview" style="flex:1; height: 100%; justify-content:center; border-radius: 0;">
+                       <div class="pause-badge" id="quick-pause-badge"><i class="ti ti-player-pause"></i> PAUSED</div>
+                       <div class="preview-text en" id="quick-preview-text" style="white-space: pre-wrap; word-break: break-word;"></div>
+                     </div>
+                  </div>
+                </div>
+                
+                <!-- Bottom Action -->
+                <div class="live-nav">
+                  <button class="nav-btn" id="quick-btn-prev"><i class="ti ti-chevron-left"></i> Prev</button>
+                  <button class="nav-btn btn-pause" id="quick-btn-pause" title="Pause projector"><i class="ti ti-player-pause"></i> Pause</button>
+                  <button class="nav-btn btn-clear" id="quick-btn-black"><i class="ti ti-square"></i> Black Screen</button>
+                  <button class="nav-btn" id="quick-btn-next">Next <i class="ti ti-chevron-right"></i></button>
+                </div>
+                <div class="live-nav" style="justify-content:center; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--color-border-tertiary);">
+                  <button class="nav-btn btn-popout" id="btn-quick-project" style="font-size:14px; padding: 10px 24px; box-shadow: 0 4px 12px rgba(83,74,183,0.3);"><i class="ti ti-broadcast"></i> Project Slide</button>
+                  <button class="nav-btn" id="btn-quick-save" style="font-size:14px; padding: 10px 24px;"><i class="ti ti-device-floppy"></i> Save as Song</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -989,12 +1085,13 @@
     });
 
     // ======================== NAVIGATION ========================
-    const views = { library: 'view-library', 'add-song': 'view-add-song', import: 'view-import', live: 'view-live' };
+    const views = { library: 'view-library', 'add-song': 'view-add-song', import: 'view-import', live: 'view-live', quick: 'view-quick' };
     const viewTitles = { 
       library: ['Song Library', 'Manage your worship songs'], 
       'add-song': ['Add Song', 'Create a new worship song'], 
       import: ['Bulk Import', 'Import songs from text files'],
-      live: ['Live Control', 'Present lyrics on screen'] 
+      live: ['Live Control', 'Present lyrics on screen'],
+      quick: ['Quick Presenter', 'Instantly project text or lyrics']
     };
     let currentView = 'library';
 
@@ -1253,6 +1350,13 @@
     document.getElementById('btn-add-slide').addEventListener('click', () => addSlideBlock());
 
     document.getElementById('btn-form-cancel').addEventListener('click', () => {
+      if (typeof editingImportIndex !== 'undefined' && editingImportIndex !== -1) {
+        editingImportIndex = -1;
+        const btn = document.getElementById('btn-save-song');
+        btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save Song';
+        switchView('import');
+        return;
+      }
       editingSongId = null;
       switchView('library');
     });
@@ -1314,6 +1418,20 @@
         slides,
         updatedAt: serverTimestamp()
       };
+
+      if (typeof editingImportIndex !== 'undefined' && editingImportIndex !== -1) {
+          importedSongsData[editingImportIndex] = songData;
+          editingImportIndex = -1;
+          
+          const btn = document.getElementById('btn-save-song');
+          btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save Song';
+          
+          resetForm();
+          renderImportPreview();
+          switchView('import');
+          showToast('Changes saved to import list!', 'success');
+          return;
+      }
 
       const btn = document.getElementById('btn-save-song');
       btn.innerHTML = '<i class="ti ti-loader-2 ti-spin"></i> Saving...';
@@ -1393,7 +1511,20 @@
     let liveFontSize = 13;
     let liveAlign = 'center';
     let isPaused = false;
+    let isBlackScreen = false;
     let pausedSlideIndex = -1;
+
+    function updateBlackUI() {
+      const btn = document.getElementById('btn-black');
+      const qBtn = document.getElementById('quick-btn-black');
+      if (isBlackScreen) {
+        if(btn) { btn.className = 'nav-btn btn-resume'; btn.innerHTML = '<i class="ti ti-player-play"></i> Restore'; btn.title = 'Restore screen'; }
+        if(qBtn) { qBtn.className = 'nav-btn btn-resume'; qBtn.innerHTML = '<i class="ti ti-player-play"></i> Restore'; qBtn.title = 'Restore screen'; }
+      } else {
+        if(btn) { btn.className = 'nav-btn btn-clear'; btn.innerHTML = '<i class="ti ti-square"></i> Black Screen'; btn.title = 'Black Screen'; }
+        if(qBtn) { qBtn.className = 'nav-btn btn-clear'; qBtn.innerHTML = '<i class="ti ti-square"></i> Black Screen'; qBtn.title = 'Black Screen'; }
+      }
+    }
 
     function openLiveControl(song) {
       liveSong = song;
@@ -1501,12 +1632,17 @@
     function updateLivePreview() {
       const preview = document.getElementById('live-preview');
       preview.style.textAlign = liveAlign;
+      
+      let html = '<div class="pause-badge" id="pause-badge"><i class="ti ti-player-pause"></i> PAUSED</div>';
+      
       if (!liveSong?.slides?.[liveSlideIndex]) {
-        preview.innerHTML = '<div class="preview-empty">Select a slide to preview</div>';
+        preview.innerHTML = html + '<div class="preview-empty">Select a slide to preview</div>';
+        updatePauseUI();
         return;
       }
+      
       const slide = liveSong.slides[liveSlideIndex];
-      let html = `<div class="preview-label">── ${escHtml(slide.label || '')} ──</div>`;
+      html += `<div class="preview-label">✨ ${escHtml(slide.label || '')} ✨</div>`;
 
       const showLangs = getActiveLangs();
       showLangs.forEach(lang => {
@@ -1521,6 +1657,7 @@
       }
 
       preview.innerHTML = html;
+      updatePauseUI();
     }
 
     function getActiveLangs() {
@@ -1538,6 +1675,10 @@
     function updatePresenterState() {
       // If paused, don't update the projector
       if (isPaused) return;
+      if (isBlackScreen) {
+         isBlackScreen = false;
+         updateBlackUI();
+      }
 
       if (!liveSong?.slides?.[liveSlideIndex]) {
         localStorage.removeItem('song_presenter_state');
@@ -1600,11 +1741,27 @@
       if (liveSong?.slides && liveSlideIndex < liveSong.slides.length - 1) selectSlide(liveSlideIndex + 1);
     });
     document.getElementById('btn-black').addEventListener('click', () => {
-      isPaused = false;
-      updatePauseUI();
-      localStorage.removeItem('song_presenter_state');
-      document.getElementById('live-preview').innerHTML = '<div class="pause-badge" id="pause-badge"><i class="ti ti-player-pause"></i> PAUSED</div><div class="preview-empty" style="color:rgba(255,255,255,0.15);">Screen is blank</div>';
-      document.querySelectorAll('.slide-tab').forEach(t => t.classList.remove('active'));
+      if (!isBlackScreen) {
+        isBlackScreen = true;
+        isPaused = false;
+        updatePauseUI();
+        updateBlackUI();
+        localStorage.removeItem('song_presenter_state');
+        document.getElementById('live-preview').innerHTML = '<div class="pause-badge" id="pause-badge" style="background:#000;"><i class="ti ti-square"></i> BLACK SCREEN</div><div class="preview-empty" style="color:rgba(255,255,255,0.15);">Screen is blacked out</div>';
+        const qPreview = document.getElementById('quick-preview');
+        if(qPreview) qPreview.innerHTML = '<div class="pause-badge" id="quick-pause-badge" style="background:#000;"><i class="ti ti-square"></i> BLACK SCREEN</div><div class="preview-empty" style="color:rgba(255,255,255,0.15);">Screen is blacked out</div>';
+        document.querySelectorAll('.slide-tab').forEach(t => t.classList.remove('active'));
+      } else {
+        isBlackScreen = false;
+        updateBlackUI();
+        if (currentView === 'quick') {
+           updateQuickPreview();
+           pushQuickToProjector();
+        } else {
+           updateLivePreview();
+           updatePresenterState();
+        }
+      }
     });
 
     // ======================== PAUSE / RESUME ========================
@@ -1612,32 +1769,45 @@
       const btn = document.getElementById('btn-pause');
       const badge = document.getElementById('pause-badge');
       const preview = document.getElementById('live-preview');
+      
+      const qBtn = document.getElementById('quick-btn-pause');
+      const qBadge = document.getElementById('quick-pause-badge');
+      const qPreview = document.getElementById('quick-preview');
 
       if (isPaused) {
-        btn.className = 'nav-btn btn-resume';
-        btn.innerHTML = '<i class="ti ti-player-play"></i> Resume';
-        btn.title = 'Resume projector';
+        if (btn) { btn.className = 'nav-btn btn-resume'; btn.innerHTML = '<i class="ti ti-player-play"></i> Resume'; btn.title = 'Resume projector'; }
+        if (qBtn) { qBtn.className = 'nav-btn btn-resume'; qBtn.innerHTML = '<i class="ti ti-player-play"></i> Resume'; qBtn.title = 'Resume projector'; }
         if (badge) badge.classList.add('active');
-        preview.classList.add('paused');
+        if (qBadge) qBadge.classList.add('active');
+        if (preview) preview.classList.add('paused');
+        if (qPreview) qPreview.classList.add('paused');
       } else {
-        btn.className = 'nav-btn btn-pause';
-        btn.innerHTML = '<i class="ti ti-player-pause"></i> Pause';
-        btn.title = 'Pause projector';
+        if (btn) { btn.className = 'nav-btn btn-pause'; btn.innerHTML = '<i class="ti ti-player-pause"></i> Pause'; btn.title = 'Pause projector'; }
+        if (qBtn) { qBtn.className = 'nav-btn btn-pause'; qBtn.innerHTML = '<i class="ti ti-player-pause"></i> Pause'; qBtn.title = 'Pause projector'; }
         if (badge) badge.classList.remove('active');
-        preview.classList.remove('paused');
+        if (qBadge) qBadge.classList.remove('active');
+        if (preview) preview.classList.remove('paused');
+        if (qPreview) qPreview.classList.remove('paused');
       }
       updateSidebarActive();
     }
 
     document.getElementById('btn-pause').addEventListener('click', () => {
-      if (!liveSong?.slides) return;
+      if (currentView === 'live' && !liveSong?.slides) return;
+      if (currentView === 'quick' && !quickSlides) return;
 
       if (isPaused) {
         // RESUME: push the current slide to the projector
         isPaused = false;
         pausedSlideIndex = -1;
         updatePauseUI();
-        updatePresenterState();
+        if (currentView === 'quick') {
+           updateQuickPreview();
+           pushQuickToProjector();
+        } else {
+           updateLivePreview();
+           updatePresenterState();
+        }
         showToast('Projector resumed!', 'success');
       } else {
         // PAUSE: freeze the projector on the current slide
@@ -1704,16 +1874,32 @@
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-      if (currentView !== 'live' || !liveSong) return;
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
-      if (e.key === 'ArrowRight' || e.key === ' ') {
-        e.preventDefault();
-        if (liveSong.slides && liveSlideIndex < liveSong.slides.length - 1) selectSlide(liveSlideIndex + 1);
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        if (liveSlideIndex > 0) selectSlide(liveSlideIndex - 1);
-      } else if (e.key === 'b' || e.key === 'B') {
-        document.getElementById('btn-black').click();
+      
+      if (currentView === 'live' && liveSong) {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+          e.preventDefault();
+          if (liveSong.slides && liveSlideIndex < liveSong.slides.length - 1) selectSlide(liveSlideIndex + 1);
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          if (liveSlideIndex > 0) selectSlide(liveSlideIndex - 1);
+        } else if (e.key === 'b' || e.key === 'B') {
+          document.getElementById('btn-black').click();
+        } else if (e.key === 'p' || e.key === 'P') {
+          document.getElementById('btn-pause').click();
+        }
+      } else if (currentView === 'quick') {
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+          e.preventDefault();
+          quickSelectSlide(quickActiveSlideIndex + 1);
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          quickSelectSlide(quickActiveSlideIndex - 1);
+        } else if (e.key === 'b' || e.key === 'B') {
+          document.getElementById('btn-black').click();
+        } else if (e.key === 'p' || e.key === 'P') {
+          document.getElementById('btn-pause').click();
+        }
       }
     });
 
@@ -1792,58 +1978,245 @@
       handleFiles(files);
     }
 
+    let editingImportIndex = -1;
+
+    function renderImportPreview() {
+      if (importedSongsData.length > 0) {
+        document.getElementById('import-preview').classList.add('active');
+        document.getElementById('drop-zone').classList.add('compact');
+        document.getElementById('import-count').textContent = importedSongsData.length;
+        
+        const listHtml = importedSongsData.map((s, idx) => 
+          `<div class="import-item">
+             <span><strong>${escHtml(s.title.en || s.title.kn || s.title.hi || 'Untitled')}</strong></span>
+             <div style="display:flex; gap:10px; align-items:center;">
+                <span style="font-size:12px; color:var(--color-text-secondary);">${s.slides.length} slides</span>
+                <button class="nav-btn btn-popout" onclick="editImportedSong(${idx})" style="padding:4px 10px; font-size:12px;"><i class="ti ti-pencil"></i> Edit</button>
+                <button class="nav-btn btn-popout" onclick="quickPresentImported(${idx})" style="padding:4px 10px; font-size:12px;"><i class="ti ti-bolt"></i> Quick Present</button>
+             </div>
+           </div>`
+        ).join('');
+        document.getElementById('import-list').innerHTML = listHtml;
+      } else {
+        document.getElementById('import-preview').classList.remove('active');
+        document.getElementById('drop-zone').classList.remove('compact');
+      }
+    }
+
+    window.editImportedSong = function(idx) {
+      editingImportIndex = idx;
+      const song = importedSongsData[idx];
+      
+      switchView('add-song');
+
+      document.getElementById('form-title').innerHTML = '<i class="ti ti-pencil" aria-hidden="true"></i> Review Imported Song';
+      document.getElementById('f-title-en').value = song.title?.en || '';
+      document.getElementById('f-title-kn').value = song.title?.kn || '';
+      document.getElementById('f-title-hi').value = song.title?.hi || '';
+      document.getElementById('f-author').value = song.author || '';
+      document.getElementById('f-category').value = song.category || 'General';
+      document.getElementById('f-tags').value = (song.tags || []).join(', ');
+      document.getElementById('slides-container').innerHTML = '';
+      slideCounter = 0;
+      (song.slides || []).forEach(slide => addSlideBlock(slide));
+      if ((song.slides || []).length === 0) addSlideBlock();
+      
+      const saveBtn = document.getElementById('btn-save-song');
+      saveBtn.innerHTML = '<i class="ti ti-check"></i> Save Changes & Return';
+    };
+
+    window.quickPresentImported = function(idx) {
+      const song = importedSongsData[idx];
+      if (!song || !song.slides) return;
+      
+      quickSlides = song.slides.map((s, i) => {
+          const mixedText = [s.en, s.kn, s.hi].filter(Boolean).join('\n');
+          return { id: i + 1, text: mixedText };
+      });
+      
+      quickActiveSlideIndex = 0;
+      quickSlideCounter = quickSlides.length;
+      
+      document.getElementById('import-preview').classList.remove('active');
+      document.getElementById('file-input').value = '';
+      
+      switchView('quick');
+      renderQuickSidebar();
+      updateQuickEditor();
+      showToast('Sent to Quick Presenter!', 'success');
+    };
+
+    function processExtractedText(text) {
+      const lines = text.split('\n');
+      let en = [], kn = [], hi = [];
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        if (/[\u0C80-\u0CFF]/.test(line)) kn.push(line);
+        else if (/[\u0900-\u097F]/.test(line)) hi.push(line);
+        else en.push(line);
+      }
+      return {
+        en: en.join('\n').trim(),
+        kn: kn.join('\n').trim(),
+        hi: hi.join('\n').trim()
+      };
+    }
+
     async function handleFiles(files) {
       importedSongsData = [];
-      const validFiles = Array.from(files).filter(f => f.name.endsWith('.txt'));
+      const validFiles = Array.from(files).filter(f => f.name.endsWith('.txt') || f.name.endsWith('.pptx'));
       
       if (validFiles.length === 0) {
-        showToast('Please upload .txt files only', 'error');
+        showToast('Please upload .txt or .pptx files only', 'error');
         return;
+      }
+      
+      const hasPpt = Array.from(files).some(f => f.name.endsWith('.ppt') && !f.name.endsWith('.pptx'));
+      if (hasPpt) {
+        showToast('Older .ppt format not supported. Please save as .pptx first.', 'warning');
       }
 
       for (const file of validFiles) {
-        const text = await file.text();
-        const title = file.name.replace('.txt', '').trim();
+        const isPptx = file.name.endsWith('.pptx');
+        const defaultTitle = file.name.replace(/\.(txt|pptx)$/i, '').trim();
         
-        // Split by empty lines to create slides
-        const chunks = text.split(/\n\s*\n/).map(c => c.trim()).filter(Boolean);
-        const slides = chunks.map((chunk, i) => {
-          return {
-            type: 'verse',
-            label: `Verse ${i + 1}`,
-            order: i + 1,
-            en: chunk,
-            kn: '',
-            hi: ''
-          };
-        });
+        let currentSong = null;
+        let tempSongs = [];
 
-        if (slides.length > 0) {
-          importedSongsData.push({
-            title: { en: title, kn: '', hi: '' },
-            author: '',
-            category: 'General',
-            tags: [],
-            searchIndex: [title.toLowerCase()],
-            slides: slides
-          });
+        function commitSong() {
+            if (currentSong && currentSong.slides.length > 0) {
+                tempSongs.push(currentSong);
+            }
         }
+
+        if (isPptx) {
+          try {
+            if (typeof JSZip === 'undefined') {
+                showToast('JSZip library not loaded. Cannot read PPTX.', 'error');
+                continue;
+            }
+            const arrayBuffer = await file.arrayBuffer();
+            const zip = await JSZip.loadAsync(arrayBuffer);
+            const slideFiles = Object.keys(zip.files)
+                .filter(name => name.match(/^ppt\/slides\/slide\d+\.xml$/))
+                .sort((a, b) => {
+                    const numA = parseInt(a.match(/slide(\d+)/)[1]);
+                    const numB = parseInt(b.match(/slide(\d+)/)[1]);
+                    return numA - numB;
+                });
+                
+            for (const slideFile of slideFiles) {
+                const content = await zip.files[slideFile].async("string");
+                
+                // Replace paragraph ends and line breaks with newlines
+                let rawText = content
+                    .replace(/<\/a:p>/gi, '\n')
+                    .replace(/<a:br[^>]*>/gi, '\n');
+                
+                // Strip all remaining XML tags
+                rawText = rawText.replace(/<[^>]+>/g, '');
+                
+                // Decode HTML entities
+                rawText = rawText
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>');
+                
+                // Clean up empty lines and trim
+                const text = rawText.split('\n').map(l => l.trim()).filter(Boolean).join('\n');
+                
+                if (!text) continue;
+
+                // Check for new song marker
+                if (text.match(/^song\s*\d+/i)) {
+                    commitSong();
+                    const firstLine = text.split('\n')[0].trim();
+                    currentSong = {
+                        title: { en: firstLine, kn: '', hi: '' },
+                        author: '', category: 'General', tags: [],
+                        searchIndex: [firstLine.toLowerCase()],
+                        slides: []
+                    };
+                    const restOfText = text.substring(firstLine.length).trim();
+                    if (restOfText) {
+                        const parsed = processExtractedText(restOfText);
+                        currentSong.slides.push({
+                            type: 'verse', label: `Slide ${currentSong.slides.length + 1}`, order: currentSong.slides.length + 1,
+                            en: parsed.en, kn: parsed.kn, hi: parsed.hi
+                        });
+                    }
+                } else {
+                    if (!currentSong) {
+                        currentSong = {
+                            title: { en: defaultTitle, kn: '', hi: '' },
+                            author: '', category: 'General', tags: [],
+                            searchIndex: [defaultTitle.toLowerCase()],
+                            slides: []
+                        };
+                    }
+                    const parsed = processExtractedText(text);
+                    currentSong.slides.push({
+                        type: 'verse', label: `Slide ${currentSong.slides.length + 1}`, order: currentSong.slides.length + 1,
+                        en: parsed.en, kn: parsed.kn, hi: parsed.hi
+                    });
+                }
+            }
+            commitSong();
+          } catch (e) {
+            console.error('Error parsing PPTX:', e);
+            showToast('Failed to parse ' + file.name, 'error');
+          }
+        } else {
+          // TXT file handling
+          const text = await file.text();
+          const chunks = text.split(/\n\s*\n/).map(c => c.trim()).filter(Boolean);
+          
+          for (const chunk of chunks) {
+              if (chunk.match(/^song\s*\d+/i)) {
+                  commitSong();
+                  const firstLine = chunk.split('\n')[0].trim();
+                  currentSong = {
+                      title: { en: firstLine, kn: '', hi: '' },
+                      author: '', category: 'General', tags: [],
+                      searchIndex: [firstLine.toLowerCase()],
+                      slides: []
+                  };
+                  const restOfText = chunk.substring(firstLine.length).trim();
+                  if (restOfText) {
+                      const parsed = processExtractedText(restOfText);
+                      currentSong.slides.push({
+                          type: 'verse', label: `Verse ${currentSong.slides.length + 1}`, order: currentSong.slides.length + 1,
+                          en: parsed.en, kn: parsed.kn, hi: parsed.hi
+                      });
+                  }
+              } else {
+                  if (!currentSong) {
+                      currentSong = {
+                          title: { en: defaultTitle, kn: '', hi: '' },
+                          author: '', category: 'General', tags: [],
+                          searchIndex: [defaultTitle.toLowerCase()],
+                          slides: []
+                      };
+                  }
+                  const parsed = processExtractedText(chunk);
+                  currentSong.slides.push({
+                      type: 'verse', label: `Verse ${currentSong.slides.length + 1}`, order: currentSong.slides.length + 1,
+                      en: parsed.en, kn: parsed.kn, hi: parsed.hi
+                  });
+              }
+          }
+          commitSong();
+        }
+
+        importedSongsData.push(...tempSongs);
       }
 
-      if (importedSongsData.length > 0) {
-        document.getElementById('import-preview').classList.add('active');
-        document.getElementById('import-count').textContent = importedSongsData.length;
-        
-        const listHtml = importedSongsData.map(s => 
-          `<div class="import-item"><span><strong>${escHtml(s.title.en)}</strong></span><span>${s.slides.length} slides</span></div>`
-        ).join('');
-        document.getElementById('import-list').innerHTML = listHtml;
-      }
+      renderImportPreview();
     }
 
     document.getElementById('btn-import-cancel').addEventListener('click', () => {
       importedSongsData = [];
-      document.getElementById('import-preview').classList.remove('active');
+      renderImportPreview();
       fileInput.value = '';
     });
 
@@ -1878,6 +2251,240 @@
         btn.disabled = false;
       }
     });
+
+    // ======================== QUICK PRESENTER ========================
+    let quickSlides = [{ id: 1, text: '' }];
+    let quickActiveSlideIndex = 0;
+    let quickFontSize = 13;
+    let quickAlign = 'center';
+    let quickSlideCounter = 1;
+
+    function pushQuickToProjector() {
+      if (isPaused) return; // Do not push if paused
+      if (isBlackScreen) {
+         isBlackScreen = false;
+         updateBlackUI();
+      }
+      const slide = quickSlides[quickActiveSlideIndex];
+      localStorage.setItem('song_presenter_state', JSON.stringify({
+        songTitle: 'Quick Presenter',
+        slideLabel: '',
+        slideType: 'verse',
+        en: slide.text,
+        kn: '',
+        hi: '',
+        lang: 'en',
+        fontSize: quickFontSize,
+        align: quickAlign
+      }));
+    }
+
+    function renderQuickSidebar() {
+      const sidebar = document.getElementById('quick-sidebar');
+      const filterText = document.getElementById('quick-search')?.value.toLowerCase() || '';
+      sidebar.innerHTML = '';
+      quickSlides.forEach((slide, i) => {
+        if (filterText && !slide.text.toLowerCase().includes(filterText)) return;
+        
+        const card = document.createElement('button');
+        card.className = 'slide-mini' + (i === quickActiveSlideIndex ? ' active' : '');
+        const previewText = slide.text.split('\n').slice(0, 2).join(' ').substring(0, 60);
+        card.innerHTML = `<div class="slide-mini-label">Slide ${i + 1}</div><div class="slide-mini-text">${escHtml(previewText || 'Empty slide')}</div>`;
+        card.addEventListener('click', () => {
+          quickActiveSlideIndex = i;
+          renderQuickSidebar();
+          updateQuickEditor();
+        });
+        sidebar.appendChild(card);
+      });
+      // Scroll to active
+      const activeCard = sidebar.querySelector('.slide-mini.active');
+      if (activeCard && !filterText) activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function updateQuickEditor() {
+      const label = document.getElementById('quick-editor-label');
+      if (quickSlides.length > 0 && quickSlides[quickActiveSlideIndex]) {
+        document.getElementById('quick-editor').value = quickSlides[quickActiveSlideIndex].text;
+        if (label) label.textContent = `Slide ${quickActiveSlideIndex + 1} of ${quickSlides.length} (Type or Paste here)`;
+      } else {
+        document.getElementById('quick-editor').value = '';
+        if (label) label.textContent = 'Slide Text (Type or Paste here)';
+      }
+      updateQuickPreview();
+    }
+
+    function updateQuickPreview() {
+      const slide = quickSlides[quickActiveSlideIndex];
+      const previewContainer = document.getElementById('quick-preview');
+      
+      let html = '<div class="pause-badge" id="quick-pause-badge"><i class="ti ti-player-pause"></i> PAUSED</div>';
+      
+      if (!slide || !slide.text) {
+        html += '<div class="preview-empty" style="color:rgba(255,255,255,0.15);">Screen is blank</div>';
+      } else {
+        html += `<div class="preview-text en" id="quick-preview-text">${escHtml(slide.text).replace(/\n/g, '<br>')}</div>`;
+      }
+      
+      previewContainer.innerHTML = html;
+      previewContainer.style.textAlign = quickAlign;
+      updatePauseUI();
+    }
+
+    document.getElementById('quick-editor').addEventListener('input', (e) => {
+      quickSlides[quickActiveSlideIndex].text = e.target.value;
+      updateQuickPreview();
+      // Update sidebar preview without full re-render
+      const activeCardText = document.querySelector('#quick-sidebar .slide-mini.active .slide-mini-text');
+      if (activeCardText) {
+        const previewText = e.target.value.split('\n').slice(0, 2).join(' ').substring(0, 60);
+        activeCardText.innerHTML = escHtml(previewText || 'Empty slide');
+      }
+    });
+
+    // Navigation and Pause controls for Quick Presenter
+    function quickSelectSlide(index) {
+      if (index >= 0 && index < quickSlides.length) {
+        quickActiveSlideIndex = index;
+        renderQuickSidebar();
+        updateQuickEditor();
+        if (!isPaused) {
+           pushQuickToProjector();
+        }
+      }
+    }
+    
+    document.getElementById('quick-btn-prev').addEventListener('click', () => {
+      quickSelectSlide(quickActiveSlideIndex - 1);
+    });
+    document.getElementById('quick-btn-next').addEventListener('click', () => {
+      quickSelectSlide(quickActiveSlideIndex + 1);
+    });
+    document.getElementById('quick-btn-pause').addEventListener('click', () => {
+      document.getElementById('btn-pause').click();
+    });
+    document.getElementById('quick-btn-black').addEventListener('click', () => {
+      document.getElementById('btn-black').click();
+    });
+
+    document.getElementById('btn-quick-import').addEventListener('click', () => {
+      switchView('import');
+    });
+
+    document.getElementById('btn-quick-add-slide').addEventListener('click', () => {
+      quickSlideCounter++;
+      quickSlides.push({ id: quickSlideCounter, text: '' });
+      quickActiveSlideIndex = quickSlides.length - 1;
+      renderQuickSidebar();
+      updateQuickEditor();
+      document.getElementById('quick-editor').focus();
+    });
+    
+    document.getElementById('quick-search')?.addEventListener('input', (e) => {
+      const clearBtn = document.getElementById('quick-search-clear');
+      if (clearBtn) clearBtn.style.display = e.target.value ? 'block' : 'none';
+      renderQuickSidebar();
+    });
+    
+    document.getElementById('quick-search-clear')?.addEventListener('click', () => {
+      const search = document.getElementById('quick-search');
+      if (search) {
+        search.value = '';
+        document.getElementById('quick-search-clear').style.display = 'none';
+        renderQuickSidebar();
+      }
+    });
+
+    document.getElementById('btn-quick-delete-slide').addEventListener('click', () => {
+      if (quickSlides.length > 1) {
+        quickSlides.splice(quickActiveSlideIndex, 1);
+        if (quickActiveSlideIndex >= quickSlides.length) {
+          quickActiveSlideIndex = quickSlides.length - 1;
+        }
+        renderQuickSidebar();
+        updateQuickEditor();
+      } else {
+        // Just clear it
+        quickSlides[0].text = '';
+        updateQuickEditor();
+        renderQuickSidebar();
+      }
+    });
+
+    document.getElementById('btn-quick-project').addEventListener('click', () => {
+      pushQuickToProjector();
+      showToast('Slide Projected!', 'success');
+    });
+
+    document.getElementById('btn-quick-save').addEventListener('click', () => {
+       const titleStr = prompt("Enter a title to save this quick presentation:");
+       if (!titleStr) return;
+       
+       const slidesToSave = quickSlides.filter(s => s.text.trim().length > 0).map((s, i) => ({
+          type: 'verse',
+          label: `Slide ${i + 1}`,
+          order: i + 1,
+          en: s.text,
+          kn: '',
+          hi: ''
+       }));
+       
+       if (slidesToSave.length === 0) {
+          showToast('No non-empty slides to save.', 'error');
+          return;
+       }
+       
+       const songData = {
+         title: { en: titleStr, kn: '', hi: '' },
+         author: 'Quick Presenter',
+         category: 'General',
+         tags: [],
+         searchIndex: [titleStr.toLowerCase()],
+         slides: slidesToSave,
+         createdAt: serverTimestamp(),
+         updatedAt: serverTimestamp()
+       };
+       
+       addDoc(collection(db, "songs"), songData)
+         .then(() => {
+           showToast('Saved to Song Library!', 'success');
+           loadSongs();
+         })
+         .catch(e => {
+           console.error(e);
+           showToast('Failed to save', 'error');
+         });
+    });
+
+    // Font size & Align
+    document.getElementById('quick-font-dn').addEventListener('click', () => {
+      if (quickFontSize > 8) quickFontSize--;
+      document.getElementById('quick-font-label').textContent = quickFontSize + 'px';
+      pushQuickToProjector();
+    });
+    document.getElementById('quick-font-up').addEventListener('click', () => {
+      if (quickFontSize < 30) quickFontSize++;
+      document.getElementById('quick-font-label').textContent = quickFontSize + 'px';
+      pushQuickToProjector();
+    });
+    document.getElementById('quick-align-toggle').addEventListener('click', (e) => {
+      const btn = e.target.closest('.font-btn[data-align]');
+      if (!btn) return;
+      quickAlign = btn.dataset.align;
+      document.querySelectorAll('#quick-align-toggle .font-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      updateQuickPreview();
+      pushQuickToProjector();
+    });
+
+    // Pop out 
+    document.getElementById('btn-popout-quick')?.addEventListener('click', () => {
+      window.open('song-presenter.html', 'SongPresenter', 'width=1280,height=720');
+    });
+    
+    // Initialize quick presenter
+    renderQuickSidebar();
+    updateQuickEditor();
 
   </script>
 </body>
