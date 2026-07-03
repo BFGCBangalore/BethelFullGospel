@@ -260,6 +260,11 @@
       padding: 14px 18px;
       cursor: pointer;
       transition: all 0.2s;
+      position: relative;
+      z-index: 1;
+    }
+    .song-card.has-active-menu {
+      z-index: 10;
     }
     .song-card:hover { border-color: var(--primary-color); box-shadow: 0 2px 12px rgba(83,74,183,0.08); transform: translateY(-1px); }
     .song-icon {
@@ -271,7 +276,7 @@
     .song-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2px; }
     .song-meta { font-size: 11px; color: var(--color-text-secondary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .song-meta .tag { background: var(--color-background-secondary); padding: 1px 8px; border-radius: 999px; font-size: 10px; }
-    .song-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .song-actions { display: flex; gap: 4px; flex-shrink: 0; position: relative; }
     .song-actions button {
       width: 32px; height: 32px; border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md);
       background: var(--color-background-primary); cursor: pointer; display: flex; align-items: center;
@@ -279,6 +284,19 @@
     }
     .song-actions button:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
     .song-actions .btn-del:hover { background: var(--danger-light); color: var(--danger-color); border-color: #f09595; }
+    
+    .song-actions-menu {
+      display: none; position: absolute; right: 0; top: 36px;
+      background: var(--color-background-primary); border: 1px solid var(--color-border-secondary);
+      border-radius: var(--border-radius-md); box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      z-index: 100; flex-direction: column; min-width: 100px; overflow: hidden;
+    }
+    .song-actions-menu.active { display: flex; }
+    .song-actions .song-actions-menu button {
+      width: 100%; height: 36px; justify-content: flex-start; border-radius: 0;
+      padding: 0 12px; gap: 8px; border: none; border-bottom: 1px solid var(--color-border-tertiary);
+    }
+    .song-actions .song-actions-menu button:last-child { border-bottom: none; }
 
     .empty-state {
       text-align: center; padding: 60px 20px; color: var(--color-text-secondary);
@@ -1145,9 +1163,10 @@
     let editingSongId = null;
     let currentFilter = 'All';
 
-    const CATEGORIES = ['All', 'Worship', 'Praise', 'Communion', 'Prayer', 'Christmas', 'Easter', 'Children', 'Hymns', 'General'];
-    const CAT_ICONS = { Worship: '🙏', Praise: '🎉', Communion: '✝️', Prayer: '🕊️', Christmas: '🎄', Easter: '🌅', Children: '👶', Hymns: '📖', General: '🎵' };
+    const CATEGORIES = ['All', 'Favorites', 'Worship', 'Praise', 'Communion', 'Prayer', 'Christmas', 'Easter', 'Children', 'Hymns', 'General'];
+    const CAT_ICONS = { Favorites: '⭐', Worship: '🙏', Praise: '🎉', Communion: '✝️', Prayer: '🕊️', Christmas: '🎄', Easter: '🌅', Children: '👶', Hymns: '📖', General: '🎵' };
     const CAT_COLORS = {
+      Favorites: { bg: '#FEF9C3', fg: '#EAB308' },
       Worship: { bg: '#EEEDFE', fg: '#3C3489' }, Praise: { bg: '#FEF3C7', fg: '#92400E' },
       Communion: { bg: '#FBEAF0', fg: '#72243E' }, Prayer: { bg: '#E1F5EE', fg: '#085041' },
       Christmas: { bg: '#FCE7E7', fg: '#991B1B' }, Easter: { bg: '#FEF9C3', fg: '#854D0E' },
@@ -1203,7 +1222,9 @@
       let filtered = allSongs;
 
       // Category filter
-      if (currentFilter !== 'All') {
+      if (currentFilter === 'Favorites') {
+        filtered = filtered.filter(s => s.isFavorite);
+      } else if (currentFilter !== 'All') {
         filtered = filtered.filter(s => s.category === currentFilter);
       }
 
@@ -1243,7 +1264,10 @@
         card.innerHTML = `
           <div class="song-icon" style="background:${colors.bg};color:${colors.fg}">${CAT_ICONS[cat] || '🎵'}</div>
           <div class="song-info">
-            <div class="song-title">${escHtml(title)}</div>
+            <div class="song-title">
+              ${song.isFavorite ? '<i class="ti ti-star-filled" style="color:#eab308; margin-right:4px;"></i>' : ''}
+              ${escHtml(title)}
+            </div>
             <div class="song-meta">
               ${subTitles ? `<span style="opacity:0.7">${escHtml(subTitles)}</span>` : ''}
               <span class="tag" style="background:${colors.bg};color:${colors.fg}">${cat}</span>
@@ -1253,8 +1277,16 @@
           </div>
           <div class="song-actions">
             <button class="btn-present" title="Present this song"><i class="ti ti-broadcast"></i></button>
-            <button class="btn-edit" title="Edit song"><i class="ti ti-pencil"></i></button>
-            <button class="btn-del" title="Delete song"><i class="ti ti-trash"></i></button>
+            <button class="btn-quick-present" title="Quick Present"><i class="ti ti-bolt"></i></button>
+            <button class="btn-more" title="More options"><i class="ti ti-dots-vertical"></i></button>
+            <div class="song-actions-menu">
+              <button class="btn-fav" title="${song.isFavorite ? 'Unfavorite' : 'Favorite'}">
+                <i class="ti ${song.isFavorite ? 'ti-star-off' : 'ti-star'}"></i> 
+                ${song.isFavorite ? 'Unfavorite' : 'Favorite'}
+              </button>
+              <button class="btn-edit" title="Edit song"><i class="ti ti-pencil"></i> Edit</button>
+              <button class="btn-del" title="Delete song"><i class="ti ti-trash"></i> Delete</button>
+            </div>
           </div>`;
 
         // Click card to present
@@ -1268,19 +1300,73 @@
           openLiveControl(song);
         });
 
+        card.querySelector('.btn-quick-present').addEventListener('click', (e) => {
+          e.stopPropagation();
+          quickPresentSong(song);
+        });
+
+        const moreBtn = card.querySelector('.btn-more');
+        const menu = card.querySelector('.song-actions-menu');
+        
+        card.querySelector('.btn-fav').addEventListener('click', async (e) => {
+          e.stopPropagation();
+          menu.classList.remove('active');
+          card.classList.remove('has-active-menu');
+          try {
+            const newFav = !song.isFavorite;
+            song.isFavorite = newFav;
+            renderSongList(); // Optimistic update
+            await updateDoc(doc(db, "songs", song.id), { isFavorite: newFav });
+            showToast(newFav ? 'Added to Favorites!' : 'Removed from Favorites', 'success');
+          } catch (err) {
+            console.error("Error updating favorite:", err);
+            song.isFavorite = !song.isFavorite; // Revert
+            renderSongList();
+            showToast('Failed to update favorite status', 'error');
+          }
+        });
+        
+        moreBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          // Remove active classes from other menus and cards
+          document.querySelectorAll('.song-actions-menu.active').forEach(m => {
+            if (m !== menu) {
+              m.classList.remove('active');
+              m.closest('.song-card').classList.remove('has-active-menu');
+            }
+          });
+          
+          menu.classList.toggle('active');
+          card.classList.toggle('has-active-menu');
+        });
+
         card.querySelector('.btn-edit').addEventListener('click', (e) => {
           e.stopPropagation();
+          menu.classList.remove('active');
+          card.classList.remove('has-active-menu');
           editSong(song);
         });
 
         card.querySelector('.btn-del').addEventListener('click', (e) => {
           e.stopPropagation();
+          menu.classList.remove('active');
+          card.classList.remove('has-active-menu');
           confirmDeleteSong(song);
         });
 
         container.appendChild(card);
       });
     }
+
+    // Close action menus when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.song-actions')) {
+        document.querySelectorAll('.song-actions-menu.active').forEach(m => {
+          m.classList.remove('active');
+          m.closest('.song-card').classList.remove('has-active-menu');
+        });
+      }
+    });
 
     document.getElementById('search-input').addEventListener('input', () => {
       renderSongList();
@@ -1524,6 +1610,23 @@
         if(btn) { btn.className = 'nav-btn btn-clear'; btn.innerHTML = '<i class="ti ti-square"></i> Black Screen'; btn.title = 'Black Screen'; }
         if(qBtn) { qBtn.className = 'nav-btn btn-clear'; qBtn.innerHTML = '<i class="ti ti-square"></i> Black Screen'; qBtn.title = 'Black Screen'; }
       }
+    }
+
+    function quickPresentSong(song) {
+      if (!song || !song.slides) return;
+      
+      quickSlides = song.slides.map((s, i) => {
+          const mixedText = [s.en, s.kn, s.hi].filter(Boolean).join('\n');
+          return { id: i + 1, text: mixedText };
+      });
+      
+      quickActiveSlideIndex = 0;
+      quickSlideCounter = quickSlides.length;
+      
+      switchView('quick');
+      renderQuickSidebar();
+      updateQuickEditor();
+      showToast('Sent to Quick Presenter!', 'success');
     }
 
     function openLiveControl(song) {
