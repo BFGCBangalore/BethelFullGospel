@@ -15,7 +15,7 @@
         }
 
         :root {
-            --bg: #0b0f1a;
+            --bg: #000000;
             --text: #ffffff;
             --muted: rgba(255,255,255,0.4);
             --highlight: #6c5cff;
@@ -140,8 +140,8 @@
         }
 
         .lyrics-en {
-            font-size: 3.5em;
-            font-weight: 500;
+            font-size: 4em;
+            font-weight: 600;
             color: var(--text);
             text-shadow: 0 2px 20px rgba(0,0,0,0.5), 0 0 60px rgba(108,92,255,0.08);
             margin-bottom: 0.35em;
@@ -149,8 +149,8 @@
 
         .lyrics-kn,
         .lyrics-hi {
-            font-size: 3em;
-            font-weight: 400;
+            font-size: 3.5em;
+            font-weight: 500;
             color: rgba(255,255,255,0.78);
             text-shadow: 0 2px 16px rgba(0,0,0,0.4);
             margin-bottom: 0.3em;
@@ -342,8 +342,7 @@
     </style>
 </head>
 <body>
-    <!-- Background gradient -->
-    <div class="bg-gradient"></div>
+    <!-- Background gradient removed to match stage display's solid black background -->
 
     <!-- Church logo watermark -->
     <div class="watermark-logo">
@@ -529,7 +528,7 @@
             let blockIndex = 0;
 
             if (showEn && state.en) {
-                html += `<div class="lyrics-block lyrics-en" style="font-size:${3.5 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.en)}</div>`;
+                html += `<div class="lyrics-block lyrics-en" style="font-size:${4 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.en)}</div>`;
                 blockIndex++;
             }
 
@@ -538,7 +537,7 @@
             }
 
             if (showKn && state.kn) {
-                html += `<div class="lyrics-block lyrics-kn" style="font-size:${3 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.kn)}</div>`;
+                html += `<div class="lyrics-block lyrics-kn" style="font-size:${3.5 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.kn)}</div>`;
                 blockIndex++;
             }
 
@@ -547,7 +546,7 @@
             }
 
             if (showHi && state.hi) {
-                html += `<div class="lyrics-block lyrics-hi" style="font-size:${3 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.hi)}</div>`;
+                html += `<div class="lyrics-block lyrics-hi" style="font-size:${3.5 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.hi)}</div>`;
                 blockIndex++;
             }
 

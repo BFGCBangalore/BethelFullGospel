@@ -832,7 +832,10 @@
           <div id="live-panel" class="live-panel">
             <div class="live-header">
               <div class="live-song-title" id="live-title">Song Title</div>
-              <button class="nav-btn btn-popout" id="btn-popout-live" title="Pop out presenter"><i class="ti ti-external-link"></i> Pop Out</button>
+              <div style="display: flex; gap: 8px;">
+                <button class="nav-btn btn-popout" id="btn-popout-stage" title="Pop out stage display"><i class="ti ti-device-desktop"></i> Stage Display</button>
+                <button class="nav-btn btn-popout" id="btn-popout-live" title="Pop out presenter"><i class="ti ti-external-link"></i> Pop Out</button>
+              </div>
             </div>
             <div class="live-controls-row">
               <div class="lang-toggle" id="lang-toggle">
@@ -906,7 +909,10 @@
           <div class="live-panel active" style="display:flex; flex-direction:column; height: 100%;">
             <div class="live-header">
               <div class="live-song-title">⚡ Quick Presenter</div>
-              <button class="nav-btn btn-popout" id="btn-popout-quick" title="Pop out presenter"><i class="ti ti-external-link"></i> Pop Out</button>
+              <div style="display: flex; gap: 8px;">
+                <button class="nav-btn btn-popout" id="btn-popout-stage-quick" title="Pop out stage display"><i class="ti ti-device-desktop"></i> Stage Display</button>
+                <button class="nav-btn btn-popout" id="btn-popout-quick" title="Pop out presenter"><i class="ti ti-external-link"></i> Pop Out</button>
+              </div>
             </div>
             
             <div class="live-body" style="flex:1;">
@@ -1024,6 +1030,7 @@
 
     // Clear presenter state on load so it starts empty
     localStorage.removeItem('song_presenter_state');
+    localStorage.removeItem('stage_display_state');
 
     // DOM
     const loginScreen = document.getElementById('login-screen');
@@ -1156,6 +1163,12 @@
     });
     document.getElementById('btn-popout-live')?.addEventListener('click', () => {
       window.open('song-presenter.html', 'SongPresenter', 'width=1280,height=720');
+    });
+    document.getElementById('btn-popout-stage')?.addEventListener('click', () => {
+      window.open('stage-display.html', 'StageDisplay', 'width=1280,height=720');
+    });
+    document.getElementById('btn-popout-stage-quick')?.addEventListener('click', () => {
+      window.open('stage-display.html', 'StageDisplay', 'width=1280,height=720');
     });
 
     // ======================== SONGS DATA ========================
@@ -1776,6 +1789,21 @@
     }
 
     function updatePresenterState() {
+      const updateStage = () => {
+        if (!liveSong?.slides?.[liveSlideIndex]) {
+          localStorage.removeItem('stage_display_state');
+          return;
+        }
+        const slide = liveSong.slides[liveSlideIndex];
+        const title = liveSong.title?.en || liveSong.title?.kn || liveSong.title?.hi || '';
+        localStorage.setItem('stage_display_state', JSON.stringify({
+          songTitle: title, slideLabel: slide.label || '', slideType: slide.type || 'verse',
+          en: slide.en || '', kn: slide.kn || '', hi: slide.hi || '',
+          lang: liveLang, fontSize: liveFontSize, align: liveAlign
+        }));
+      };
+      updateStage();
+
       // If paused, don't update the projector
       if (isPaused) return;
       if (isBlackScreen) {
@@ -2363,23 +2391,29 @@
     let quickSlideCounter = 1;
 
     function pushQuickToProjector() {
+      const slide = quickSlides[quickActiveSlideIndex];
+      const stateObj = slide ? {
+        songTitle: 'Quick Presenter', slideLabel: '', slideType: 'verse',
+        en: slide.text, kn: '', hi: '', lang: 'en', fontSize: quickFontSize, align: quickAlign
+      } : null;
+
+      if (stateObj) {
+        localStorage.setItem('stage_display_state', JSON.stringify(stateObj));
+      } else {
+        localStorage.removeItem('stage_display_state');
+      }
+
       if (isPaused) return; // Do not push if paused
       if (isBlackScreen) {
          isBlackScreen = false;
          updateBlackUI();
       }
-      const slide = quickSlides[quickActiveSlideIndex];
-      localStorage.setItem('song_presenter_state', JSON.stringify({
-        songTitle: 'Quick Presenter',
-        slideLabel: '',
-        slideType: 'verse',
-        en: slide.text,
-        kn: '',
-        hi: '',
-        lang: 'en',
-        fontSize: quickFontSize,
-        align: quickAlign
-      }));
+      
+      if (stateObj) {
+        localStorage.setItem('song_presenter_state', JSON.stringify(stateObj));
+      } else {
+        localStorage.removeItem('song_presenter_state');
+      }
     }
 
     function renderQuickSidebar() {
@@ -2451,9 +2485,7 @@
         quickActiveSlideIndex = index;
         renderQuickSidebar();
         updateQuickEditor();
-        if (!isPaused) {
-           pushQuickToProjector();
-        }
+        pushQuickToProjector();
       }
     }
     

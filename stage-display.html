@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stage Display — Bethel Full Gospel Church</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400;500;600&display=swap');
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #000000;
+            --text: #ffffff;
+            --muted: rgba(255,255,255,0.4);
+            --highlight: #ffd700;
+            --transition-speed: 0.2s;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            cursor: none;
+        }
+
+        body.controls-visible {
+            cursor: default;
+        }
+
+        .presenter-container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .slide-label {
+            font-family: 'Fraunces', serif;
+            font-size: 2.5em;
+            font-weight: 600;
+            color: var(--highlight);
+            margin-bottom: 0.4em;
+            letter-spacing: 0.04em;
+            text-transform: capitalize;
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        .slide-label.visible {
+            opacity: 1;
+        }
+
+        .lyrics-block {
+            text-align: center;
+            line-height: 1.4;
+            max-width: 95%;
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        .lyrics-block.visible {
+            opacity: 1;
+        }
+
+        .lyrics-en {
+            font-size: 4em;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.2em;
+        }
+
+        .lyrics-kn,
+        .lyrics-hi {
+            font-size: 3.5em;
+            font-weight: 500;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 0.2em;
+        }
+
+        .lyrics-divider {
+            width: 100px;
+            height: 3px;
+            background: var(--highlight);
+            margin: 0.3em auto 0.4em;
+            border-radius: 2px;
+            opacity: 0.8;
+        }
+
+        .waiting-message {
+            font-family: 'Fraunces', serif;
+            font-size: 2.5em;
+            color: var(--muted);
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .waiting-message.visible {
+            opacity: 1;
+        }
+
+        .song-title-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            padding: 20px 32px;
+            background: linear-gradient(rgba(0,0,0,0.8), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .song-title-bar.visible {
+            opacity: 1;
+        }
+
+        .song-title-text {
+            font-family: 'Fraunces', serif;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--highlight);
+        }
+
+        .stage-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--highlight);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2em;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="stage-badge">STAGE DISPLAY</div>
+
+    <div class="song-title-bar" id="songTitleBar">
+        <div class="song-title-text" id="songTitleText"></div>
+    </div>
+
+    <div class="presenter-container" id="presenterContainer">
+        <div class="slide-label" id="slideLabel"></div>
+        <div id="lyricsContent"></div>
+        <div class="waiting-message" id="waitingMessage">
+            Waiting for song selection...
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'stage_display_state';
+        const CONTROLS_TIMEOUT = 2000;
+
+        const slideLabel = document.getElementById('slideLabel');
+        const lyricsContent = document.getElementById('lyricsContent');
+        const waitingMessage = document.getElementById('waitingMessage');
+        const songTitleBar = document.getElementById('songTitleBar');
+        const songTitleText = document.getElementById('songTitleText');
+
+        let controlsTimer = null;
+
+        function showControls() {
+            songTitleBar.classList.add('visible');
+            document.body.classList.add('controls-visible');
+            clearTimeout(controlsTimer);
+            controlsTimer = setTimeout(hideControls, CONTROLS_TIMEOUT);
+        }
+
+        function hideControls() {
+            songTitleBar.classList.remove('visible');
+            document.body.classList.remove('controls-visible');
+        }
+
+        document.addEventListener('mousemove', showControls);
+        document.addEventListener('mousedown', showControls);
+
+        function nl2br(str) {
+            if (!str) return '';
+            return str.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+        }
+
+        function renderPresenter(state) {
+            if (!state) {
+                slideLabel.classList.remove('visible');
+                slideLabel.textContent = '';
+                const blocks = lyricsContent.querySelectorAll('.lyrics-block');
+                blocks.forEach(b => b.classList.remove('visible'));
+                setTimeout(() => {
+                    lyricsContent.innerHTML = '';
+                    waitingMessage.classList.add('visible');
+                }, blocks.length ? 200 : 0);
+                songTitleText.textContent = '';
+                return;
+            }
+
+            waitingMessage.classList.remove('visible');
+
+            const scaleFactor = (state.fontSize || 13) / 13;
+            songTitleText.textContent = state.songTitle || '';
+
+            const lang = state.lang || 'en';
+            const showEn = lang === 'en' || lang === 'en+kn' || lang === 'en+hi' || lang === 'all';
+            const showKn = lang === 'kn' || lang === 'en+kn' || lang === 'all';
+            const showHi = lang === 'hi' || lang === 'en+hi' || lang === 'all';
+
+            if (state.slideLabel) {
+                slideLabel.textContent = state.slideLabel;
+                slideLabel.style.fontSize = `${2.5 * scaleFactor}em`;
+                slideLabel.classList.remove('visible');
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        slideLabel.classList.add('visible');
+                    });
+                });
+            } else {
+                slideLabel.classList.remove('visible');
+                slideLabel.textContent = '';
+            }
+
+            let html = '';
+            if (showEn && state.en) {
+                html += `<div class="lyrics-block lyrics-en" style="font-size:${4 * scaleFactor}em;">${nl2br(state.en)}</div>`;
+            }
+            if (showEn && showKn && state.en && state.kn) {
+                html += `<div class="lyrics-divider"></div>`;
+            }
+            if (showKn && state.kn) {
+                html += `<div class="lyrics-block lyrics-kn" style="font-size:${3.5 * scaleFactor}em;">${nl2br(state.kn)}</div>`;
+            }
+            if ((showEn || showKn) && showHi && state.hi && (state.en || state.kn)) {
+                html += `<div class="lyrics-divider"></div>`;
+            }
+            if (showHi && state.hi) {
+                html += `<div class="lyrics-block lyrics-hi" style="font-size:${3.5 * scaleFactor}em;">${nl2br(state.hi)}</div>`;
+            }
+
+            const existingBlocks = lyricsContent.querySelectorAll('.lyrics-block');
+            existingBlocks.forEach(b => b.classList.remove('visible'));
+            lyricsContent.style.textAlign = state.align || 'center';
+
+            setTimeout(() => {
+                lyricsContent.innerHTML = html;
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        const newBlocks = lyricsContent.querySelectorAll('.lyrics-block');
+                        newBlocks.forEach(b => b.classList.add('visible'));
+                    });
+                });
+            }, existingBlocks.length ? 200 : 0);
+        }
+
+        function readState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return null;
+                return JSON.parse(raw);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === STORAGE_KEY || e.key === null) {
+                renderPresenter(readState());
+            }
+        });
+
+        let lastStateJSON = '';
+        setInterval(() => {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw !== lastStateJSON) {
+                lastStateJSON = raw;
+                renderPresenter(readState());
+            }
+        }, 300);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'f') {
+                e.preventDefault();
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        renderPresenter(readState());
+        lastStateJSON = localStorage.getItem(STORAGE_KEY);
+    </script>
+</body>
+</html>
