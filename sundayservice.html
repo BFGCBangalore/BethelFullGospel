@@ -1305,12 +1305,12 @@
         // Click card to present
         card.addEventListener('click', (e) => {
           if (e.target.closest('.song-actions')) return;
-          openLiveControl(song);
+          quickPresentSong(song);
         });
 
         card.querySelector('.btn-present').addEventListener('click', (e) => {
           e.stopPropagation();
-          openLiveControl(song);
+          quickPresentSong(song);
         });
 
         card.querySelector('.btn-quick-present').addEventListener('click', (e) => {
@@ -1628,6 +1628,8 @@
     function quickPresentSong(song) {
       if (!song || !song.slides) return;
       
+      liveSong = song; // set liveSong so 'Save as Song' updates this exact song
+
       quickSlides = song.slides.map((s, i) => {
           const mixedText = [s.en, s.kn, s.hi].filter(Boolean).join('\n');
           return { id: i + 1, text: mixedText };
@@ -2551,10 +2553,7 @@
       showToast('Slide Projected!', 'success');
     });
 
-    document.getElementById('btn-quick-save').addEventListener('click', () => {
-       const titleStr = prompt("Enter a title to save this quick presentation:");
-       if (!titleStr) return;
-       
+    document.getElementById('btn-quick-save').addEventListener('click', async () => {
        const slidesToSave = quickSlides.filter(s => s.text.trim().length > 0).map((s, i) => ({
           type: 'verse',
           label: `Slide ${i + 1}`,
@@ -2569,26 +2568,67 @@
           return;
        }
        
-       const songData = {
-         title: { en: titleStr, kn: '', hi: '' },
-         author: 'Quick Presenter',
-         category: 'General',
-         tags: [],
-         searchIndex: [titleStr.toLowerCase()],
-         slides: slidesToSave,
-         createdAt: serverTimestamp(),
-         updatedAt: serverTimestamp()
-       };
-       
-       addDoc(collection(db, "songs"), songData)
-         .then(() => {
-           showToast('Saved to Song Library!', 'success');
-           loadSongs();
-         })
-         .catch(e => {
-           console.error(e);
-           showToast('Failed to save', 'error');
-         });
+       const btn = document.getElementById('btn-quick-save');
+       const originalHtml = btn.innerHTML;
+       btn.innerHTML = '<i class="ti ti-loader-2 ti-spin"></i> Saving...';
+       btn.disabled = true;
+
+       if (liveSong && liveSong.id) {
+           // Update existing song (PUT method)
+           try {
+               await updateDoc(doc(db, "songs", liveSong.id), {
+                   slides: slidesToSave,
+                   updatedAt: serverTimestamp()
+               });
+               
+               // Update local state
+               liveSong.slides = slidesToSave;
+               const idx = allSongs.findIndex(s => s.id === liveSong.id);
+               if (idx !== -1) allSongs[idx] = { ...liveSong };
+               
+               showToast('Song Updated!', 'success');
+               renderLiveSidebar(); // refresh live control view to show new slides
+           } catch(e) {
+               console.error(e);
+               showToast('Failed to update', 'error');
+           } finally {
+               btn.innerHTML = originalHtml;
+               btn.disabled = false;
+           }
+       } else {
+           // Create new song
+           const titleStr = prompt("Enter a title to save this quick presentation:");
+           if (!titleStr) {
+               btn.innerHTML = originalHtml;
+               btn.disabled = false;
+               return;
+           }
+           
+           const songData = {
+             title: { en: titleStr, kn: '', hi: '' },
+             author: 'Quick Presenter',
+             category: 'General',
+             tags: [],
+             searchIndex: [titleStr.toLowerCase()],
+             slides: slidesToSave,
+             createdAt: serverTimestamp(),
+             updatedAt: serverTimestamp()
+           };
+           
+           addDoc(collection(db, "songs"), songData)
+             .then(() => {
+               showToast('Saved to Song Library!', 'success');
+               loadSongs();
+             })
+             .catch(e => {
+               console.error(e);
+               showToast('Failed to save', 'error');
+             })
+             .finally(() => {
+               btn.innerHTML = originalHtml;
+               btn.disabled = false;
+             });
+       }
     });
 
     // Font size & Align
