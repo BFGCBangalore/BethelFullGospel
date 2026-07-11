@@ -65,9 +65,11 @@
         }
 
         .lyrics-block {
-            text-align: center;
             line-height: 1.4;
             max-width: 95%;
+            margin: 0 auto;
+            white-space: pre-wrap;
+            word-break: break-word;
             opacity: 0;
             transition: opacity var(--transition-speed) ease;
         }
@@ -259,8 +261,25 @@
             lyricsContent.style.textAlign = state.align || 'center';
 
             setTimeout(() => {
+                lyricsContent.style.fontSize = '1em';
+                if (state.slideLabel) {
+                    slideLabel.style.fontSize = `${2.5 * scaleFactor}em`;
+                }
                 lyricsContent.innerHTML = html;
+
                 requestAnimationFrame(() => {
+                    const container = document.getElementById('presenterContainer');
+                    const maxH = container.clientHeight - 80; // accounting for 40px padding top/bottom
+                    const contentH = slideLabel.offsetHeight + lyricsContent.offsetHeight;
+
+                    if (contentH > maxH && maxH > 0) {
+                        const shrinkRatio = maxH / contentH;
+                        lyricsContent.style.fontSize = shrinkRatio + 'em';
+                        if (state.slideLabel) {
+                            slideLabel.style.fontSize = `${2.5 * scaleFactor * shrinkRatio}em`;
+                        }
+                    }
+
                     requestAnimationFrame(() => {
                         const newBlocks = lyricsContent.querySelectorAll('.lyrics-block');
                         newBlocks.forEach(b => b.classList.add('visible'));
