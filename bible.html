@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0b0f1a" />
 
-  <title>Holy Bible – Bethel Full Gospel Church | English (KJV) & Kannada</title>
-  <meta name="description" content="Read and search the Holy Bible in KJV English and Kannada translations. Explore book by book, chapter by chapter, or search specific verses.">
+  <title>Holy Bible – Bethel Full Gospel Church</title>
+  <meta name="description" content="Read and search the Holy Bible in NIV English and Kannada translations. Explore book by book, chapter by chapter, or search specific verses.">
   
   <link rel="icon" type="image/png" href="./logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,10 +16,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-
-  <!-- Scroll progress bar -->
-  <div class="scroll-progress" aria-hidden="true"><span id="scrollProgress"></span></div>
-
   <!-- Aurora background -->
   <div class="aurora" aria-hidden="true">
     <span class="blob blob-1"></span>
@@ -27,63 +23,34 @@
     <span class="blob blob-3"></span>
   </div>
 
-  <!-- Header -->
-  <header class="site-header">
-    <div class="container nav">
-      <a href="index.html#home" class="brand">
-        <img src="logo.png" alt="Bethel Full Gospel Church" class="brand-logo" />
-        <span class="brand-text">Bethel <span class="amp">Full</span> Gospel</span>
-      </a>
+  <h2 class="sr-only">Interactive Bible reader with NIV English and Kannada translations, verse search and full chapter reading</h2>
 
-      <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" onclick="toggleMenu()">
-        <span></span><span></span><span></span>
-      </button>
-
-      <nav id="primaryNav">
-        <a href="index.html#home">Home</a>
-        <a href="index.html#about">About</a>
-        <a href="index.html#services">Services</a>
-        <a href="index.html#ourministries">Ministries</a>
-        <a href="index.html#gallery">Gallery</a>
-        <a href="index.html#events">Events</a>
-        <a href="bible.html" class="active">Bible</a>
-        <a href="index.html#contact">Contact</a>
-        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-          <span class="theme-icon"></span>
-        </button>
-      </nav>
-    </div>
-  </header>
-
-  <main style="padding-top: calc(var(--header-h) + 40px); padding-bottom: 60px;">
-    <section class="bible">
-      <div class="container">
-        <div class="section-head" data-num="📖" style="margin-bottom: 32px;">
-          <span class="eyebrow">Scripture Reader</span>
-          <h1 class="section-title">Explore the <span class="grad-text">Holy Bible</span></h1>
-        </div>
-
-        <h2 class="sr-only">Interactive Bible reader with KJV English and Kannada translations, verse search and full chapter reading</h2>
-
-        <div class="br">
-          <div class="br-header">
-            <div class="br-brand">
-              <div class="br-icon"><i class="fa-solid fa-book-open" aria-hidden="true"></i></div>
-              <div><div class="br-title">Holy Bible</div><div class="br-sub">KJV English · ಕನ್ನಡ ಭಾಷಾಂತರ</div></div>
+  <div class="br app-layout">
+    <div class="br-header" style="flex-wrap: wrap; gap: 16px; align-items: center;">
+      <div class="br-brand" style="margin-bottom: 0;">
+        <a href="index.html" class="br-icon" title="Back to Home" style="color:white;text-decoration:none;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></a>
+              <div><div class="br-title">Holy Bible</div><div class="br-sub">Read, Search, Compare</div></div>
             </div>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-              <div class="font-row">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex:1;justify-content:flex-end;">
+              <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" style="position:relative;margin-right:8px;background:var(--surface);border:1px solid var(--border-strong);">
+                <span class="theme-icon"></span>
+              </button>
+              <div class="font-row" style="background:var(--surface);border:1px solid var(--border-strong);border-radius:20px;">
                 <button class="font-btn" id="fontDn" aria-label="Decrease font size">A-</button>
                 <span class="font-size-lbl" id="fontLbl">13px</span>
                 <button class="font-btn" id="fontUp" aria-label="Increase font size">A+</button>
               </div>
-              <button class="btn btn-primary btn-sm" id="brPopOutBtn" title="Open Presenter View" onclick="window.open('presenter.html', 'PresenterView', 'width=1024,height=768')">
+              <button class="btn btn-primary btn-sm" id="brPopOutBtn" title="Open Presenter View" onclick="window.open('presenter.html', 'PresenterView', 'width=1024,height=768')" style="border-radius:20px;padding:6px 14px;font-size:0.8rem;">
                 <i class="fa-solid fa-up-right-from-square"></i> Pop Out
               </button>
               <div class="lang-toggle">
-                <button class="lang-btn active" id="langEn">English</button>
+                <button class="lang-btn active" id="langEn">EN</button>
                 <button class="lang-btn" id="langKn">ಕನ್ನಡ</button>
-                <button class="lang-btn" id="langBoth">Both</button>
+                <button class="lang-btn" id="langHi">हिंदी</button>
+                <button class="lang-btn" id="langEnKn">EN+KN</button>
+                <button class="lang-btn" id="langEnHi">EN+HI</button>
+                <button class="lang-btn" id="langKnHi">KN+HI</button>
+                <button class="lang-btn" id="langAll">ALL</button>
               </div>
             </div>
           </div>
@@ -101,7 +68,22 @@
             <div class="br-sidebar" id="brSidebar">
               <div class="sidebar-section" id="sidebarBooksSection">
                 <div class="sidebar-label">Books</div>
-                <div class="book-list" id="bookList"></div>
+                
+                <div class="testament-accordion active" id="otAccordion" onclick="toggleTestament('ot')">
+                  <div class="testament-header">
+                    <span>Old Testament</span>
+                    <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                  </div>
+                  <div class="book-list" id="otBookList"></div>
+                </div>
+
+                <div class="testament-accordion" id="ntAccordion" onclick="toggleTestament('nt')">
+                  <div class="testament-header">
+                    <span>New Testament</span>
+                    <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                  </div>
+                  <div class="book-list" id="ntBookList" style="display: none;"></div>
+                </div>
               </div>
               <div class="sidebar-section" id="sidebarChaptersSection" style="display:none;">
                 <div style="display:flex; align-items:center; gap:10px; margin-bottom: 16px;">
@@ -123,48 +105,9 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
-  </main>
+  </div>
 
   <!-- Footer -->
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-        <img src="logo.png" alt="BFGC" class="footer-logo">
-        <p>Bethel Full Gospel Church<br><span class="muted small">Bangalore, India · Since 2006</span></p>
-      </div>
-
-      <div class="footer-cols">
-        <div class="quick-links">
-          <h3>Quick Links</h3>
-          <ul>
-            <li><a href="index.html#home">Home</a></li>
-            <li><a href="index.html#about">About Us</a></li>
-            <li><a href="index.html#services">Services</a></li>
-            <li><a href="index.html#ourministries">Ministries</a></li>
-            <li><a href="index.html#gallery">Gallery</a></li>
-            <li><a href="index.html#events">Events</a></li>
-            <li><a href="bible.html">Bible</a></li>
-            <li><a href="index.html#contact">Contact Us</a></li>
-          </ul>
-        </div>
-
-        <div class="social-media">
-          <h3>Follow Us</h3>
-          <ul>
-            <li><a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook"></i></a></li>
-            <li><a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a></li>
-            <li><a href="https://whatsapp.com/channel/0029Vb9wpaoLSmbbSAj6t032" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="container footer-base">
-      <p class="small muted">&copy; <span id="year"></span> Bethel Full Gospel Church. All rights reserved.</p>
-    </div>
-  </footer>
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -214,29 +157,6 @@
         });
       }
 
-      // Update dynamic footer year
-      const yearSpan = document.getElementById("year");
-      if (yearSpan) yearSpan.textContent = new Date().getFullYear();
-
-      // Mobile navbar toggle menu
-      window.toggleMenu = function() {
-        const nav = document.getElementById("primaryNav");
-        const btn = document.getElementById("navToggle");
-        if (!nav) return;
-        const open = nav.classList.toggle("is-open");
-        if (btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
-      };
-
-      // Header offset on load if there's a hash
-      window.addEventListener("load", () => {
-        if (window.location.hash) {
-          const target = document.querySelector(window.location.hash);
-          if (target) {
-            const h = document.querySelector(".site-header")?.offsetHeight || 72;
-            window.scrollTo({ top: target.offsetTop - h - 12, behavior: "smooth" });
-          }
-        }
-      });
     })();
   </script>
 </body>
