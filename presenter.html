@@ -88,6 +88,14 @@
       font-weight: 500;
       text-shadow: 0 4px 20px rgba(0,0,0,0.5);
     }
+    
+    .verse-hi {
+      font-size: 3.5em;
+      line-height: 1.4;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: 500;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
 
     /* Fullscreen Button */
     .controls {
@@ -178,15 +186,20 @@
       const refSize = (3 * scaleFactor).toFixed(2) + 'em';
       const enSize = (4 * scaleFactor).toFixed(2) + 'em';
       const knSize = (3.5 * scaleFactor).toFixed(2) + 'em';
+      const hiSize = (3.5 * scaleFactor).toFixed(2) + 'em';
 
       let html = `<div class="reference" style="font-size: ${refSize}">${state.ref}</div>`;
       
-      if (state.lang === 'en' || state.lang === 'both') {
+      if (state.lang === 'en' || state.lang === 'en-kn' || state.lang === 'en-hi' || state.lang === 'all') {
         html += `<div class="verse-en" style="font-size: ${enSize}">${state.enText}</div>`;
       }
       
-      if (state.lang === 'kn' || state.lang === 'both') {
+      if (state.lang === 'kn' || state.lang === 'en-kn' || state.lang === 'kn-hi' || state.lang === 'all') {
         html += `<div class="verse-kn" style="font-size: ${knSize}">${state.knText}</div>`;
+      }
+
+      if (state.lang === 'hi' || state.lang === 'en-hi' || state.lang === 'kn-hi' || state.lang === 'all') {
+        html += `<div class="verse-hi" style="font-size: ${hiSize}">${state.hiText}</div>`;
       }
 
       displayArea.innerHTML = html;

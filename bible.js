@@ -5,7 +5,8 @@
   "use strict";
 
   const YOUVERSION_API_KEY = 'MziyDQauvhUClT7jAP7EAlslpwvaiyjaD7G2yczDAFUf2rWL';
-  const KJV_ID = 1; 
+  const NIV_ID = 111; 
+  const HHBD_ID = 819; 
   const IRVKAN_ID = 1898; 
 
   const BIBLE_METADATA = {
@@ -82,10 +83,6 @@
     {ref:"Psalms 23:1", en:"The LORD is my shepherd; I shall not want.", kn:"ಕರ್ತನು ನನ್ನ ಕುರುಬನು; ನನಗೆ ಏನೂ ಕೊರತೆಯಿಲ್ಲ.", book:"Psalms", ch:23, v:1},
     {ref:"Matthew 28:19", en:"Go ye therefore, and teach all nations, baptizing them in the name of the Father, and of the Son, and of the Holy Ghost.", kn:"ಆದ್ದರಿಂದ ನೀವು ಹೋಗಿ ಎಲ್ಲಾ ಜನಾಂಗಗಳನ್ನು ಶಿಷ್ಯರನ್ನಾಗಿ ಮಾಡಿ.", book:"Matthew", ch:28, v:19},
     {ref:"John 1:1", en:"In the beginning was the Word, and the Word was with God, and the Word was God.", kn:"ಆದಿಯಲ್ಲಿ ವಾಕ್ಯವಿತ್ತು, ಮತ್ತು ವಾಕ್ಯವು ದೇವರ ಸಂಗಡ ಇತ್ತು.", book:"John", ch:1, v:1},
-    {ref:"Philippians 4:13", en:"I can do all things through Christ which strengtheneth me.", kn:"ನನ್ನನ್ನು ಬಲಪಡಿಸುವ ಕ್ರಿಸ್ತನ ಮೂಲಕ ನಾನು ಎಲ್ಲವನ್ನೂ ಮಾಡಬಲ್ಲೆನು.", book:null, ch:null, v:null},
-    {ref:"Proverbs 3:5", en:"Trust in the LORD with all thine heart; and lean not unto thine own understanding.", kn:"ನಿನ್ನ ಪೂರ್ಣ ಹೃದಯದಿಂದ ಕರ್ತನಲ್ಲಿ ಭರವಸೆ ಇಡು.", book:null, ch:null, v:null},
-    {ref:"Isaiah 40:31", en:"But they that wait upon the LORD shall renew their strength; they shall mount up with wings as eagles.", kn:"ಆದರೆ ಕರ್ತನಿಗಾಗಿ ಕಾಯುವವರು ತಮ್ಮ ಶಕ್ತಿಯನ್ನು ನವೀಕರಿಸಿಕೊಳ್ಳುವರು.", book:null, ch:null, v:null},
-    {ref:"Romans 8:28", en:"And we know that all things work together for good to them that love God.", kn:"ದೇವರನ್ನು ಪ್ರೀತಿಸುವವರಿಗೆ ಸಕಲ ವಿಷಯಗಳು ಒಳ್ಳೆಯದಕ್ಕಾಗಿ ಕೆಲಸ ಮಾಡುತ್ತವೆ ಎಂದು ನಮಗೆ ತಿಳಿದಿದೆ.", book:null, ch:null, v:null},
     {ref:"Genesis 1:1", en:"In the beginning God created the heaven and the earth.", kn:"ಆದಿಯಲ್ಲಿ ದೇವರು ಆಕಾಶ ಮತ್ತು ಭೂಮಿಯನ್ನು ಸೃಷ್ಟಿಸಿದನು.", book:"Genesis", ch:1, v:1},
     {ref:"Matthew 5:3", en:"Blessed are the poor in spirit: for theirs is the kingdom of heaven.", kn:"ಆತ್ಮದಲ್ಲಿ ಬಡವರು ಧನ್ಯರು; ಏಕೆಂದರೆ ಆಕಾಶ ರಾಜ್ಯವು ಅವರದು.", book:"Matthew", ch:5, v:3},
   ];
@@ -99,17 +96,42 @@
   const books = Object.keys(BIBLE_METADATA);
 
   function buildBookList() {
-    const list = document.getElementById('bookList');
-    if (!list) return;
-    list.innerHTML = '';
-    books.forEach(b => {
+    const otList = document.getElementById('otBookList');
+    const ntList = document.getElementById('ntBookList');
+    if (!otList || !ntList) return;
+    
+    otList.innerHTML = '';
+    ntList.innerHTML = '';
+    
+    const booksArr = Object.keys(BIBLE_METADATA);
+    booksArr.forEach((b, index) => {
       const el = document.createElement('div');
       el.className = 'book-item' + (b === currentBook ? ' active' : '');
       el.textContent = b;
       el.onclick = () => selectBook(b);
-      list.appendChild(el);
+      
+      if (index < 39) {
+        otList.appendChild(el);
+      } else {
+        ntList.appendChild(el);
+      }
     });
   }
+
+  window.toggleTestament = function(testament) {
+    const otAcc = document.getElementById('otAccordion');
+    const ntAcc = document.getElementById('ntAccordion');
+    const otList = document.getElementById('otBookList');
+    const ntList = document.getElementById('ntBookList');
+
+    if (testament === 'ot') {
+      otAcc.classList.toggle('active');
+      otList.style.display = otAcc.classList.contains('active') ? 'flex' : 'none';
+    } else {
+      ntAcc.classList.toggle('active');
+      ntList.style.display = ntAcc.classList.contains('active') ? 'flex' : 'none';
+    }
+  };
 
   function selectBook(b) {
     currentBook = b;
@@ -210,6 +232,28 @@
     return verses;
   }
 
+  let localKannadaBible = null;
+  async function getLocalKannadaBible() {
+    if (localKannadaBible) return localKannadaBible;
+    try {
+      const res = await fetch('kannada_bible_1684.json');
+      localKannadaBible = await res.json();
+      return localKannadaBible;
+    } catch (err) {
+      console.error("Failed to load local Kannada bible:", err);
+      return null;
+    }
+  }
+
+  async function getLocalPassage(book, chapter) {
+    const bible = await getLocalKannadaBible();
+    if (!bible) return [];
+    if (bible[book] && bible[book][chapter]) {
+       return bible[book][chapter];
+    }
+    return [];
+  }
+
   async function renderReading() {
     const pane = document.getElementById('brReadingPane');
     const searchResults = document.getElementById('brSearchResults');
@@ -229,27 +273,31 @@
     
     let enVerses = [];
     let knVerses = [];
+    let hiVerses = [];
 
     try {
-      if (currentLang === 'en' || currentLang === 'both') {
-        enVerses = await fetchPassageFromYouVersion(KJV_ID, ref);
-        if (enVerses.length === 0) {
-            enVerses = await fetchPassageFromYouVersion(3034, ref);
-        }
-      }
-      if (currentLang === 'kn' || currentLang === 'both') {
-        knVerses = await fetchPassageFromYouVersion(IRVKAN_ID, ref);
-      }
+      enVerses = await fetchPassageFromYouVersion(NIV_ID, ref);
+      if (enVerses.length === 0) enVerses = await fetchPassageFromYouVersion(3034, ref);
+      
+      hiVerses = await fetchPassageFromYouVersion(HHBD_ID, ref);
+      knVerses = await getLocalPassage(currentBook, currentChapter);
 
       const verseMap = new Map();
       enVerses.forEach(v => {
-        verseMap.set(v.verse, { en: v.text, kn: '' });
+        verseMap.set(v.verse, { en: v.text, kn: '', hi: '' });
       });
       knVerses.forEach(v => {
         if (verseMap.has(v.verse)) {
           verseMap.get(v.verse).kn = v.text;
         } else {
-          verseMap.set(v.verse, { en: '', kn: v.text });
+          verseMap.set(v.verse, { en: '', kn: v.text, hi: '' });
+        }
+      });
+      hiVerses.forEach(v => {
+        if (verseMap.has(v.verse)) {
+          verseMap.get(v.verse).hi = v.text;
+        } else {
+          verseMap.set(v.verse, { en: '', kn: '', hi: v.text });
         }
       });
 
@@ -269,7 +317,7 @@
       }
 
       let html = `<div class="br-reading-header">
-        <div><div class="br-ch-title">${currentBook} — Chapter ${currentChapter}</div><div class="br-ch-ref">${currentLang === 'en' ? 'KJV' : ''} ${currentLang === 'kn' ? '· ಕನ್ನಡ' : currentLang === 'both' ? 'KJV · Bilingual' : ''}</div></div>
+        <div><div class="br-ch-title">${currentBook} — Chapter ${currentChapter}</div><div class="br-ch-ref">${currentLang === 'en' ? 'NIV' : ''} ${currentLang === 'kn' ? '· ಕನ್ನಡ' : currentLang === 'hi' ? '· हिंदी' : currentLang === 'en-kn' ? 'NIV · ಕನ್ನಡ' : currentLang === 'en-hi' ? 'NIV · हिंदी' : currentLang === 'kn-hi' ? 'ಕನ್ನಡ · हिंदी' : currentLang === 'all' ? 'NIV · ಕನ್ನಡ · हिंदी' : ''}</div></div>
         <div class="br-nav">
           <button class="btn btn-secondary btn-sm" onclick="navChapter(-1)">&larr; Prev</button>
           <button class="btn btn-secondary btn-sm" onclick="navChapter(1)">Next &rarr;</button>
@@ -278,12 +326,14 @@
 
       sortedVerseNums.forEach(num => {
         const v = verseMap.get(num);
-        html += `<div class="verse-row" data-num="${num}" data-en="${escapeHtml(v.en)}" data-kn="${escapeHtml(v.kn)}" onclick="window.handleVerseClick(this)">
+        html += `<div class="verse-row" data-num="${num}" data-en="${escapeHtml(v.en)}" data-kn="${escapeHtml(v.kn)}" data-hi="${escapeHtml(v.hi)}" onclick="window.handleVerseClick(this)">
           <span class="verse-num">${num}</span>
-          <div class="${currentLang === 'both' ? 'verse-dual' : ''}">
-            ${currentLang === 'en' || currentLang === 'both' ? `<span class="verse-en" style="font-size:${fontSize}px">${v.en}</span>` : ''}
+          <div class="${(currentLang === 'en-kn' || currentLang === 'en-hi' || currentLang === 'kn-hi' || currentLang === 'all') ? 'verse-dual' : ''}">
+            ${(currentLang === 'en' || currentLang === 'en-kn' || currentLang === 'en-hi' || currentLang === 'all') ? `<span class="verse-en" style="font-size:${fontSize}px">${v.en}</span>` : ''}
             ${currentLang === 'kn' ? `<span class="verse-kn" style="font-size:${fontSize}px">${v.kn}</span>` : ''}
-            ${currentLang === 'both' ? `<span class="verse-kn-text" style="font-size:${fontSize - 1}px">${v.kn}</span>` : ''}
+            ${currentLang === 'hi' ? `<span class="verse-hi" style="font-size:${fontSize}px">${v.hi}</span>` : ''}
+            ${(currentLang === 'en-kn' || currentLang === 'kn-hi' || currentLang === 'all') ? `<span class="verse-kn-text" style="font-size:${fontSize - 1}px">${v.kn}</span>` : ''}
+            ${(currentLang === 'en-hi' || currentLang === 'kn-hi' || currentLang === 'all') ? `<span class="verse-hi-text" style="font-size:${fontSize - 1}px">${v.hi}</span>` : ''}
           </div>
         </div>`;
       });
@@ -322,7 +372,8 @@
           ch: currentChapter,
           v: el.getAttribute('data-num'),
           enText: el.getAttribute('data-en'),
-          knText: el.getAttribute('data-kn')
+          knText: el.getAttribute('data-kn'),
+          hiText: el.getAttribute('data-hi')
        };
        updatePresenterState();
     }
@@ -420,38 +471,43 @@
     
     let enText = '';
     let knText = '';
+    let hiText = '';
 
-    if (currentLang === 'en' || currentLang === 'both') {
-      const vs = await fetchPassageFromYouVersion(KJV_ID, ref);
-      if (vs.length > 0) enText = vs[0].text;
-      else {
-         const alt = await fetchPassageFromYouVersion(3034, ref);
-         if (alt.length > 0) enText = alt[0].text;
-      }
+    // Always fetch all languages for seamless presenter integration
+    const vsEn = await fetchPassageFromYouVersion(NIV_ID, ref);
+    if (vsEn.length > 0) enText = vsEn[0].text;
+    else {
+        const alt = await fetchPassageFromYouVersion(3034, ref);
+        if (alt.length > 0) enText = alt[0].text;
     }
-    if (currentLang === 'kn' || currentLang === 'both') {
-      const vs = await fetchPassageFromYouVersion(IRVKAN_ID, ref);
-      if (vs.length > 0) knText = vs[0].text;
-    }
+
+    const vsKn = await getLocalPassage(book, ch);
+    const verseObj = vsKn.find(verseData => String(verseData.verse) === String(v));
+    if (verseObj) knText = verseObj.text;
+
+    const vsHi = await fetchPassageFromYouVersion(HHBD_ID, ref);
+    if (vsHi.length > 0) hiText = vsHi[0].text;
 
     let html = `<div class="br-reading">
       <div class="br-reading-header">
-        <div><div class="br-ch-title">${book} ${ch}:${v}</div><div class="br-ch-ref">${currentLang === 'en' ? 'KJV' : ''} ${currentLang === 'kn' ? '· ಕನ್ನಡ' : currentLang === 'both' ? 'KJV · Bilingual' : ''}</div></div>
+        <div><div class="br-ch-title">${book} ${ch}:${v}</div><div class="br-ch-ref">${currentLang === 'en' ? 'NIV' : ''} ${currentLang === 'kn' ? '· ಕನ್ನಡ' : currentLang === 'hi' ? '· हिंदी' : currentLang === 'en-kn' ? 'NIV · ಕನ್ನಡ' : currentLang === 'en-hi' ? 'NIV · हिंदी' : currentLang === 'kn-hi' ? 'ಕನ್ನಡ · हिंदी' : currentLang === 'all' ? 'NIV · ಕನ್ನಡ · हिंदी' : ''}</div></div>
       </div><div class="verse-list">`;
     
-    if (!enText && !knText) {
+    if (!enText && !knText && !hiText) {
        html += `<div style="font-size:13px;color:var(--muted);padding:12px 0">Could not load the requested verse. Check your internet connection or the reference.</div>`;
        currentPresenterVerse = null;
     } else {
        html += `<div class="verse-row">
-            <span class="verse-num">${v}</span>
-            <div class="${currentLang === 'both' ? 'verse-dual' : ''}">
-              ${currentLang === 'en' || currentLang === 'both' ? `<span class="verse-en" style="font-size:${fontSize}px">${enText}</span>` : ''}
-              ${currentLang === 'kn' ? `<span class="verse-kn" style="font-size:${fontSize}px">${knText}</span>` : ''}
-              ${currentLang === 'both' ? `<span class="verse-kn-text" style="font-size:${fontSize - 1}px">${knText}</span>` : ''}
-            </div>
+          <span class="verse-num">${v}</span>
+          <div class="${(currentLang === 'en-kn' || currentLang === 'en-hi' || currentLang === 'kn-hi' || currentLang === 'all') ? 'verse-dual' : ''}">
+            ${(currentLang === 'en' || currentLang === 'en-kn' || currentLang === 'en-hi' || currentLang === 'all') ? `<span class="verse-en" style="font-size:${fontSize}px">${enText}</span>` : ''}
+            ${currentLang === 'kn' ? `<span class="verse-kn" style="font-size:${fontSize}px">${knText}</span>` : ''}
+            ${currentLang === 'hi' ? `<span class="verse-hi" style="font-size:${fontSize}px">${hiText}</span>` : ''}
+            ${(currentLang === 'en-kn' || currentLang === 'kn-hi' || currentLang === 'all') ? `<span class="verse-kn-text" style="font-size:${fontSize - 1}px">${knText}</span>` : ''}
+            ${(currentLang === 'en-hi' || currentLang === 'kn-hi' || currentLang === 'all') ? `<span class="verse-hi-text" style="font-size:${fontSize - 1}px">${hiText}</span>` : ''}
+          </div>
         </div>`;
-       currentPresenterVerse = { book, ch, v, enText, knText };
+       currentPresenterVerse = { book, ch, v, enText, knText, hiText };
        updatePresenterState();
     }
     html += '</div></div>';
@@ -462,8 +518,9 @@
     if (!currentPresenterVerse) return;
     localStorage.setItem('presenter_state', JSON.stringify({
       ref: `${currentPresenterVerse.book} ${currentPresenterVerse.ch}:${currentPresenterVerse.v}`,
-      enText: currentPresenterVerse.enText,
-      knText: currentPresenterVerse.knText,
+      enText: currentPresenterVerse.enText || '',
+      knText: currentPresenterVerse.knText || '',
+      hiText: currentPresenterVerse.hiText || '',
       lang: currentLang,
       fontSize: fontSize
     }));
@@ -548,6 +605,19 @@
          const textMatch = q.match(/^[a-z\s]+/i);
          const filterText = textMatch ? textMatch[0].trim() : q;
 
+         const otAcc = document.getElementById('otAccordion');
+         const ntAcc = document.getElementById('ntAccordion');
+         const otList = document.getElementById('otBookList');
+         const ntList = document.getElementById('ntBookList');
+
+         if (filterText.length > 0) {
+             // Auto-expand both accordions when searching
+             if (otAcc) otAcc.classList.add('active');
+             if (otList) otList.style.display = 'flex';
+             if (ntAcc) ntAcc.classList.add('active');
+             if (ntList) ntList.style.display = 'flex';
+         }
+
          items.forEach(item => {
              if (item.textContent.toLowerCase().includes(filterText)) {
                  item.style.display = 'block';
@@ -558,16 +628,24 @@
       });
     }
 
-    ['langEn', 'langKn', 'langBoth'].forEach(id => {
+    const langIds = ['langEn', 'langKn', 'langHi', 'langEnKn', 'langEnHi', 'langKnHi', 'langAll'];
+    langIds.forEach(id => {
       const btn = document.getElementById(id);
       if (btn) {
         btn.onclick = function () {
-          ['langEn', 'langKn', 'langBoth'].forEach(i => {
+          langIds.forEach(i => {
             const b = document.getElementById(i);
             if (b) b.classList.remove('active');
           });
           this.classList.add('active');
-          currentLang = id === 'langEn' ? 'en' : id === 'langKn' ? 'kn' : 'both';
+          
+          if (id === 'langEn') currentLang = 'en';
+          else if (id === 'langKn') currentLang = 'kn';
+          else if (id === 'langHi') currentLang = 'hi';
+          else if (id === 'langEnKn') currentLang = 'en-kn';
+          else if (id === 'langEnHi') currentLang = 'en-hi';
+          else if (id === 'langKnHi') currentLang = 'kn-hi';
+          else currentLang = 'all';
           
           if (currentPresenterVerse) updatePresenterState();
           
