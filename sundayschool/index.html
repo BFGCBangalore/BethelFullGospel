@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
   
   <style>
     :root {
@@ -93,6 +94,7 @@
       position: relative;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
     }
 
     @media (min-width: 480px) {
@@ -428,7 +430,7 @@
       <h2 style="font-size:24px; font-weight:800; color:var(--text-main); margin-bottom:4px;">Rahul</h2>
       <p style="color:var(--text-sub); font-size:14px; margin-bottom:24px;">Lead Developer & Support</p>
       
-      <a href="tel:+919999999999" class="btn-main" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:40px; max-width:250px;">
+      <a href="tel:9591542901" class="btn-main" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:40px; max-width:250px;">
         <i class="ti ti-phone"></i> Call Developer
       </a>
       
@@ -441,7 +443,7 @@
       <h3 style="font-size:20px; font-weight:700; color:var(--text-main); margin-bottom:4px;">Church Admin</h3>
       <p style="color:var(--text-sub); font-size:14px; margin-bottom:24px;">For general Sunday School inquiries</p>
       
-      <a href="tel:9591542901" class="btn-main" style="background:var(--surface-card); color:var(--text-main); border:2px solid var(--border); text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; max-width:250px;">
+      <a href="tel:9008768706" class="btn-main" style="background:var(--surface-card); color:var(--text-main); border:2px solid var(--border); text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; max-width:250px;">
         <i class="ti ti-phone-call"></i> Call Admin
       </a>
       
@@ -764,6 +766,64 @@
           <i class="ti ti-device-floppy" style="font-size:20px"></i> Save All Changes
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN EXPORT SCREEN ================= -->
+  <div class="screen" id="sc-admin-export">
+    <div class="app-header">
+      <button class="header-btn" onclick="navTo('sc-admin')"><i class="ti ti-arrow-left"></i></button>
+      <div class="header-title">Export Reports</div>
+      <div style="width:40px"></div>
+    </div>
+    <div class="scroll-body" style="padding-bottom:100px;">
+      <p style="font-size:14px; color:var(--text-sub); line-height:1.5; margin-bottom:24px;">Download attendance and schedule data as an Excel file for your records.</p>
+      
+      <div class="section-title">Report Settings</div>
+      <div class="card" style="margin-bottom:24px;">
+        <div class="form-group" style="margin-bottom:16px;">
+          <label style="display:flex; align-items:center; gap:6px;"><i class="ti ti-calendar-time" style="color:var(--primary)"></i> Time Range</label>
+          <select id="exportType" class="inp" onchange="toggleExportInputs()">
+            <option value="single">Single Date</option>
+            <option value="range">Date Range</option>
+            <option value="month">Entire Month</option>
+          </select>
+        </div>
+
+        <div id="exportSingleGroup" class="form-group" style="margin-bottom:16px;">
+          <label>Select Date</label>
+          <input type="date" id="exportSingleDate" class="inp">
+        </div>
+        
+        <div id="exportRangeGroup" style="display:none; gap:12px; margin-bottom:16px;">
+          <div class="form-group" style="flex:1;">
+            <label>Start Date</label>
+            <input type="date" id="exportStartDate" class="inp">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label>End Date</label>
+            <input type="date" id="exportEndDate" class="inp">
+          </div>
+        </div>
+        
+        <div id="exportMonthGroup" class="form-group" style="display:none; margin-bottom:16px;">
+          <label>Select Month</label>
+          <input type="month" id="exportMonth" class="inp">
+        </div>
+        
+        <div style="height:1px; background:var(--border); margin:20px 0;"></div>
+        
+        <div class="form-group" style="margin-bottom:0;">
+          <label style="display:flex; align-items:center; gap:6px;"><i class="ti ti-building-church" style="color:var(--primary)"></i> Filter by Class</label>
+          <select id="exportClassFilter" class="inp">
+            <option value="all">All Classes</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn-main" onclick="generateExcelReport()" id="btnGenerateExcel" style="width:100%; display:flex; justify-content:center; align-items:center; gap:8px; height:54px; font-size:16px;">
+        <i class="ti ti-download" style="font-size:20px;"></i> Download Excel
+      </button>
     </div>
   </div>
 
@@ -1236,6 +1296,9 @@
       <div class="drawer-item" onclick="viewAcademicCalendar(); closeDrawer()">
         <i class="ti ti-calendar"></i> Academic Calendar
       </div>
+      <div class="drawer-item" onclick="showToast('This feature will be available after 1 month of production.', 'info'); closeDrawer()" style="opacity: 0.5; cursor: not-allowed;">
+        <i class="ti ti-file-export"></i> Export Reports <span style="font-size: 10px; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Coming Soon</span>
+      </div>
       <div style="flex:1"></div>
       <div class="drawer-item" onclick="logout()" style="color:var(--danger); border-top:1px solid var(--border); border-bottom:none;">
         <i class="ti ti-logout" style="color:var(--danger)"></i> Logout
@@ -1257,17 +1320,17 @@
       <div class="drawer-item" onclick="viewMyStudents(); closeTeacherDrawer()">
         <i class="ti ti-school"></i> My Students
       </div>
-      <div class="drawer-item" onclick="viewTeacherAllStudents(); closeTeacherDrawer()">
-        <i class="ti ti-users"></i> All Students
-      </div>
-      <div class="drawer-item" onclick="viewTeacherHistory(); closeTeacherDrawer()">
-        <i class="ti ti-calendar-time"></i> Attendance History
-      </div>
       <div class="drawer-item" onclick="viewTeacherFollowups(); closeTeacherDrawer()">
         <i class="ti ti-phone-calling"></i> My Follow-ups
       </div>
       <div class="drawer-item" onclick="viewTeacherAtRisk(); closeTeacherDrawer()">
-        <i class="ti ti-alert-triangle"></i> At-Risk
+        <i class="ti ti-alert-triangle"></i> At-Risk Students
+      </div>
+      <div class="drawer-item" onclick="viewTeacherHistory(); closeTeacherDrawer()">
+        <i class="ti ti-calendar-time"></i> Attendance History
+      </div>
+      <div class="drawer-item" onclick="viewTeacherAllStudents(); closeTeacherDrawer()">
+        <i class="ti ti-users"></i> All Students
       </div>
       <div class="drawer-item" onclick="viewAcademicCalendar(); closeTeacherDrawer()">
         <i class="ti ti-calendar-event"></i> Academic Calendar
@@ -1282,6 +1345,8 @@
 
 
   <!-- ================= CUSTOM CONFIRM MODAL ================= -->
+  <!-- EXPORT MODAL HAS BEEN REPLACED BY A SCREEN -->
+
   <div class="modal-overlay" id="confirmModal" style="z-index:10000;">
     <div class="modal-sheet" style="text-align:center; padding:32px 24px;">
       <div style="font-size:48px; color:var(--danger); margin-bottom:16px;"><i class="ti ti-alert-triangle-filled"></i></div>
@@ -1774,12 +1839,18 @@ function checkIfLoaded() {
        // Refresh UI if data changes while logged in
        if(currentUser.role === 'admin' && document.getElementById('sc-admin').classList.contains('active')) renderAdmin();
        if(currentUser.role === 'teacher' && document.getElementById('sc-teacher').classList.contains('active')) renderTeacher();
-       if(currentUser.role === 'admin' && document.getElementById('sc-admin-students').classList.contains('active')) renderAllStudents();
-       if(currentUser.role === 'admin' && document.getElementById('sc-admin-manage').classList.contains('active')) renderManagerRoster();
-       if(currentUser.role === 'admin' && document.getElementById('sc-admin-at-risk').classList.contains('active')) renderAtRiskList();
-       if(currentUser.role === 'admin' && document.getElementById('sc-admin-teachers').classList.contains('active')) renderAllTeachers();
-       if(currentUser.role === 'admin' && document.getElementById('sc-admin-classes').classList.contains('active')) renderAllClasses();
-       if(currentUser.role === 'admin' && document.getElementById('sc-admin-calendar').classList.contains('active')) renderCalendar();
+       
+       if(document.getElementById('sc-admin-students').classList.contains('active')) renderAllStudents();
+       if(document.getElementById('sc-admin-manage').classList.contains('active')) renderManagerRoster();
+       if(document.getElementById('sc-admin-at-risk').classList.contains('active')) renderAtRiskList();
+       if(document.getElementById('sc-admin-teachers').classList.contains('active')) renderAllTeachers();
+       if(document.getElementById('sc-admin-classes').classList.contains('active')) renderAllClasses();
+       if(document.getElementById('sc-admin-calendar').classList.contains('active')) renderCalendar();
+       
+       if(document.getElementById('sc-admin-history') && document.getElementById('sc-admin-history').classList.contains('active')) renderHistory();
+       if(document.getElementById('sc-admin-history-detail') && document.getElementById('sc-admin-history-detail').classList.contains('active')) renderHistoryDetail();
+       if(document.getElementById('sc-admin-followups') && document.getElementById('sc-admin-followups').classList.contains('active')) renderFollowups();
+
        if(currentUser.role === 'parent' && document.getElementById('sc-parent').classList.contains('active')) renderParentList();
     }
   }
@@ -4178,6 +4249,224 @@ async function clearAllSchedules() {
       showToast("Error clearing schedules");
     }
   });
+}
+
+/* =========================================================
+   EXCEL EXPORT (ADMIN ONLY)
+   ========================================================= */
+function openExportScreen() {
+  document.getElementById('exportType').value = 'single';
+  toggleExportInputs();
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('exportSingleDate').value = today;
+  document.getElementById('exportStartDate').value = today;
+  document.getElementById('exportEndDate').value = today;
+  document.getElementById('exportMonth').value = today.substring(0, 7);
+  
+  const classFilter = document.getElementById('exportClassFilter');
+  classFilter.innerHTML = '<option value="all">All Classes</option>';
+  DB.classes.forEach(c => {
+    classFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+  });
+  
+  navTo('sc-admin-export');
+}
+
+function toggleExportInputs() {
+  const type = document.getElementById('exportType').value;
+  document.getElementById('exportSingleGroup').style.display = type === 'single' ? 'block' : 'none';
+  document.getElementById('exportRangeGroup').style.display = type === 'range' ? 'flex' : 'none';
+  document.getElementById('exportMonthGroup').style.display = type === 'month' ? 'block' : 'none';
+}
+
+async function generateExcelReport() {
+  const type = document.getElementById('exportType').value;
+  const targetClassId = document.getElementById('exportClassFilter').value;
+  let dates = [];
+  
+  if (type === 'single') {
+    const val = document.getElementById('exportSingleDate').value;
+    if(!val) return showToast('Please select a date');
+    dates.push(val);
+  } else if (type === 'range') {
+    const start = document.getElementById('exportStartDate').value;
+    const end = document.getElementById('exportEndDate').value;
+    if(!start || !end) return showToast('Please select start and end dates');
+    let curr = new Date(start);
+    const endDate = new Date(end);
+    if(curr > endDate) return showToast('Start date must be before end date');
+    while(curr <= endDate) {
+      dates.push(curr.toISOString().split('T')[0]);
+      curr.setDate(curr.getDate() + 1);
+    }
+  } else if (type === 'month') {
+    const val = document.getElementById('exportMonth').value; // YYYY-MM
+    if(!val) return showToast('Please select a month');
+    const [year, month] = val.split('-');
+    const daysInMonth = new Date(year, month, 0).getDate();
+    for(let i=1; i<=daysInMonth; i++) {
+      const dStr = `${year}-${month}-${i.toString().padStart(2, '0')}`;
+      dates.push(dStr);
+    }
+  }
+
+  const btn = document.getElementById('btnGenerateExcel');
+  const ogText = btn.innerHTML;
+  btn.innerHTML = `<i class="ti ti-loader" style="animation: spin 1s linear infinite;"></i> Generating...`;
+  btn.disabled = true;
+
+  try {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Sunday School App';
+    wb.created = new Date();
+
+    const redFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC7CE' } };
+    const redFont = { color: { argb: 'FF9C0006' }, bold: true };
+    const greenFont = { color: { argb: 'FF006100' }, bold: true };
+
+    // TAB 1: Students
+    const wsStudents = wb.addWorksheet('Students');
+    let studentHeaders = ['Student Name', 'Class', 'Parent Name', 'Parent Phone', 'At Risk'];
+    dates.forEach(d => studentHeaders.push(d));
+    wsStudents.addRow(studentHeaders);
+    
+    wsStudents.getRow(1).font = { bold: true };
+    wsStudents.views = [{ state: 'frozen', ySplit: 1, xSplit: 2 }];
+
+    let filteredStudents = DB.students;
+    if(targetClassId !== 'all') {
+      filteredStudents = DB.students.filter(s => s.classId === targetClassId);
+    }
+
+    filteredStudents.forEach(st => {
+      const cls = DB.classes.find(c => c.id === st.classId);
+      const isAtRisk = st.atRisk ? 'Yes' : 'No';
+      let row = [st.name, cls ? cls.name : 'Unknown', st.parentName || '', st.parentPhone || '', isAtRisk];
+      dates.forEach(d => {
+        const record = pastAttendance.find(r => r.id === d);
+        let status = 'Not Marked';
+        if(record && record.records && record.records[st.id]) {
+          status = record.records[st.id] === 'present' ? 'Present' : 'Absent';
+        }
+        row.push(status);
+      });
+      const excelRow = wsStudents.addRow(row);
+      
+      if (st.atRisk) excelRow.getCell(5).font = redFont;
+      dates.forEach((d, i) => {
+        const cell = excelRow.getCell(6 + i);
+        if (cell.value === 'Absent') {
+          cell.fill = redFill;
+          cell.font = redFont;
+        } else if (cell.value === 'Present') {
+          cell.font = greenFont;
+        }
+      });
+    });
+
+    // TAB 2: Teachers
+    const wsTeachers = wb.addWorksheet('Teachers');
+    let teacherHeaders = ['Teacher Name', 'Assigned Class', 'Teacher Phone'];
+    dates.forEach(d => teacherHeaders.push(d));
+    wsTeachers.addRow(teacherHeaders);
+    wsTeachers.getRow(1).font = { bold: true };
+    wsTeachers.views = [{ state: 'frozen', ySplit: 1, xSplit: 1 }];
+
+    let filteredTeachers = DB.users.filter(u => u.role === 'teacher');
+    if(targetClassId !== 'all') {
+      filteredTeachers = filteredTeachers.filter(t => {
+        const cls = DB.classes.find(c => c.id === targetClassId);
+        return cls && cls.teachers && cls.teachers.includes(t.id);
+      });
+    }
+
+    filteredTeachers.forEach(t => {
+      const cls = DB.classes.find(c => c.teachers && c.teachers.includes(t.id));
+      let row = [t.name, cls ? cls.name : 'None', t.phone];
+      dates.forEach(d => {
+        let status = 'Not Tracked';
+        row.push(status);
+      });
+      const excelRow = wsTeachers.addRow(row);
+      
+      dates.forEach((d, i) => {
+        const cell = excelRow.getCell(4 + i);
+        if (cell.value === 'Absent') {
+          cell.fill = redFill;
+          cell.font = redFont;
+        } else if (cell.value === 'Present') {
+          cell.font = greenFont;
+        }
+      });
+    });
+
+    // TAB 3: Schedule
+    const wsSchedule = wb.addWorksheet('Schedule Summary');
+    wsSchedule.addRow(['Date', 'Schedule Type', 'Title / Reason', 'Student Att.', 'Teacher Att.']);
+    wsSchedule.getRow(1).font = { bold: true };
+    
+    dates.forEach(d => {
+      const sch = DB.schedules.find(s => s.date === d);
+      let type = 'Regular Class';
+      let title = '-';
+      if(sch) {
+        type = sch.isHoliday ? 'Holiday' : 'Event / Special';
+        title = sch.title || '-';
+      }
+      
+      let sPresent = 0, sTotal = 0;
+      const sRecord = pastAttendance.find(r => r.id === d);
+      if(sRecord && sRecord.records) {
+        Object.keys(sRecord.records).forEach(sid => {
+          if (DB.students.find(x => x.id === sid)) {
+            sTotal++;
+            if(sRecord.records[sid] === 'present') sPresent++;
+          }
+        });
+      }
+      
+      let tPresent = 0, tTotal = 0;
+      // Teacher attendance tracking not yet implemented in DB.
+
+      wsSchedule.addRow([
+        d, type, title, 
+        sTotal > 0 ? `${sPresent} / ${sTotal}` : '-',
+        tTotal > 0 ? `${tPresent} / ${tTotal}` : '-'
+      ]);
+    });
+
+    [wsStudents, wsTeachers, wsSchedule].forEach(ws => {
+      ws.columns.forEach(column => {
+        let maxLength = 0;
+        column["eachCell"]({ includeEmpty: true }, function(cell) {
+          let columnLength = cell.value ? cell.value.toString().length : 10;
+          if (columnLength > maxLength) maxLength = columnLength;
+        });
+        column.width = maxLength < 10 ? 10 : maxLength + 2;
+      });
+    });
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    let fName = 'Report';
+    if(type === 'single') fName = `Report_${dates[0]}`;
+    if(type === 'range') fName = `Report_${dates[0]}_to_${dates[dates.length-1]}`;
+    if(type === 'month') fName = `Report_${document.getElementById('exportMonth').value}`;
+    link.download = `SundaySchool_${fName}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('Report downloaded successfully!', 'success');
+  } catch (err) {
+    console.error("Export Error:", err);
+    showToast('Failed to generate Excel report');
+  } finally {
+    btn.innerHTML = ogText;
+    btn.disabled = false;
+  }
 }
 </script>
 
