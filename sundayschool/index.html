@@ -75,13 +75,20 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       font-family: 'Outfit', sans-serif;
       background-color: var(--surface-bg);
       color: var(--text-main);
       display: flex;
       justify-content: center;
-      min-height: 100dvh;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
     }
@@ -89,7 +96,7 @@
     .app-frame {
       width: 100%;
       max-width: 430px;
-      height: 100dvh;
+      height: 100%;
       background: var(--surface-bg);
       position: relative;
       display: flex;
@@ -344,7 +351,7 @@
 
     /* ==== SIDE DRAWER ==== */
     .drawer-overlay {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15,23,42,0.6); backdrop-filter: blur(4px);
       z-index: 200; opacity: 0; pointer-events: none; transition: 0.3s;
     }
@@ -1299,8 +1306,7 @@
       <div class="drawer-item" onclick="showToast('This feature will be available after 1 month of production.', 'info'); closeDrawer()" style="opacity: 0.5; cursor: not-allowed;">
         <i class="ti ti-file-export"></i> Export Reports <span style="font-size: 10px; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Coming Soon</span>
       </div>
-      <div style="flex:1"></div>
-      <div class="drawer-item" onclick="logout()" style="color:var(--danger); border-top:1px solid var(--border); border-bottom:none;">
+      <div class="drawer-item" onclick="logout()" style="color:var(--danger); border-top:1px solid var(--border); border-bottom:none; margin-top:auto;">
         <i class="ti ti-logout" style="color:var(--danger)"></i> Logout
       </div>
     </div>
@@ -1335,8 +1341,7 @@
       <div class="drawer-item" onclick="viewAcademicCalendar(); closeTeacherDrawer()">
         <i class="ti ti-calendar-event"></i> Academic Calendar
       </div>
-      <div style="flex:1"></div>
-      <div class="drawer-item" onclick="logout()" style="color:var(--danger); border-top:1px solid var(--border); border-bottom:none;">
+      <div class="drawer-item" onclick="logout()" style="color:var(--danger); border-top:1px solid var(--border); border-bottom:none; margin-top:auto;">
         <i class="ti ti-logout" style="color:var(--danger)"></i> Logout
       </div>
     </div>
@@ -1529,7 +1534,8 @@ function navTo(screenId, pushHistory = true) {
   document.getElementById(screenId).classList.add('active');
   
   if (pushHistory) {
-    history.pushState({ screen: screenId }, "", `#${screenId}`);
+    // Prefix with view- to prevent native browser anchor jumping which breaks mobile flex layouts
+    history.pushState({ screen: screenId }, "", `#view-${screenId}`);
   }
   
   // Trigger graph rendering on relevant screens
@@ -1541,6 +1547,11 @@ function navTo(screenId, pushHistory = true) {
 }
 
 window.addEventListener('popstate', (e) => {
+  // Close any open drawers or modals when hardware back button is pressed
+  if (typeof closeDrawer === 'function') closeDrawer();
+  if (typeof closeTeacherDrawer === 'function') closeTeacherDrawer();
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+  
   if (e.state && e.state.screen) {
     navTo(e.state.screen, false); // false prevents pushing state again
   }
