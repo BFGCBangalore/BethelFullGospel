@@ -49,6 +49,28 @@
       --shadow-soft: 0 4px 20px rgba(0,0,0,0.04);
       --shadow-float: 0 10px 30px rgba(83,74,183,0.15);
     }
+    
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 28px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--border);
+      transition: .3s; border-radius: 28px;
+    }
+    .slider:before {
+      position: absolute; content: "";
+      height: 20px; width: 20px; left: 4px; bottom: 4px;
+      background-color: white; transition: .3s; border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    input:checked + .slider { background-color: var(--success); }
+    input:checked + .slider:before { transform: translateX(22px); }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -290,7 +312,7 @@
     .form-group input:focus, .form-group select:focus { border-color: var(--primary); background: #FFF; }
 
     /* ==== TOAST ==== */
-    #toast-container { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 12px; z-index: 10001; width: 90%; max-width: 400px; }
+    #toast-container { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 10001; width: 90%; max-width: 400px; }
     .toast { background: var(--text-main); color: white; padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; box-shadow: var(--shadow-float); display: flex; align-items: center; gap: 12px; animation: slideUp 0.3s ease-out forwards; opacity: 0; transform: translateY(20px); }
     .toast.success { background: var(--success); }
     .toast.error { background: var(--danger); }
@@ -330,6 +352,7 @@
       width: 280px; height: 100%; background: var(--surface-bg);
       transform: translateX(-100%); transition: 0.4s cubic-bezier(0.16,1,0.3,1);
       display: flex; flex-direction: column; box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+      overflow-y: auto;
     }
     .drawer-overlay.active .drawer-menu { transform: translateX(0); }
     
@@ -344,6 +367,22 @@
     }
     .drawer-item:active { background: var(--border); }
     .drawer-item i { font-size: 20px; color: var(--primary); }
+    
+    /* ==== CALENDAR ==== */
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+    .cal-day-header { font-size: 12px; font-weight: 700; color: var(--text-muted); padding: 8px 0; }
+    .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: var(--text-main); border-radius: 50%; cursor: pointer; position: relative; transition: 0.2s; }
+    .cal-day:hover { background: var(--surface-card); }
+    .cal-day.other-month { color: var(--text-muted); opacity: 0.5; }
+    .cal-day .cal-dot { width: 6px; height: 6px; border-radius: 50%; position: absolute; bottom: 4px; }
+    .cal-day.sunday { color: var(--danger); }
+    .cal-day.conducted { background: rgba(16, 185, 129, 0.1); }
+    .cal-day.conducted .cal-dot { background: var(--success); }
+    .cal-day.holiday { background: rgba(239, 68, 68, 0.1); text-decoration: line-through; }
+    .cal-day.holiday .cal-dot { background: var(--danger); }
+    .cal-day.scheduled { background: rgba(59, 130, 246, 0.1); }
+    .cal-day.scheduled .cal-dot { background: var(--primary); }
+    
   </style>
 </head>
 <body>
@@ -362,7 +401,7 @@
       <form class="input-wrapper" id="step-phone" onsubmit="event.preventDefault(); handleLogin();">
         <div class="phone-input-group">
           <div class="country-code">+91</div>
-          <input type="tel" class="phone-input" id="phoneInp" placeholder="Enter mobile number" autocomplete="tel">
+          <input type="tel" class="phone-input" id="phoneInp" placeholder="Enter mobile number" autocomplete="tel" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
         </div>
         <button type="submit" class="btn-main">Login <i class="ti ti-login"></i></button>
         
@@ -414,22 +453,33 @@
     <div class="app-header">
       <button class="header-btn" onclick="openDrawer()"><i class="ti ti-menu-2"></i></button>
       <div class="header-title" style="text-align:center">Hello Admin</div>
-      <button class="header-btn" style="opacity:0; pointer-events:none"><i class="ti ti-menu-2"></i></button>
+      <button class="header-btn" onclick="openContactSupport()"><i class="ti ti-headset"></i></button>
     </div>
     <div class="scroll-body">
+      <div id="adminHolidayBanner"></div>
       <div class="greeting-section">
         <h2>Overview</h2>
         <p>Today's Sunday School Status</p>
       </div>
-
-      <div class="card" style="margin-bottom:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <h3 class="section-title" style="margin:0;"><i class="ti ti-chart-bar"></i> Attendance Trend</h3>
-          <button style="background:none; border:none; color:var(--primary); font-size:12px; font-weight:700; cursor:pointer;" onclick="navTo('sc-admin-history')">View All</button>
+      <div class="card" style="margin-bottom:24px; display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div id="adminSessionIcon" style="width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:24px; background:var(--primary-light); color:var(--primary);">
+            <i class="ti ti-clock"></i>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:800; font-size:16px; color:var(--text-main);">Attendance Session</div>
+            <div style="font-size:13px; color:var(--text-sub); margin-top:4px;" id="adminSessionStatusText">Loading status...</div>
+          </div>
+          <div>
+            <label class="switch" onclick="event.preventDefault(); confirmSessionToggle()">
+              <input type="checkbox" id="adminSessionToggleInput" style="pointer-events:none;">
+              <span class="slider round"></span>
+            </label>
+          </div>
         </div>
-        <div id="dash-trend-graph"></div>
       </div>
-      
+
+
       <div class="stat-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
         <div class="stat-card" style="padding:12px">
           <div class="stat-val" id="adminTotalSt" style="font-size:22px">0</div>
@@ -439,7 +489,7 @@
           <div class="stat-val" id="adminAttPct" style="font-size:22px; color:var(--success)">0%</div>
           <div class="stat-lbl" style="font-size:11px">Global Attend.</div>
         </div>
-        <div class="stat-card" style="padding:12px">
+        <div class="stat-card" style="padding:12px; cursor:pointer;" onclick="navTo('sc-admin-absent')">
           <div class="stat-val" id="adminAbsentCount" style="font-size:22px; color:var(--danger)">0</div>
           <div class="stat-lbl" style="font-size:11px">Absent Today</div>
         </div>
@@ -690,15 +740,12 @@
           <label>Class Name</label>
           <input type="text" id="mng-class-name">
         </div>
-        <div class="form-group">
-          <label>Assign Teacher</label>
-          <div style="position:relative;">
-            <select id="mng-teacher-phone" style="width:100%; padding:14px; border:2px solid var(--border); border-radius:var(--radius-md); font-family:'Outfit'; font-size:16px; background:var(--surface-bg); color:var(--text-main); outline:none; appearance:none;" onchange="handleTeacherSelectChange(this)">
-              <!-- JS Injected -->
-            </select>
-            <i class="ti ti-chevron-down" style="position:absolute; right:16px; top:16px; color:var(--text-sub); pointer-events:none; font-size:20px;"></i>
-          </div>
+        <div id="mng-dynamic-teachers">
+          <!-- Dynamic Teacher selects will be injected here -->
         </div>
+        <button id="mng-add-teacher-btn" class="btn-main" style="background:var(--surface-card); color:var(--primary); border:2px dashed var(--border); box-shadow:none;" onclick="addMngTeacherField()">
+          <i class="ti ti-plus"></i> Add Teacher
+        </button>
       </div>
       
       <div class="section-title" style="display:flex; justify-content:space-between; align-items:center; margin-top:24px;">
@@ -725,9 +772,10 @@
     <div class="app-header">
       <button class="header-btn" onclick="openTeacherDrawer()"><i class="ti ti-menu-2"></i></button>
       <div class="header-title" id="t-header">Loading...</div>
-      <button class="header-btn" style="opacity:0; pointer-events:none;"><i class="ti ti-menu-2"></i></button>
+      <button class="header-btn" onclick="openContactSupport()"><i class="ti ti-headset"></i></button>
     </div>
     <div class="scroll-body">
+      <div id="teacherHolidayBanner"></div>
       
       <div class="kid-card" style="background: var(--success); margin-bottom: 24px;">
         <div class="kc-title" id="t-class-name">Loading Class...</div>
@@ -793,6 +841,7 @@
   <div class="screen" id="sc-parent">
     <div class="app-header">
       <div class="header-title">Your Children</div>
+      <button class="header-btn" onclick="openContactSupport()"><i class="ti ti-headset"></i></button>
       <button class="header-btn" onclick="logout()"><i class="ti ti-logout"></i></button>
     </div>
     <div class="scroll-body" id="parentKidsList">
@@ -805,7 +854,7 @@
     <div class="app-header">
       <button class="header-btn" onclick="navTo('sc-parent')"><i class="ti ti-arrow-left"></i></button>
       <div class="header-title">Student Details</div>
-      <div style="width:40px"></div>
+      <button class="header-btn" onclick="openContactSupport()"><i class="ti ti-headset"></i></button>
     </div>
     <div class="scroll-body" id="parentChildDetails">
       <!-- Detailed kid card injected here -->
@@ -820,28 +869,37 @@
         <button class="btn-close" onclick="closeScheduleModal()"><i class="ti ti-x"></i></button>
       </div>
       <div class="scroll-body" style="padding:0; flex:1; overflow-y:auto; margin-bottom:16px;">
+        <div class="form-group" style="display:flex; justify-content:space-between; align-items:center; background:var(--danger-light); padding:12px; border-radius:12px; margin-bottom:16px;">
+          <label style="color:var(--danger); font-weight:700; font-size:14px; margin:0;">Mark as Holiday</label>
+          <input type="checkbox" id="mod-sch-holiday" style="width:20px; height:20px; accent-color:var(--danger);" onchange="toggleHolidayFields()">
+        </div>
         <div class="form-group">
           <label>Date</label>
           <input type="date" id="mod-sch-date">
         </div>
-        <div class="form-group">
-          <label>Leading</label>
-          <input type="text" id="mod-sch-leading" placeholder="Type name">
-        </div>
-        <div class="form-group">
-          <label>Action Song</label>
-          <input type="text" id="mod-sch-action" placeholder="Type name">
-        </div>
-        <div class="form-group">
-          <label>Story (with Topic)</label>
-          <input type="text" id="mod-sch-story" placeholder="Type name & topic">
-        </div>
-        <div class="form-group">
-          <label>Food</label>
-          <input type="text" id="mod-sch-food" placeholder="Type name">
+        <div id="sch-regular-fields">
+          <div class="form-group">
+            <label>Leading</label>
+            <input type="text" id="mod-sch-leading" placeholder="Type name">
+          </div>
+          <div class="form-group">
+            <label>Action Song</label>
+            <input type="text" id="mod-sch-action" placeholder="Type name">
+          </div>
+          <div class="form-group">
+            <label>Story (with Topic)</label>
+            <input type="text" id="mod-sch-story" placeholder="Type name & topic">
+          </div>
+          <div class="form-group">
+            <label>Food</label>
+            <input type="text" id="mod-sch-food" placeholder="Type name">
+          </div>
         </div>
       </div>
-      <button class="btn-main" onclick="saveScheduleModal()">Save Schedule</button>
+      <div style="display:flex; gap:12px; margin-top:16px;">
+        <button class="btn-main" id="btn-sch-view-att" style="display:none; flex:1; background:var(--surface-card); color:var(--text-main); border:1px solid var(--border); box-shadow:none;" onclick="viewHistoryForDate(document.getElementById('mod-sch-date').value)">View Attendance</button>
+        <button class="btn-main" style="flex:1;" onclick="saveScheduleModal()">Save Schedule</button>
+      </div>
     </div>
   </div>
 
@@ -862,7 +920,7 @@
       </div>
       <div class="form-group">
         <label>Parent Mobile Number</label>
-        <input type="tel" id="mod-p-phone" placeholder="E.g. 9876543210">
+        <input type="tel" id="mod-p-phone" placeholder="E.g. 9876543210" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
       </div>
       <div class="form-group" id="mod-class-group">
         <label>Assign to Class</label>
@@ -885,7 +943,7 @@
       </div>
       <div class="form-group">
         <label>Mobile Number (Login ID)</label>
-        <input type="tel" id="mod-t-phone" placeholder="E.g. 8888888888">
+        <input type="tel" id="mod-t-phone" placeholder="E.g. 8888888888" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
       </div>
       <button class="btn-main" style="margin-top:24px;" onclick="saveTeacherModal()">Save Teacher</button>
     </div>
@@ -902,10 +960,12 @@
         <label>Class Name</label>
         <input type="text" id="mod-c-name" placeholder="E.g. Primary B">
       </div>
-      <div class="form-group">
-        <label>Assign Teacher</label>
-        <select id="mod-c-teacher" style="width:100%; padding:14px; border:2px solid var(--border); border-radius:var(--radius-md); font-family:'Outfit'; font-size:16px; font-weight:500; background:var(--surface-bg); outline:none;"></select>
+      <div id="add-dynamic-teachers">
+        <!-- Dynamic Teacher selects will be injected here -->
       </div>
+      <button id="add-c-teacher-btn" class="btn-main" style="background:var(--surface-card); color:var(--primary); border:2px dashed var(--border); box-shadow:none; margin-bottom:8px;" onclick="addAddTeacherField()">
+        <i class="ti ti-plus"></i> Add Teacher
+      </button>
       <button class="btn-main" style="margin-top:24px;" onclick="saveClassModal()">Save Class</button>
     </div>
   </div>
@@ -1036,6 +1096,43 @@
     </div>
   </div>
 
+  <!-- ================= ACADEMIC CALENDAR ================= -->
+  <div class="screen" id="sc-admin-calendar">
+    <div class="app-header">
+      <button class="header-btn" id="cal-back-btn" onclick="navTo('sc-admin')"><i class="ti ti-arrow-left"></i></button>
+      <div class="header-title">Academic Calendar</div>
+      <button class="header-btn" id="cal-trash-btn" onclick="clearAllSchedules()" style="color:var(--danger)"><i class="ti ti-trash"></i></button>
+    </div>
+    <div class="scroll-body">
+      <div class="card" style="margin-bottom:24px; padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <button class="icon-btn" onclick="changeCalendarMonth(-1)"><i class="ti ti-chevron-left"></i></button>
+          <div style="font-size:18px; font-weight:700;" id="cal-month-year">Month Year</div>
+          <button class="icon-btn" onclick="changeCalendarMonth(1)"><i class="ti ti-chevron-right"></i></button>
+        </div>
+        
+        <div class="cal-grid">
+          <div class="cal-day-header">S</div>
+          <div class="cal-day-header">M</div>
+          <div class="cal-day-header">T</div>
+          <div class="cal-day-header">W</div>
+          <div class="cal-day-header">T</div>
+          <div class="cal-day-header">F</div>
+          <div class="cal-day-header">S</div>
+        </div>
+        <div class="cal-grid" id="cal-days-container">
+          <!-- Days injected here -->
+        </div>
+      </div>
+      
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-main); font-weight:600;"><div style="width:12px; height:12px; border-radius:50%; background:var(--success);"></div> Sunday School Conducted</div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-main); font-weight:600;"><div style="width:12px; height:12px; border-radius:50%; background:var(--danger);"></div> Holiday / Closed</div>
+        <div style="display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text-main); font-weight:600;"><div style="width:12px; height:12px; border-radius:50%; background:var(--primary);"></div> Upcoming / Scheduled</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= ADMIN CLASSES LIST ================= -->
   <div class="screen" id="sc-admin-classes">
     <div class="app-header">
@@ -1121,20 +1218,23 @@
       <div class="drawer-item" onclick="navTo('sc-admin'); closeDrawer()">
         <i class="ti ti-layout-dashboard"></i> Dashboard
       </div>
-      <div class="drawer-item" onclick="viewAllFollowups(); closeDrawer()">
-        <i class="ti ti-phone-calling"></i> Follow-ups
+      <div class="drawer-item" onclick="viewAllClasses(); closeDrawer()">
+        <i class="ti ti-door"></i> Classrooms
+      </div>
+      <div class="drawer-item" onclick="viewAllTeachers(); closeDrawer()">
+        <i class="ti ti-users"></i> Teachers
+      </div>
+      <div class="drawer-item" onclick="viewAllStudents(); closeDrawer()">
+        <i class="ti ti-user"></i> Students
       </div>
       <div class="drawer-item" onclick="viewHistory(); closeDrawer()">
         <i class="ti ti-calendar-time"></i> Attendance History
       </div>
-      <div class="drawer-item" onclick="viewAllClasses(); closeDrawer()">
-        <i class="ti ti-door"></i> All Classes
+      <div class="drawer-item" onclick="viewAllFollowups(); closeDrawer()">
+        <i class="ti ti-phone-calling"></i> Follow-ups
       </div>
-      <div class="drawer-item" onclick="viewAllTeachers(); closeDrawer()">
-        <i class="ti ti-users"></i> All Teachers
-      </div>
-      <div class="drawer-item" onclick="viewAllStudents(); closeDrawer()">
-        <i class="ti ti-school"></i> All Students
+      <div class="drawer-item" onclick="viewAcademicCalendar(); closeDrawer()">
+        <i class="ti ti-calendar"></i> Academic Calendar
       </div>
       <div style="flex:1"></div>
       <div class="drawer-item" onclick="logout()" style="color:var(--danger); border-top:1px solid var(--border); border-bottom:none;">
@@ -1169,6 +1269,9 @@
       <div class="drawer-item" onclick="viewTeacherAtRisk(); closeTeacherDrawer()">
         <i class="ti ti-alert-triangle"></i> At-Risk
       </div>
+      <div class="drawer-item" onclick="viewAcademicCalendar(); closeTeacherDrawer()">
+        <i class="ti ti-calendar-event"></i> Academic Calendar
+      </div>
       <div style="flex:1"></div>
       <div class="drawer-item" onclick="logout()" style="color:var(--danger); border-top:1px solid var(--border); border-bottom:none;">
         <i class="ti ti-logout" style="color:var(--danger)"></i> Logout
@@ -1176,10 +1279,7 @@
     </div>
   </div>
 
-</div>
 
-  <!-- ================= TOAST CONTAINER ================= -->
-  <div id="toast-container"></div>
 
   <!-- ================= CUSTOM CONFIRM MODAL ================= -->
   <div class="modal-overlay" id="confirmModal" style="z-index:10000;">
@@ -1193,6 +1293,52 @@
       </div>
     </div>
   </div>
+
+  <!-- ================= CONTACT SUPPORT MODAL ================= -->
+  <div class="modal-overlay" id="contactSupportModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title">Contact Us</div>
+        <button class="icon-btn" onclick="closeContactSupport()"><i class="ti ti-x"></i></button>
+      </div>
+      <div style="font-size:13px; color:var(--text-sub); margin-bottom:24px;">
+        Need help with the application or have questions about Sunday School? Get in touch with us!
+      </div>
+      
+      <!-- Developer Section -->
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px; padding:16px; background:var(--surface-card); border:1px solid var(--border); border-radius:12px;">
+        <div style="width:50px; height:50px;">
+          <img src="../images/developer/rahulpic.jpeg" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid #ffffff;" onerror="this.src='https://ui-avatars.com/api/?name=Rahul+Suresh&background=534AB7&color=fff&size=100'" alt="Developer Pic" />
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700; font-size:15px;">Rahul</div>
+          <div style="font-size:12px; color:var(--text-sub);">App Support & Tech Issues</div>
+        </div>
+        <a href="tel:+919999999999" style="width:40px;height:40px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;text-decoration:none;">
+          <i class="ti ti-phone" style="font-size:20px"></i>
+        </a>
+      </div>
+      
+      <!-- Admin Section -->
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px; padding:16px; background:var(--surface-card); border:1px solid var(--border); border-radius:12px;">
+        <div style="width:50px; height:50px; border-radius:50%; background:var(--surface-bg); color:var(--text-main); display:flex; align-items:center; justify-content:center; font-size:24px;">
+          <i class="ti ti-building-church"></i>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700; font-size:15px;">Church Admin</div>
+          <div style="font-size:12px; color:var(--text-sub);">Sunday School Inquiries</div>
+        </div>
+        <a href="tel:9591542901" style="width:40px;height:40px;border-radius:50%;background:var(--surface-bg);color:var(--text-main);display:flex;align-items:center;justify-content:center;text-decoration:none;">
+          <i class="ti ti-phone-call" style="font-size:20px"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TOAST CONTAINER ================= -->
+  <div id="toast-container"></div>
+  
+</div>
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -1267,7 +1413,8 @@ let DB = {
   users: [],
   classes: [],
   students: [],
-  schedules: []
+  schedules: [],
+  settings: {}
 };
 
 let dbLoaded = false;
@@ -1312,9 +1459,13 @@ let editingClassId = null; // for admin manager
 /* =========================================================
    UI NAVIGATION
    ========================================================= */
-function navTo(screenId) {
+function navTo(screenId, pushHistory = true) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
+  
+  if (pushHistory) {
+    history.pushState({ screen: screenId }, "", `#${screenId}`);
+  }
   
   // Trigger graph rendering on relevant screens
   if(screenId === 'sc-admin') {
@@ -1323,6 +1474,12 @@ function navTo(screenId) {
      renderSchoolTrendGraph('hist-trend-graph', 0);
   }
 }
+
+window.addEventListener('popstate', (e) => {
+  if (e.state && e.state.screen) {
+    navTo(e.state.screen, false); // false prevents pushing state again
+  }
+});
 
 /* =========================================================
    GRAPHING UTILITY
@@ -1338,10 +1495,10 @@ function renderSchoolTrendGraph(containerId, limit) {
     let present = 0;
     let total = 0;
     Object.keys(record.records).forEach(sid => {
-      if (historyFilterClassId) {
-        const s = DB.students.find(x => x.id === sid);
-        if (!s || s.classId !== historyFilterClassId) return;
-      }
+      const s = DB.students.find(x => x.id === sid);
+      if (!s) return; // Skip deleted students
+      if (historyFilterClassId && s.classId !== historyFilterClassId) return;
+      
       const state = record.records[sid];
       if(state === 'present' || state === 'absent') total++;
       if(state === 'present') present++;
@@ -1354,10 +1511,10 @@ function renderSchoolTrendGraph(containerId, limit) {
   let todayPresent = 0;
   let todayTotal = 0;
   Object.keys(attendanceState).forEach(sid => {
-    if (historyFilterClassId) {
-      const s = DB.students.find(x => x.id === sid);
-      if (!s || s.classId !== historyFilterClassId) return;
-    }
+    const s = DB.students.find(x => x.id === sid);
+    if (!s) return; // Skip deleted students
+    if (historyFilterClassId && s.classId !== historyFilterClassId) return;
+    
     const state = attendanceState[sid];
     if(state === 'present' || state === 'absent') todayTotal++;
     if(state === 'present') todayPresent++;
@@ -1420,11 +1577,36 @@ function renderSchoolTrendGraph(containerId, limit) {
    ========================================================= */
 function handleLogin() {
   const phone = document.getElementById('phoneInp').value.trim();
-  if(!phone) return showToast("Enter a valid phone number");
+  if(!phone || phone.length !== 10) return showToast("Enter a valid 10-digit mobile number");
   
-  const user = DB.users.find(u => u.phone === phone);
+  let user = DB.users.find(u => u.phone === phone);
+  
+  // If not in users, check if they exist as a parent in students
+  if (!user) {
+    const studentWithParent = DB.students.find(s => s.parentPhone === phone);
+    if (studentWithParent) {
+      user = {
+        name: studentWithParent.parentName,
+        phone: phone,
+        role: 'parent'
+      };
+      
+      // Auto-register them in Firebase for future use
+      const { db, collection, doc, setDoc } = window.firebase;
+      const newUserRef = doc(collection(db, 'ss_users'));
+      setDoc(newUserRef, {
+        id: newUserRef.id,
+        name: studentWithParent.parentName,
+        phone: phone,
+        role: 'parent'
+      }).catch(err => console.error("Could not auto-register parent:", err));
+    }
+  }
+
   if(user) {
     currentUser = user;
+    localStorage.setItem('ss_session_phone', phone);
+    localStorage.setItem('ss_session_time', Date.now());
     routeUser();
   } else {
     showToast("Phone number not registered in the system.");
@@ -1451,6 +1633,8 @@ function routeUser() {
 
 function logout() {
   currentUser = null;
+  localStorage.removeItem('ss_session_phone');
+  localStorage.removeItem('ss_session_time');
   closeDrawer();
   closeTeacherDrawer();
   resetLogin();
@@ -1473,31 +1657,38 @@ async function seedDatabaseIfNeeded() {
     console.log('Database seeded successfully.');
   }
 }
+let _uLoaded = false, _cLoaded = false, _sLoaded = false, _schLoaded = false, _aLoaded = false, _setLoaded = false;
 
 window.addEventListener('firebase-ready', async () => {
   await seedDatabaseIfNeeded();
   
   const { db, collection, onSnapshot } = window.firebase;
-  
+
   onSnapshot(collection(db, 'ss_users'), snap => {
     DB.users = snap.docs.map(doc => doc.data());
-    checkIfLoaded();
+    _uLoaded = true; checkIfLoaded();
   });
   
   onSnapshot(collection(db, 'ss_classes'), snap => {
-    DB.classes = snap.docs.map(doc => doc.data());
-    checkIfLoaded();
+    DB.classes = snap.docs.map(doc => {
+      let d = doc.data();
+      if (!d.teacherPhones) d.teacherPhones = [];
+      if (d.teacherPhone && !d.teacherPhones.includes(d.teacherPhone)) d.teacherPhones.push(d.teacherPhone);
+      if (d.secondaryTeacherPhone && !d.teacherPhones.includes(d.secondaryTeacherPhone)) d.teacherPhones.push(d.secondaryTeacherPhone);
+      return d;
+    });
+    _cLoaded = true; checkIfLoaded();
   });
   
   onSnapshot(collection(db, 'ss_students'), snap => {
     DB.students = snap.docs.map(doc => doc.data());
-    checkIfLoaded();
+    _sLoaded = true; checkIfLoaded();
   });
   
   onSnapshot(collection(db, 'ss_schedules'), snap => {
     DB.schedules = snap.docs.map(doc => doc.data());
     DB.schedules.sort((a, b) => b.date.localeCompare(a.date));
-    checkIfLoaded();
+    _schLoaded = true; checkIfLoaded();
   });
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   
@@ -1544,16 +1735,41 @@ window.addEventListener('firebase-ready', async () => {
     pastAttendance.length = 0;
     pastAttendance.push(...newPastAtt);
     
-    checkIfLoaded();
+    _aLoaded = true; checkIfLoaded();
+  });
+  
+  onSnapshot(collection(db, 'ss_settings'), snap => {
+    DB.settings = {};
+    snap.docs.forEach(doc => {
+      DB.settings[doc.id] = doc.data();
+    });
+    _setLoaded = true; checkIfLoaded();
   });
 });
 
 function checkIfLoaded() {
-  if(DB.users.length > 0 && DB.classes.length > 0 && DB.students.length > 0) {
+  if (typeof _uLoaded !== 'undefined' && _uLoaded && _cLoaded && _sLoaded && _schLoaded && _aLoaded && _setLoaded) {
     if(!dbLoaded) {
       dbLoaded = true;
       console.log('Firebase synced.');
-      // If a user is already logged in (e.g. from localStorage), route them here.
+      
+      const sessionPhone = localStorage.getItem('ss_session_phone');
+      const sessionTime = localStorage.getItem('ss_session_time');
+      if (sessionPhone && sessionTime) {
+        if (Date.now() - parseInt(sessionTime) < 3600000) { // 1 hour
+          const user = DB.users.find(u => u.phone === sessionPhone);
+          if (user) {
+            currentUser = user;
+            localStorage.setItem('ss_session_time', Date.now()); // refresh session
+            routeUser();
+            return;
+          }
+        } else {
+          localStorage.removeItem('ss_session_phone');
+          localStorage.removeItem('ss_session_time');
+        }
+      }
+      // If no valid session, routeUser() isn't called, stays on login.
     } else if (currentUser) {
        // Refresh UI if data changes while logged in
        if(currentUser.role === 'admin' && document.getElementById('sc-admin').classList.contains('active')) renderAdmin();
@@ -1563,6 +1779,7 @@ function checkIfLoaded() {
        if(currentUser.role === 'admin' && document.getElementById('sc-admin-at-risk').classList.contains('active')) renderAtRiskList();
        if(currentUser.role === 'admin' && document.getElementById('sc-admin-teachers').classList.contains('active')) renderAllTeachers();
        if(currentUser.role === 'admin' && document.getElementById('sc-admin-classes').classList.contains('active')) renderAllClasses();
+       if(currentUser.role === 'admin' && document.getElementById('sc-admin-calendar').classList.contains('active')) renderCalendar();
        if(currentUser.role === 'parent' && document.getElementById('sc-parent').classList.contains('active')) renderParentList();
     }
   }
@@ -1572,12 +1789,49 @@ function checkIfLoaded() {
    ADMIN LOGIC (Overview)
    ========================================================= */
 function renderAdmin() {
+  const adminHolidayContainer = document.getElementById('adminHolidayBanner');
+  if (adminHolidayContainer) {
+    adminHolidayContainer.innerHTML = getUpcomingHolidayBanner();
+  }
+
+  // Update Session Status
+  const sessionStatusText = document.getElementById('adminSessionStatusText');
+  const sessionToggleInput = document.getElementById('adminSessionToggleInput');
+  if (sessionStatusText && sessionToggleInput) {
+    const isOpen = isSessionOpen();
+    const sessionIcon = document.getElementById('adminSessionIcon');
+    sessionToggleInput.checked = isOpen;
+    
+    if (isOpen) {
+      sessionStatusText.innerHTML = '<span style="color:var(--success); font-weight:700;">Open Today</span> · Teachers can mark attendance';
+      if(sessionIcon) {
+        sessionIcon.style.background = 'var(--success-light)';
+        sessionIcon.style.color = 'var(--success)';
+        sessionIcon.innerHTML = '<i class="ti ti-lock-open"></i>';
+      }
+    } else {
+      sessionStatusText.innerHTML = '<span style="color:var(--danger); font-weight:700;">Closed</span> · Waiting for Sunday';
+      if(sessionIcon) {
+        sessionIcon.style.background = 'var(--danger-light)';
+        sessionIcon.style.color = 'var(--danger)';
+        sessionIcon.innerHTML = '<i class="ti ti-lock"></i>';
+      }
+    }
+  }
+
   // Stats calculation
   const totalSt = DB.students.length;
-  const states = Object.values(attendanceState);
-  const totalMarked = states.length;
-  const presentCount = states.filter(v => v === 'present').length;
-  const absentCount = states.filter(v => v === 'absent').length;
+  let totalMarked = 0;
+  let presentCount = 0;
+  let absentCount = 0;
+  
+  Object.keys(attendanceState).forEach(sid => {
+    if(!DB.students.find(s => s.id === sid)) return; // Filter out deleted students
+    const st = attendanceState[sid];
+    totalMarked++;
+    if(st === 'present') presentCount++;
+    if(st === 'absent') absentCount++;
+  });
   
   let attPct = 0;
   if (totalMarked > 0) {
@@ -1679,8 +1933,10 @@ function renderAdmin() {
     if (classStatusFilter !== 'all' && c.status !== classStatusFilter) return;
     
     const isPending = c.status === 'pending';
-    const t = DB.users.find(u => u.phone === c.teacherPhone);
-    const teacherName = t ? t.name : 'No Teacher Assigned';
+    const t1 = DB.users.find(u => u.phone === c.teacherPhone);
+    const t2 = DB.users.find(u => u.phone === c.secondaryTeacherPhone);
+    let teacherName = t1 ? t1.name : 'No Teacher Assigned';
+    if(t2) teacherName += ` & ${t2.name}`;
     
     // Check class specific attendance
     const classStudents = DB.students.filter(s => s.classId === c.id);
@@ -2377,16 +2633,31 @@ function renderAllClasses() {
   
   document.getElementById('hdr-all-classes').textContent = `All Classes (${DB.classes.length})`;
   
-  DB.classes.filter(c => c.name.toLowerCase().includes(query)).forEach(c => {
+  const filtered = DB.classes.filter(c => c.name.toLowerCase().includes(query));
+  
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-sub);">
+      <div style="font-size:48px; margin-bottom:16px; opacity:0.5;"><i class="ti ti-door"></i></div>
+      <div style="font-size:16px; font-weight:600;">No classes found</div>
+      <div style="font-size:13px; margin-top:8px;">${query ? 'Try a different search term.' : 'Click the + button to add a class.'}</div>
+    </div>`;
+    return;
+  }
+  
+  filtered.forEach(c => {
     const count = DB.students.filter(s => s.classId === c.id).length;
-    const t = DB.users.find(u => u.phone === c.teacherPhone);
-    const tName = t ? t.name : 'No Teacher';
+    const tNames = (c.teacherPhones || []).map(phone => {
+      const u = DB.users.find(x => x.phone === phone);
+      return u ? u.name : null;
+    }).filter(Boolean);
+    let tName = tNames.length > 0 ? tNames.join(' & ') : 'No Teacher';
+    
     list.innerHTML += `
       <div class="list-item" style="margin-bottom:8px; cursor:pointer;" onclick="openAdminClassAction('${c.id}')">
         <div class="av" style="background:var(--primary-light); color:var(--primary)"><i class="ti ti-door"></i></div>
         <div class="li-body">
           <div class="li-title">${c.name}</div>
-          <div class="li-sub">Teacher: ${tName} · ${count} Students</div>
+          <div class="li-sub">Teachers: ${tName} · ${count} Students</div>
         </div>
         <button class="gear-btn" style="color:var(--danger); background:var(--danger-light); width:32px; height:32px; font-size:16px;" onclick="event.stopPropagation(); deleteClass('${c.id}')">
           <i class="ti ti-trash"></i>
@@ -2411,11 +2682,57 @@ function deleteClass(id) {
   });
 }
 
+function renderDynamicTeacherFields(containerId, prefix, selectedPhones = []) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  if (selectedPhones.length === 0) selectedPhones.push('');
+  
+  selectedPhones.forEach((phone, index) => {
+    addDynamicTeacherField(containerId, prefix, phone, index === 0);
+  });
+}
+
+function addDynamicTeacherField(containerId, prefix, selectedPhone = '', isFirst = false) {
+  const container = document.getElementById(containerId);
+  const teachers = DB.users.filter(u => u.role === 'teacher');
+  const optionsHtml = '<option value="">-- Unassigned --</option>' + teachers.map(t => `<option value="${t.phone}">${t.name} (${t.phone})</option>`).join('') + '<option value="ADD_NEW" style="font-weight:bold; color:var(--primary);">+ Add New Teacher</option>';
+  
+  const div = document.createElement('div');
+  div.className = 'form-group';
+  div.style.marginBottom = '8px';
+  div.innerHTML = `
+    <label style="display:flex; justify-content:space-between;">
+      ${isFirst ? 'Assign Teacher' : 'Additional Teacher'}
+      ${!isFirst ? '<span style="color:var(--danger); font-size:12px; cursor:pointer;" onclick="this.parentElement.parentElement.remove()">Remove</span>' : ''}
+    </label>
+    <div style="position:relative;">
+      <select class="${prefix}-dynamic-teacher" style="width:100%; padding:14px; border:2px solid var(--border); border-radius:var(--radius-md); font-family:'Outfit'; font-size:16px; background:var(--surface-bg); color:var(--text-main); outline:none; appearance:none;" onchange="handleTeacherSelectChange(this)">
+        ${optionsHtml}
+      </select>
+      <i class="ti ti-chevron-down" style="position:absolute; right:16px; top:16px; color:var(--text-sub); pointer-events:none; font-size:20px;"></i>
+    </div>
+  `;
+  container.appendChild(div);
+  div.querySelector('select').value = selectedPhone;
+}
+
+function getDynamicTeacherPhones(prefix) {
+  const selects = document.querySelectorAll('.' + prefix + '-dynamic-teacher');
+  const phones = [];
+  selects.forEach(s => {
+    if (s.value && s.value !== 'ADD_NEW' && !phones.includes(s.value)) {
+      phones.push(s.value);
+    }
+  });
+  return phones;
+}
+
+function addAddTeacherField() { addDynamicTeacherField('add-dynamic-teachers', 'add'); }
+function addMngTeacherField() { addDynamicTeacherField('mng-dynamic-teachers', 'mng'); }
+
 function openClassModal() {
   document.getElementById('mod-c-name').value = '';
-  const teacherSelect = document.getElementById('mod-c-teacher');
-  const teachers = DB.users.filter(u => u.role === 'teacher');
-  teacherSelect.innerHTML = '<option value="">Unassigned</option>' + teachers.map(t => `<option value="${t.phone}">${t.name} (${t.phone})</option>`).join('');
+  renderDynamicTeacherFields('add-dynamic-teachers', 'add', []);
   document.getElementById('classModal').classList.add('active');
 }
 
@@ -2425,13 +2742,13 @@ function closeClassModal() {
 
 async function saveClassModal() {
   const name = document.getElementById('mod-c-name').value.trim();
-  const tPhone = document.getElementById('mod-c-teacher').value;
+  const tPhones = getDynamicTeacherPhones('add');
   
   if(!name) return showToast("Class name is required");
   
   const { db, collection, doc, setDoc } = window.firebase;
   const newRef = doc(collection(db, 'ss_classes'));
-  await setDoc(newRef, { id: newRef.id, name: name, teacherPhone: tPhone, status: "pending", attPct: null });
+  await setDoc(newRef, { id: newRef.id, name: name, teacherPhone: tPhones[0] || '', secondaryTeacherPhone: tPhones[1] || '', teacherPhones: tPhones, status: "pending", attPct: null });
   
   closeClassModal();
   showToast("Class added", "success");
@@ -2448,13 +2765,23 @@ function renderAllTeachers() {
   list.innerHTML = '';
   const query = document.getElementById('tchSearchText').value.toLowerCase();
   
-  const totalT = DB.users.filter(u => u.role === 'teacher').length;
-  document.getElementById('hdr-all-teachers').textContent = `All Teachers (${totalT})`;
+  const teachers = DB.users.filter(u => u.role === 'teacher');
+  document.getElementById('hdr-all-teachers').textContent = `All Teachers (${teachers.length})`;
   
-  const teachers = DB.users.filter(u => u.role === 'teacher' && (u.name.toLowerCase().includes(query) || u.phone.includes(query)));
-  teachers.forEach(t => {
+  const filtered = teachers.filter(t => t.name.toLowerCase().includes(query) || t.phone.includes(query));
+  
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-sub);">
+      <div style="font-size:48px; margin-bottom:16px; opacity:0.5;"><i class="ti ti-user-star"></i></div>
+      <div style="font-size:16px; font-weight:600;">No teachers found</div>
+      <div style="font-size:13px; margin-top:8px;">${query ? 'Try a different search term.' : 'Click the + button to add a teacher.'}</div>
+    </div>`;
+    return;
+  }
+  
+  filtered.forEach(t => {
     const init = t.name.split(' ').map(n=>n[0]).join('').substring(0,2);
-    const cls = DB.classes.find(c => c.teacherPhone === t.phone);
+    const cls = DB.classes.find(c => c.teacherPhone === t.phone || c.secondaryTeacherPhone === t.phone);
     const clsName = cls ? cls.name : 'Unassigned';
     list.innerHTML += `
       <div class="list-item" style="margin-bottom:8px;">
@@ -2476,9 +2803,14 @@ function deleteTeacher(phone) {
     const { db, doc, deleteDoc, updateDoc } = window.firebase;
     await deleteDoc(doc(db, 'ss_users', phone));
     
-    const classesToUpdate = DB.classes.filter(c => c.teacherPhone === phone);
+    const classesToUpdate = DB.classes.filter(c => (c.teacherPhones || []).includes(phone));
     for(let c of classesToUpdate) {
-      await updateDoc(doc(db, 'ss_classes', c.id), { teacherPhone: '' });
+      const updatedPhones = (c.teacherPhones || []).filter(p => p !== phone);
+      await updateDoc(doc(db, 'ss_classes', c.id), { 
+        teacherPhones: updatedPhones,
+        teacherPhone: updatedPhones[0] || '',
+        secondaryTeacherPhone: updatedPhones[1] || ''
+      });
     }
     
     showToast("Teacher deleted successfully", "success");
@@ -2523,6 +2855,15 @@ function renderAllStudents() {
   }
   
   document.getElementById('hdr-all-students').textContent = studentListFilterClassId && currentTeacherClass ? `My Students (${filtered.length})` : `All Students (${filtered.length})`;
+  
+  if (filtered.length === 0) {
+    list.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-sub);">
+      <div style="font-size:48px; margin-bottom:16px; opacity:0.5;"><i class="ti ti-users"></i></div>
+      <div style="font-size:16px; font-weight:600;">No students found</div>
+      <div style="font-size:13px; margin-top:8px;">${query ? 'Try a different search term.' : 'Click the + button to add a student.'}</div>
+    </div>`;
+    return;
+  }
   
   filtered.forEach(s => {
     const init = s.name.split(' ').map(n=>n[0]).join('').substring(0,2);
@@ -2609,6 +2950,44 @@ function deleteStudent(id) {
   });
 }
 
+function confirmSessionToggle() {
+  const isOpen = isSessionOpen();
+  if (isOpen) {
+    showConfirm("Close Session", "Are you sure you want to manually close today's session? Teachers will not be able to mark attendance.", () => {
+      toggleSessionOverride();
+    });
+  } else {
+    showConfirm("Open Session", "Are you sure you want to forcefully open a session today? Teachers will be able to mark attendance.", () => {
+      toggleSessionOverride();
+    });
+  }
+}
+
+async function toggleSessionOverride() {
+  const isOpen = isSessionOpen();
+  const today = new Date();
+  const mm = (today.getMonth()+1).toString().padStart(2, '0');
+  const dd = today.getDate().toString().padStart(2, '0');
+  const todayStr = `${today.getFullYear()}-${mm}-${dd}`;
+  
+  // Save locally instantly to prevent any UI flickering
+  localStorage.setItem('ss_override_' + todayStr, (!isOpen).toString());
+  
+  if (!DB.settings) DB.settings = {};
+  DB.settings.session = { date: todayStr, isOpen: !isOpen };
+  
+  // Update UI immediately
+  renderAdmin();
+  showToast(!isOpen ? 'Session Opened' : 'Session Closed', 'success');
+  
+  // Sync to Firebase in background
+  const { db, doc, setDoc } = window.firebase;
+  await setDoc(doc(db, 'ss_settings', 'session'), {
+    date: todayStr,
+    isOpen: !isOpen
+  }).catch(e => console.error("Firebase sync error:", e));
+}
+
 // Attendance Override for Admin
 function openAdminClassAction(classId) {
   const activeScreen = document.querySelector('.screen.active');
@@ -2654,14 +3033,7 @@ function adminManageClass(classId) {
   document.getElementById('mng-title').textContent = `Settings: ${cls.name}`;
   document.getElementById('mng-class-name').value = cls.name;
   
-  const teacherSelect = document.getElementById('mng-teacher-phone');
-  teacherSelect.innerHTML = '<option value="">-- Unassigned --</option>';
-  DB.users.filter(u => u.role === 'teacher').forEach(t => {
-    teacherSelect.innerHTML += `<option value="${t.phone}">${t.name} (${t.phone})</option>`;
-  });
-  teacherSelect.innerHTML += '<option value="ADD_NEW" style="font-weight:bold; color:var(--primary);">+ Add New Teacher</option>';
-  
-  teacherSelect.value = cls.teacherPhone || '';
+  renderDynamicTeacherFields('mng-dynamic-teachers', 'mng', cls.teacherPhones || []);
   
   renderManagerRoster();
   navTo('sc-admin-manage');
@@ -2671,6 +3043,13 @@ function renderManagerRoster() {
   const students = DB.students.filter(s => s.classId === editingClassId);
   const list = document.getElementById('mng-student-list');
   list.innerHTML = '';
+  
+  if (students.length === 0) {
+    list.innerHTML = `<div style="text-align:center; padding:30px 20px; color:var(--text-sub);">
+      <div style="font-size:14px; font-weight:500;">No students in this class</div>
+    </div>`;
+    return;
+  }
   
   students.forEach(s => {
     const init = s.name.split(' ').map(n=>n[0]).join('').substring(0,2);
@@ -2740,6 +3119,9 @@ async function saveStudentModal() {
   if(!name || !pName || !pPhone) {
     return showToast("Please fill all fields.");
   }
+  if(pPhone.length !== 10) {
+    return showToast("Please enter a valid 10-digit mobile number.");
+  }
   
   const { db, collection, doc, setDoc, updateDoc } = window.firebase;
   
@@ -2751,6 +3133,17 @@ async function saveStudentModal() {
     const newRef = doc(collection(db, 'ss_students'));
     await setDoc(newRef, {
       id: newRef.id, classId: cid, name: name, parentPhone: pPhone, parentName: pName, presentDays: 0, absentDays: 0
+    });
+  }
+  
+  // Register parent as a user if they don't exist
+  if (!DB.users.find(u => u.phone === pPhone)) {
+    const newUserRef = doc(collection(db, 'ss_users'));
+    await setDoc(newUserRef, {
+      id: newUserRef.id,
+      name: pName,
+      phone: pPhone,
+      role: 'parent'
     });
   }
   
@@ -2777,6 +3170,7 @@ async function saveTeacherModal() {
   const name = document.getElementById('mod-t-name').value.trim();
   const phone = document.getElementById('mod-t-phone').value.trim();
   if(!name || !phone) return showToast("Fill all fields");
+  if(phone.length !== 10) return showToast("Please enter a valid 10-digit mobile number.");
   if(DB.users.find(u => u.phone === phone)) return showToast("Phone number already registered!");
   
   const { db, doc, setDoc } = window.firebase;
@@ -2838,41 +3232,128 @@ function saveSelectStudentModal() {
   renderManagerRoster();
 }
 
-function mngSaveChanges() {
+async function mngSaveChanges() {
   const cls = DB.classes.find(c => c.id === editingClassId);
-  cls.name = document.getElementById('mng-class-name').value;
-  cls.teacherPhone = document.getElementById('mng-teacher-phone').value;
+  if(!cls) return;
   
-  // Make sure the teacher exists in DB (mock logic)
-  if(!DB.users.find(u => u.phone === cls.teacherPhone)) {
-    DB.users.push({ phone: cls.teacherPhone, role: 'teacher', name: 'New Teacher' });
+  const newName = document.getElementById('mng-class-name').value.trim();
+  const tPhones = getDynamicTeacherPhones('mng');
+  
+  if(!newName) return showToast("Class name is required");
+  
+  const { db, doc, updateDoc, writeBatch } = window.firebase;
+  
+  try {
+    await updateDoc(doc(db, 'ss_classes', editingClassId), {
+      name: newName,
+      teacherPhone: tPhones[0] || '',
+      secondaryTeacherPhone: tPhones[1] || '',
+      teacherPhones: tPhones
+    });
+    
+    // Also update all students in the list in DB (since they were modified in memory in saveSelectStudentModal)
+    // Actually, saveSelectStudentModal didn't save to DB! I'll do it here.
+    const studentsToSave = DB.students.filter(s => s.classId === editingClassId);
+    if(studentsToSave.length > 0) {
+      const batch = writeBatch(db);
+      studentsToSave.forEach(s => {
+        batch.update(doc(db, 'ss_students', s.id), { classId: editingClassId });
+      });
+      await batch.commit();
+    }
+    
+    const btn = document.getElementById('btn-save-mng');
+    btn.innerHTML = '<i class="ti ti-check"></i> Saved successfully';
+    btn.style.background = 'var(--success)';
+    
+    setTimeout(() => {
+      btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save All Changes';
+      btn.style.background = 'var(--primary-grad)';
+      navTo('sc-admin');
+    }, 800);
+  } catch (err) {
+    showToast("Error saving changes");
+    console.error(err);
   }
-  
-  const btn = document.getElementById('btn-save-mng');
-  btn.innerHTML = '<i class="ti ti-check"></i> Saved successfully';
-  btn.style.background = 'var(--success)';
-  
-  setTimeout(() => {
-    btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save All Changes';
-    btn.style.background = 'var(--primary-grad)';
-    renderAdmin();
-    navTo('sc-admin');
-  }, 800);
 }
 
 
 /* =========================================================
    TEACHER LOGIC
-   ========================================================= */
+   ========================================================= */function getUpcomingHolidayBanner() {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+  
+  const upcomingHoliday = DB.schedules.find(s => {
+    if(!s.isHoliday) return false;
+    const sDate = new Date(s.date);
+    return sDate >= today && sDate <= nextWeek;
+  });
+  
+  if(upcomingHoliday) {
+    const d = new Date(upcomingHoliday.date);
+    const dateStr = d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    return `
+      <div class="alert-banner" style="background:var(--warning-light); border-left-color:#f59e0b; margin: 16px;">
+        <i class="ti ti-calendar-off" style="color:#f59e0b; font-size: 24px;"></i>
+        <div>
+          <strong style="color:#b45309;">Upcoming Holiday: ${dateStr}</strong>
+          <div style="font-size:13px; color:#b45309; margin-top:2px;">${upcomingHoliday.description || 'No class scheduled.'}</div>
+        </div>
+      </div>
+    `;
+  }
+  return '';
+}
+
+function isSessionOpen() {
+  const today = new Date();
+  const mm = (today.getMonth()+1).toString().padStart(2, '0');
+  const dd = today.getDate().toString().padStart(2, '0');
+  const todayStr = `${today.getFullYear()}-${mm}-${dd}`;
+  
+  // 1. Check local override first for instant UI response
+  const localSession = localStorage.getItem('ss_override_' + todayStr);
+  if (localSession !== null) {
+    return localSession === 'true';
+  }
+  
+  // 2. Check Firebase settings
+  if (DB.settings && DB.settings.session && DB.settings.session.date === todayStr) {
+    return DB.settings.session.isOpen === true || DB.settings.session.isOpen === 'true';
+  }
+  
+  // 3. Check Holidays
+  const sch = DB.schedules.find(s => s.date === todayStr);
+  if (sch && sch.isHoliday) {
+    return false;
+  }
+  
+  // 4. Default to Sunday
+  return today.getDay() === 0; // 0 is Sunday
+}
+
 function renderTeacher() {
-  currentTeacherClass = DB.classes.find(c => c.teacherPhone === currentUser.phone);
-  if(!currentTeacherClass) return showToast("No class assigned to you.");
+  currentTeacherClass = DB.classes.find(c => (c.teacherPhones || []).includes(currentUser.phone));
+  if(!currentTeacherClass) {
+    document.getElementById('t-header').textContent = "Dashboard";
+    document.getElementById('t-class-name').textContent = "No Class Assigned";
+    document.getElementById('t-class-info').textContent = "Please contact admin";
+    document.getElementById('tch-atRisk-container').innerHTML = '';
+    return;
+  }
   
   const students = DB.students.filter(s => s.classId === currentTeacherClass.id);
   
   document.getElementById('t-header').textContent = currentTeacherClass.name;
   document.getElementById('t-class-name').textContent = currentTeacherClass.name;
   document.getElementById('t-class-info').textContent = `${currentUser.name} · ${students.length} Students`;
+  
+  const teacherHolidayContainer = document.getElementById('teacherHolidayBanner');
+  if (teacherHolidayContainer) {
+    teacherHolidayContainer.innerHTML = getUpcomingHolidayBanner();
+  }
   
   renderSchedule();
   
@@ -2916,6 +3397,20 @@ function renderTeacher() {
   }
 
   const attCard = document.getElementById('tch-att-card');
+  const sessionOpen = isSessionOpen();
+  
+  if (!sessionOpen) {
+    document.getElementById('tch-absent-container').style.display = 'none';
+    attCard.innerHTML = `
+        <div style="width:64px; height:64px; background:var(--surface-bg); color:var(--text-sub); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;">
+          <i class="ti ti-lock"></i>
+        </div>
+        <h3 style="margin-bottom:8px; color:var(--text-main);">Session Closed</h3>
+        <p style="color:var(--text-sub); font-size:14px; margin-bottom:24px;">Attendance is only available on Sundays or when opened by the Admin.</p>
+    `;
+    return;
+  }
+
   if (currentTeacherClass.status === 'done') {
     let present = 0;
     let total = students.length;
@@ -3111,25 +3606,26 @@ async function submitAttendance() {
    ========================================================= */
 function renderParentList() {
   const list = document.getElementById('parentKidsList');
-  list.innerHTML = '';
+  list.innerHTML = getUpcomingHolidayBanner();
   
   const myKids = DB.students.filter(s => s.parentPhone === currentUser.phone);
   
   if(myKids.length === 0) {
-    list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-sub)">No students found.</div>';
+    list.innerHTML += '<div style="text-align:center; padding:40px; color:var(--text-sub)">No students found.</div>';
     return;
   }
   
   myKids.forEach(kid => {
     const cls = DB.classes.find(c => c.id === kid.classId);
-    const init = kid.name.split(' ').map(n=>n[0]).join('').substring(0,2);
+    const className = cls ? cls.name : 'Unassigned Class';
+    const init = kid.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
     
     list.innerHTML += `
       <div class="list-item" style="padding: 20px;" onclick="viewParentChild('${kid.id}')">
         <div class="av" style="width:56px; height:56px; background:var(--primary-light); color:var(--primary); font-size:20px;">${init}</div>
         <div class="li-body">
           <div class="li-title" style="font-size:18px;">${kid.name}</div>
-          <div class="li-sub">${cls.name}</div>
+          <div class="li-sub">${className}</div>
         </div>
         <i class="ti ti-chevron-right" style="color:var(--text-muted)"></i>
       </div>
@@ -3140,8 +3636,20 @@ function renderParentList() {
 function viewParentChild(kidId) {
   const kid = DB.students.find(s => s.id === kidId);
   const cls = DB.classes.find(c => c.id === kid.classId);
-  const t = DB.users.find(u => u.phone === cls.teacherPhone);
-  const teacherName = t ? t.name : 'Teacher';
+  
+  let teacherName = 'No Teacher Assigned';
+  let className = 'Unassigned Class';
+  let tPhones = [];
+  
+  if (cls) {
+    className = cls.name;
+    tPhones = cls.teacherPhones || [];
+    const tNames = tPhones.map(p => {
+      const u = DB.users.find(x => x.phone === p);
+      return u ? u.name : null;
+    }).filter(Boolean);
+    if(tNames.length > 0) teacherName = tNames.join(' & ');
+  }
   
   const status = attendanceState[kid.id];
   const isAbsent = status === 'absent';
@@ -3152,7 +3660,7 @@ function viewParentChild(kidId) {
   let html = `
     <div class="kid-card" ${isAbsent ? 'style="background:var(--danger);"' : ''}>
       <div class="kc-title">${kid.name}</div>
-      <div class="kc-sub">${cls.name} · ${teacherName}</div>
+      <div class="kc-sub">${className} · ${teacherName}</div>
     </div>
   `;
   
@@ -3191,15 +3699,24 @@ function viewParentChild(kidId) {
       </div>
     </div>
     
-    <div class="card" style="display:flex; align-items:center; gap:16px;">
-      <div class="av" style="background:var(--surface-bg); color:var(--primary)"><i class="ti ti-message-circle-2-filled"></i></div>
-      <div style="flex:1">
-        <div style="font-size:15px; font-weight:700;">Message Teacher</div>
-        <div style="font-size:13px; color:var(--text-sub)">${teacherName} (${cls.teacherPhone})</div>
-      </div>
-      <a href="https://wa.me/${cls.teacherPhone}" target="_blank" style="width:40px;height:40px;border-radius:50%;background:#25D366;color:white;display:flex;align-items:center;justify-content:center;text-decoration:none;">
-        <i class="ti ti-brand-whatsapp" style="font-size:24px"></i>
-      </a>
+    <div class="card" style="display:flex; flex-direction:column; gap:16px;">
+      <div style="font-size:15px; font-weight:700; margin-bottom:-8px;"><i class="ti ti-message-circle-2-filled"></i> Message Teachers</div>
+      ${tPhones.length > 0 ? tPhones.map((phone, i) => {
+        const t = DB.users.find(u => u.phone === phone);
+        if(!t) return '';
+        return `
+          ${i > 0 ? '<hr style="border:none; border-top:1px solid var(--border); margin:0;">' : ''}
+          <div style="display:flex; align-items:center; gap:16px;">
+            <div style="flex:1">
+              <div style="font-size:14px; font-weight:600;">${t.name}</div>
+              <div style="font-size:13px; color:var(--text-sub)">${phone}</div>
+            </div>
+            <a href="https://wa.me/${phone}" target="_blank" style="width:40px;height:40px;border-radius:50%;background:#25D366;color:white;display:flex;align-items:center;justify-content:center;text-decoration:none;">
+              <i class="ti ti-brand-whatsapp" style="font-size:24px"></i>
+            </a>
+          </div>
+        `;
+      }).join('') : '<div style="font-size:13px; color:var(--text-sub);">No teachers assigned to this class.</div>'}
     </div>
   `;
   
@@ -3336,28 +3853,46 @@ function filterParentHistory(monthLabel) {
    SCHEDULE UTILITIES
    ========================================================= */
 function renderSchedule() {
-  const sch = DB.schedules[0] || null;
   const renderContainer = (containerId) => {
     const el = document.getElementById(containerId);
     if(!el) return;
+    
+    // Find the next upcoming schedule
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+    
+    const sortedSch = [...DB.schedules].sort((a,b) => a.date.localeCompare(b.date));
+    const sch = sortedSch.find(s => s.date >= todayStr);
+    
     if(!sch) {
-      el.innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-sub);">No schedule set for this week.</div>';
+      el.innerHTML = `<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:13px;">No schedule planned yet</div>`;
       return;
     }
     
-    let dateStr = sch.date;
-    try {
-      if(sch.date.includes('-') && sch.date.split('-')[0].length === 4) {
-        let d = new Date(sch.date);
-        dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-      }
-    } catch(e) {}
+    const formattedDate = sch.date;
+    
+    if (sch.isHoliday) {
+      el.innerHTML = `
+        <div style="padding:16px;">
+          <div style="font-weight:800; font-size:15px; color:var(--danger); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+            <i class="ti ti-calendar-off"></i> Holiday: ${formattedDate}
+          </div>
+          <div style="font-size:13px; color:var(--text-sub); text-align:center; padding:16px; background:var(--danger-light); border-radius:8px;">
+            No Sunday School on this date.
+          </div>
+        </div>
+      `;
+      return;
+    }
     
     el.innerHTML = `
       <div style="padding:16px; display:flex; flex-direction:column; gap:16px; background:var(--surface-bg);">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px;">Date</div>
-          <div style="font-size:14px; font-weight:800; color:var(--primary); background:var(--primary-light); padding:4px 12px; border-radius:12px;">${dateStr}</div>
+          <div style="font-size:14px; font-weight:800; color:var(--primary); background:var(--primary-light); padding:4px 12px; border-radius:12px;">${formattedDate}</div>
         </div>
         
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
@@ -3389,7 +3924,7 @@ function renderSchedule() {
 }
 
 function manageSchedule() {
-  const sch = DB.schedules[0] || { date: '', leading: '', actionSong: '', story: '', food: '' };
+  const sch = DB.schedules[0] || { date: '', leading: '', actionSong: '', story: '', food: '', isHoliday: false };
   
   let dateVal = sch.date;
   if(dateVal && dateVal.includes('-') && dateVal.split('-')[0].length === 2) {
@@ -3398,12 +3933,20 @@ function manageSchedule() {
   }
   
   document.getElementById('mod-sch-date').value = dateVal;
-  document.getElementById('mod-sch-leading').value = sch.leading;
-  document.getElementById('mod-sch-action').value = sch.actionSong;
-  document.getElementById('mod-sch-story').value = sch.story;
-  document.getElementById('mod-sch-food').value = sch.food;
+  document.getElementById('mod-sch-holiday').checked = sch.isHoliday || false;
+  document.getElementById('mod-sch-leading').value = sch.leading || '';
+  document.getElementById('mod-sch-action').value = sch.actionSong || '';
+  document.getElementById('mod-sch-story').value = sch.story || '';
+  document.getElementById('mod-sch-food').value = sch.food || '';
   
+  toggleHolidayFields();
   document.getElementById('scheduleModal').classList.add('active');
+}
+
+function toggleHolidayFields() {
+  const isHoliday = document.getElementById('mod-sch-holiday').checked;
+  const fields = document.getElementById('sch-regular-fields');
+  fields.style.display = isHoliday ? 'none' : 'block';
 }
 
 function closeScheduleModal() {
@@ -3412,19 +3955,19 @@ function closeScheduleModal() {
 
 async function saveScheduleModal() {
   const schDate = document.getElementById('mod-sch-date').value;
+  const isHoliday = document.getElementById('mod-sch-holiday').checked;
   const sch = {
     date: schDate,
-    leading: document.getElementById('mod-sch-leading').value.trim(),
-    actionSong: document.getElementById('mod-sch-action').value.trim(),
-    story: document.getElementById('mod-sch-story').value.trim(),
-    food: document.getElementById('mod-sch-food').value.trim()
+    isHoliday: isHoliday,
+    leading: isHoliday ? '' : document.getElementById('mod-sch-leading').value.trim(),
+    actionSong: isHoliday ? '' : document.getElementById('mod-sch-action').value.trim(),
+    story: isHoliday ? '' : document.getElementById('mod-sch-story').value.trim(),
+    food: isHoliday ? '' : document.getElementById('mod-sch-food').value.trim()
   };
   
   if(!schDate) return showToast("Please select a date.");
   
   const { db, doc, setDoc } = window.firebase;
-  // Let's assume we store the "next Sunday" schedule as a single current document for the dashboard.
-  // We can just use the date as the ID.
   await setDoc(doc(db, 'ss_schedules', schDate), sch);
   
   closeScheduleModal();
@@ -3454,6 +3997,187 @@ function togglePastAtt(recordIndex, studentId, newStatus) {
   viewHistoryDetail(recordIndex);
   renderHistoryList();
   renderSchoolTrendGraph('dash-trend-graph', 4);
+}
+/* =========================================================
+   ACADEMIC CALENDAR LOGIC
+   ========================================================= */
+let currentCalMonth = new Date().getMonth();
+let currentCalYear = new Date().getFullYear();
+
+function viewAcademicCalendar() {
+  currentCalMonth = new Date().getMonth();
+  currentCalYear = new Date().getFullYear();
+  renderCalendar();
+  
+  const backBtn = document.getElementById('cal-back-btn');
+  const trashBtn = document.getElementById('cal-trash-btn');
+  if (currentUser && currentUser.role === 'teacher') {
+    backBtn.setAttribute('onclick', "navTo('sc-teacher')");
+    trashBtn.style.display = 'none';
+  } else {
+    backBtn.setAttribute('onclick', "navTo('sc-admin')");
+    trashBtn.style.display = 'block';
+  }
+  
+  navTo('sc-admin-calendar');
+}
+
+function changeCalendarMonth(offset) {
+  currentCalMonth += offset;
+  if (currentCalMonth < 0) {
+    currentCalMonth = 11;
+    currentCalYear--;
+  } else if (currentCalMonth > 11) {
+    currentCalMonth = 0;
+    currentCalYear++;
+  }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  document.getElementById('cal-month-year').textContent = `${monthNames[currentCalMonth]} ${currentCalYear}`;
+  
+  const container = document.getElementById('cal-days-container');
+  container.innerHTML = '';
+  
+  const firstDay = new Date(currentCalYear, currentCalMonth, 1).getDay();
+  const daysInMonth = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
+  const daysInPrevMonth = new Date(currentCalYear, currentCalMonth, 0).getDate();
+  
+  // Fill previous month days
+  for(let i = 0; i < firstDay; i++) {
+    const prevDate = daysInPrevMonth - firstDay + i + 1;
+    container.innerHTML += `<div class="cal-day other-month">${prevDate}</div>`;
+  }
+  
+  // Fill current month days
+  for(let day = 1; day <= daysInMonth; day++) {
+    const isSunday = new Date(currentCalYear, currentCalMonth, day).getDay() === 0;
+    let className = 'cal-day';
+    if(isSunday) className += ' sunday';
+    
+    // Check status if it is a Sunday
+    let statusHTML = '';
+    if(isSunday) {
+      const d = String(day).padStart(2, '0');
+      const m = String(currentCalMonth + 1).padStart(2, '0');
+      const dateStr = `${currentCalYear}-${m}-${d}`; // YYYY-MM-DD
+      
+      const isConducted = pastAttendance.some(p => p.date === dateStr);
+      const sch = DB.schedules.find(s => s.date === dateStr);
+      
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const calDate = new Date(currentCalYear, currentCalMonth, day);
+      const isFutureOrToday = calDate >= today;
+      
+      if(isConducted) {
+        className += ' conducted';
+        statusHTML = '<div class="cal-dot"></div>';
+      } else if(sch && sch.isHoliday) {
+        className += ' holiday';
+        statusHTML = '<div class="cal-dot"></div>';
+      } else if (sch && isFutureOrToday) {
+        className += ' scheduled';
+        statusHTML = '<div class="cal-dot"></div>';
+      }
+      
+      container.innerHTML += `<div class="${className}" onclick="manageScheduleForDate('${dateStr}')">${day}${statusHTML}</div>`;
+    } else {
+      container.innerHTML += `<div class="${className}">${day}</div>`;
+    }
+  }
+}
+
+function manageScheduleForDate(dateStr) {
+  if (currentUser && currentUser.role === 'teacher') {
+    const isConducted = pastAttendance.some(p => p.date === dateStr);
+    if (isConducted) {
+      // Allow teacher to view history if conducted
+      if(typeof viewHistoryForDate === 'function') {
+        // Teacher can see history for this date
+        // Note: viewHistoryForDate exists, but it goes back to admin history.
+        // Let's implement a small check in viewHistoryForDate if needed.
+        // Actually, just returning early is safer if viewHistoryForDate is admin-only.
+        // Let's just return early.
+      }
+    }
+    return; // Teachers cannot edit schedule
+  }
+  const sch = DB.schedules.find(s => s.date === dateStr) || { date: dateStr, leading: '', actionSong: '', story: '', food: '', isHoliday: false };
+  
+  document.getElementById('mod-sch-date').value = dateStr;
+  document.getElementById('mod-sch-holiday').checked = sch.isHoliday || false;
+  document.getElementById('mod-sch-leading').value = sch.leading || '';
+  document.getElementById('mod-sch-action').value = sch.actionSong || '';
+  document.getElementById('mod-sch-story').value = sch.story || '';
+  document.getElementById('mod-sch-food').value = sch.food || '';
+  
+  const isConducted = pastAttendance.some(p => p.date === dateStr);
+  const btnAtt = document.getElementById('btn-sch-view-att');
+  if(btnAtt) {
+    btnAtt.style.display = isConducted ? 'block' : 'none';
+  }
+  
+  toggleHolidayFields();
+  document.getElementById('scheduleModal').classList.add('active');
+}
+
+function viewHistoryForDate(dateStr) {
+  closeScheduleModal();
+  document.getElementById('histSearchText').value = '';
+  document.getElementById('histSearchDate').value = dateStr;
+  historyBackTarget = 'sc-admin-calendar';
+  filterHistory();
+  navTo('sc-admin-history');
+}
+
+function openContactSupport() {
+  document.getElementById('contactSupportModal').classList.add('active');
+}
+
+function closeContactSupport() {
+  document.getElementById('contactSupportModal').classList.remove('active');
+}
+
+async function clearAllSchedules() {
+  showConfirm("Clear All Schedules", "Are you sure you want to delete ALL schedule data? This cannot be undone.", async () => {
+    const { db, doc, deleteDoc, writeBatch } = window.firebase;
+    
+    showToast("Clearing schedules...");
+    
+    try {
+      // Create a batch (note: Firestore batches are limited to 500 ops)
+      // Since there could be a lot, we will just loop and delete one by one or in batches of 500
+      let batch = writeBatch(db);
+      let count = 0;
+      
+      for(let i=0; i<DB.schedules.length; i++) {
+        const sch = DB.schedules[i];
+        batch.delete(doc(db, 'ss_schedules', sch.date));
+        count++;
+        
+        if (count % 450 === 0) {
+          await batch.commit();
+          batch = writeBatch(db);
+        }
+      }
+      
+      if(count > 0) {
+        await batch.commit();
+      }
+      
+      showToast(`Successfully cleared ${count} schedule records!`, "success");
+      
+      // Update local state temporarily so it reflects immediately
+      DB.schedules = [];
+      renderAdmin();
+    } catch (err) {
+      console.error(err);
+      showToast("Error clearing schedules");
+    }
+  });
 }
 </script>
 
