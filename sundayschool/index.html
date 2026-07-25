@@ -191,7 +191,7 @@
       box-shadow: var(--shadow-float); cursor: pointer; transition: 0.2s; margin-top: 24px;
     }
     .btn-main:active { transform: translateY(2px) scale(0.98); box-shadow: none; }
-    .btn-main:disabled { opacity: 0.7; pointer-events: none; }
+    .btn-main:disabled, button:disabled { opacity: 0.45; filter: grayscale(100%); pointer-events: none; box-shadow: none; cursor: not-allowed; }
 
     .otp-grid { display: flex; gap: 12px; justify-content: space-between; margin-top: 24px; }
     .otp-input {
@@ -893,7 +893,7 @@
     </div>
     
     <div style="padding: 12px 20px; display:flex; gap:12px; background:var(--surface-card); border-bottom:1px solid var(--border);">
-      <button style="flex:1; padding:10px; border-radius:12px; border:none; background:var(--success-bg); color:var(--success); font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;" onclick="markAllAtt('present')">
+      <button style="flex:1; padding:10px; border-radius:12px; border:none; background:var(--success-bg); color:var(--success); font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;" onclick="markAllAtt('present')" id="btn-mark-all">
         <i class="ti ti-check"></i> Mark All Present
       </button>
     </div>
@@ -1825,6 +1825,14 @@ window.addEventListener('firebase-ready', async () => {
       DB.settings[doc.id] = doc.data();
     });
     _setLoaded = true; checkIfLoaded();
+    if (dbLoaded && typeof currentUser !== 'undefined' && currentUser) {
+      if (currentUser.role === 'admin' && document.getElementById('sc-admin-today').classList.contains('active')) renderAdminToday();
+      if (currentUser.role === 'teacher' && document.getElementById('sc-teacher').classList.contains('active')) renderTeacher();
+      if (currentUser.role === 'teacher' && document.getElementById('sc-att').classList.contains('active') && !isSessionOpen()) {
+        showToast("Session was closed by admin.", "error");
+        navTo('sc-teacher');
+      }
+    }
   });
 });
 
@@ -2016,18 +2024,21 @@ function renderAdmin() {
   let doneCount = 0;
   
   DB.classes.forEach(c => {
-    if (c.status === 'done') doneCount++;
-    if (classStatusFilter !== 'all' && c.status !== classStatusFilter) return;
+    // Check class specific attendance for TODAY
+    const classStudents = DB.students.filter(s => s.classId === c.id);
+    const classMarked = classStudents.filter(s => attendanceState[s.id] !== undefined);
+    const isMarkedToday = classStudents.length > 0 && classMarked.length > 0;
+    const isPending = !isMarkedToday;
     
-    const isPending = c.status === 'pending';
+    if (isMarkedToday) doneCount++;
+    if (classStatusFilter === 'done' && !isMarkedToday) return;
+    if (classStatusFilter === 'pending' && !isPending) return;
+    
     const t1 = DB.users.find(u => u.phone === c.teacherPhone);
     const t2 = DB.users.find(u => u.phone === c.secondaryTeacherPhone);
     let teacherName = t1 ? t1.name : 'No Teacher Assigned';
     if(t2) teacherName += ` & ${t2.name}`;
     
-    // Check class specific attendance
-    const classStudents = DB.students.filter(s => s.classId === c.id);
-    const classMarked = classStudents.filter(s => attendanceState[s.id] !== undefined);
     const classPresent = classMarked.filter(s => attendanceState[s.id] === 'present').length;
     let clsAttStr = isPending ? '' : ` · ${classMarked.length > 0 ? Math.round((classPresent/classStudents.length)*100) : 0}%`;
     
@@ -3498,7 +3509,8 @@ function renderTeacher() {
     return;
   }
 
-  if (currentTeacherClass.status === 'done') {
+  const isMarkedToday = students.length > 0 && students.some(s => attendanceState[s.id] !== undefined);
+  if (isMarkedToday) {
     let present = 0;
     let total = students.length;
     students.forEach(s => {
@@ -3564,6 +3576,11 @@ function renderTeacher() {
 }
 
 function startTeacherAtt() {
+  if (!isSessionOpen()) {
+    showToast("Session is currently closed.", "error");
+    renderTeacher();
+    return;
+  }
   const students = DB.students.filter(s => s.classId === currentTeacherClass.id);
   document.getElementById('att-title-label').textContent = "Take Attendance";
   backTarget = 'sc-teacher';
@@ -3625,9 +3642,26 @@ function updateAttCounter(total) {
   const classStudents = DB.students.filter(s => s.classId === currentTeacherClass.id);
   const done = classStudents.filter(s => attendanceState[s.id] !== undefined).length;
   document.getElementById('att-counter').textContent = `${done} / ${total}`;
+  
+  const isSessionClosed = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'teacher' && !isSessionOpen();
+  const notAllMarked = total === 0 || done < total;
+  
+  const submitBtn = document.getElementById('btn-submit-att');
+  if (submitBtn) {
+    submitBtn.disabled = isSessionClosed || notAllMarked;
+  }
+  const markAllBtn = document.getElementById('btn-mark-all');
+  if (markAllBtn) {
+    markAllBtn.disabled = isSessionClosed || total === 0;
+  }
 }
 
 async function submitAttendance() {
+  if (!isSessionOpen()) {
+    showToast("Session is closed. Attendance cannot be submitted.", "error");
+    return;
+  }
+  
   const students = DB.students.filter(s => s.classId === currentTeacherClass.id);
   const markedStudents = students.filter(s => attendanceState[s.id] !== undefined);
   
@@ -3664,7 +3698,6 @@ async function submitAttendance() {
   });
   
   batch.set(recordRef, updateData, { merge: true });
-  batch.update(doc(db, 'ss_classes', currentTeacherClass.id), { status: 'done' });
   
   try {
     await batch.commit();
