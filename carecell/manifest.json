@@ -1,0 +1,16 @@
+{
+  "name": "BFGC Carecell",
+  "short_name": "Carecell",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F8F9FA",
+  "theme_color": "#534AB7",
+  "icons": [
+    {
+      "src": "./app-icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
