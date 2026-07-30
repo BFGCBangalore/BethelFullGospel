@@ -1068,8 +1068,15 @@ select.customized {
       </button>
     </div>
 
-    <div class="scroll-body" id="attList" style="padding-bottom:120px;">
+    <div class="scroll-body" id="attList" style="padding-bottom:20px;">
       <!-- JS Injected -->
+    </div>
+    
+    <div class="form-group" style="padding: 16px 20px; padding-bottom:120px; background:var(--surface-card); border-top:1px solid var(--border); margin-bottom:0;">
+      <label style="font-size:15px; display:flex; align-items:center; gap:8px;">
+        <i class="ti ti-cash" style="color:var(--success); font-size:18px;"></i> Today's Offering (₹)
+      </label>
+      <input type="number" id="att-offering" placeholder="e.g. 500" style="background:var(--surface-bg);">
     </div>
 
     <div class="fab-container">
@@ -2057,8 +2064,10 @@ window.addEventListener('firebase-ready', async () => {
   
   onSnapshot(collection(db, 'cc_attendance_records'), snap => {
     const dateMap = {};
+    const offeringMap = {};
     snap.docs.forEach(docSnap => {
        const data = docSnap.data();
+       const classId = data.classId;
        if(data.records) {
          Object.keys(data.records).forEach(sid => {
            const memberDays = data.records[sid];
@@ -2066,6 +2075,12 @@ window.addEventListener('firebase-ready', async () => {
               if(!dateMap[dateStr]) dateMap[dateStr] = {};
               dateMap[dateStr][sid] = memberDays[dateStr];
            });
+         });
+       }
+       if(data.offerings && classId) {
+         Object.keys(data.offerings).forEach(dateStr => {
+           if(!offeringMap[dateStr]) offeringMap[dateStr] = {};
+           offeringMap[dateStr][classId] = data.offerings[dateStr] || 0;
          });
        }
     });
@@ -2099,7 +2114,8 @@ window.addEventListener('firebase-ready', async () => {
         newPastAtt.push({
           date: dateStr,
           label: `${parts[2]} ${mStr} ${parts[0]}`,
-          records: dateMap[dateStr]
+          records: dateMap[dateStr],
+          offerings: offeringMap[dateStr] || {}
         });
       }
     });
@@ -4031,6 +4047,13 @@ function changeAttDate() {
     Object.keys(record.records).forEach(sid => {
       attendanceState[sid] = record.records[sid];
     });
+    if (record.offerings && currentLeaderCarecell && record.offerings[currentLeaderCarecell.id] !== undefined) {
+      document.getElementById('att-offering').value = record.offerings[currentLeaderCarecell.id];
+    } else {
+      document.getElementById('att-offering').value = '';
+    }
+  } else {
+    document.getElementById('att-offering').value = '';
   }
   
   const members = DB.members.filter(s => s.classId === currentLeaderCarecell.id);
@@ -4124,10 +4147,19 @@ async function submitAttendance() {
   const yearMonth = `${yy}-${mm}`;
   const dateStr = dateVal;
   
+  const offeringVal = document.getElementById('att-offering').value;
+  
   const recordDocId = `${currentLeaderCarecell.id}_${yearMonth}`;
   const recordRef = doc(db, 'cc_attendance_records', recordDocId);
   
-  const updateData = { classId: currentLeaderCarecell.id, yearMonth: yearMonth, records: {} };
+  const updateData = { classId: currentLeaderCarecell.id, yearMonth: yearMonth, records: {}, offerings: {} };
+  
+  if (offeringVal) {
+    updateData.offerings[dateStr] = parseInt(offeringVal) || 0;
+  } else {
+    updateData.offerings[dateStr] = 0;
+  }
+  
   members.forEach(s => {
     updateData.records[s.id] = { [dateStr]: attendanceState[s.id] };
     
