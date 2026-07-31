@@ -547,6 +547,7 @@ select.customized {
       <button class="header-btn" onclick="openContactSupport()"><i class="ti ti-headset"></i></button>
     </div>
     <div class="scroll-body">
+      <div id="globalBroadcastBannerAdmin"></div>
       <div id="adminHolidayBanner"></div>
       <div id="adminHighPriorityPrayerBanner"></div>
       <div class="greeting-section">
@@ -579,7 +580,7 @@ select.customized {
         <button style="padding:10px 16px; background:#e0f2fe; color:#0284c7; border:none; border-radius:12px; font-weight:700; display:flex; align-items:center; gap:6px; flex-shrink:0; cursor:pointer;" onclick="navTo('sc-admin-prayers')">
           <i class="ti ti-hands-praying"></i> Prayer Wall
         </button>
-        <button style="padding:10px 16px; background:#f3e8ff; color:#9333ea; border:none; border-radius:12px; font-weight:700; display:flex; align-items:center; gap:6px; flex-shrink:0; cursor:pointer;" onclick="showToast('Broadcast feature coming soon!')">
+        <button style="padding:10px 16px; background:#f3e8ff; color:#9333ea; border:none; border-radius:12px; font-weight:700; display:flex; align-items:center; gap:6px; flex-shrink:0; cursor:pointer;" onclick="openBroadcastModal()">
           <i class="ti ti-speakerphone"></i> Broadcast
         </button>
         <button style="padding:10px 16px; background:var(--success-light); color:var(--success); border:none; border-radius:12px; font-weight:700; display:flex; align-items:center; gap:6px; flex-shrink:0; cursor:pointer;" onclick="openExportScreen()">
@@ -956,14 +957,16 @@ select.customized {
         <div class="form-group" style="margin-bottom:16px;">
           <label style="display:flex; align-items:center; gap:6px;"><i class="ti ti-calendar-time" style="color:var(--primary)"></i> Time Range</label>
           <select id="exportType" class="inp" onchange="toggleExportInputs()">
-            <option value="single">Single Date</option>
+            <option value="single">Single Week</option>
             <option value="range">Date Range</option>
             <option value="month">Entire Month</option>
+            <option value="alltime">All Time (Entire History)</option>
+            <option value="directory">Master Directory (No Dates)</option>
           </select>
         </div>
 
         <div id="exportSingleGroup" class="form-group" style="margin-bottom:16px;">
-          <label>Select Date</label>
+          <label>Select any date in that week</label>
           <input type="date" id="exportSingleDate" class="inp">
         </div>
         
@@ -1006,7 +1009,8 @@ select.customized {
       <div class="header-title" id="t-header">Loading...</div>
       <button class="header-btn" onclick="openContactSupport()"><i class="ti ti-headset"></i></button>
     </div>
-    <div class="scroll-body">
+    <div class="scroll-body" style="padding-bottom:120px;">
+      <div id="globalBroadcastBannerLeader"></div>
       <div id="leaderHolidayBanner"></div>
       <div id="leaderHighPriorityPrayerBanner"></div>
       
@@ -1094,6 +1098,7 @@ select.customized {
       <button class="header-btn" onclick="logout()"><i class="ti ti-logout"></i></button>
     </div>
     <div class="scroll-body">
+      <div id="globalBroadcastBannerMember"></div>
       <div id="memberHighPriorityPrayerBanner"></div>
       <div id="parentKidsList">
         <!-- JS Injected -->
@@ -1150,6 +1155,38 @@ select.customized {
       <div style="display:flex; gap:12px; margin-top:16px;">
         <button class="btn-main" id="btn-sch-view-att" style="display:none; flex:1; background:var(--surface-card); color:var(--text-main); border:1px solid var(--border); box-shadow:none;" onclick="viewHistoryForDate(document.getElementById('mod-sch-date').value)">View Attendance</button>
         <button class="btn-main" style="flex:1;" onclick="saveScheduleModal()">Save Schedule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= BROADCAST MODAL ================= -->
+  <div class="modal-overlay" id="broadcastModal">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title">Broadcast Announcement</div>
+        <button class="icon-btn" onclick="closeBroadcastModal()"><i class="ti ti-x"></i></button>
+      </div>
+      <div style="font-size:13px; color:var(--text-sub); margin-bottom:16px;">
+        Pin an important announcement to everyone's dashboard.
+      </div>
+      
+      <div class="form-group">
+        <label>Message</label>
+        <textarea id="bc-message" rows="3" placeholder="Type your announcement here..."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>Audience</label>
+        <select id="bc-audience">
+          <option value="all">Everyone (Leaders & Members)</option>
+          <option value="leader">Leaders Only</option>
+          <option value="member">Members Only</option>
+        </select>
+      </div>
+      
+      <div style="display:flex; gap:12px; margin-top:24px;">
+        <button class="btn-main" style="flex:1; background:var(--surface-card); color:var(--danger); border:1px solid var(--danger); box-shadow:none;" onclick="deleteBroadcast()">Remove Active</button>
+        <button class="btn-main" style="flex:1;" onclick="postBroadcast()" id="btn-post-bc">Post Broadcast</button>
       </div>
     </div>
   </div>
@@ -1566,8 +1603,8 @@ select.customized {
       <div class="drawer-item" onclick="viewAcademicCalendar(); closeDrawer()">
         <i class="ti ti-calendar"></i> Carecell Calendar
       </div>
-      <div class="drawer-item" onclick="showToast('This feature will be available after 1 month of production.', 'info'); closeDrawer()" style="opacity: 0.5; cursor: not-allowed;">
-        <i class="ti ti-file-export"></i> Export Reports <span style="font-size: 10px; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Coming Soon</span>
+      <div class="drawer-item" onclick="openExportScreen(); closeDrawer()">
+        <i class="ti ti-file-export"></i> Export Reports
       </div>
       <div class="drawer-item" id="admin-switch-leader-btn" style="display:none; color:var(--primary); font-weight:600;" onclick="navTo('sc-leader'); closeDrawer()">
         <i class="ti ti-exchange" style="color:var(--primary)"></i> Switch to Leader View
@@ -2133,7 +2170,7 @@ window.addEventListener('firebase-ready', async () => {
     });
     _setLoaded = true; checkIfLoaded();
     if (dbLoaded && typeof currentUser !== 'undefined' && currentUser) {
-      if (currentUser.role === 'admin' && document.getElementById('sc-admin-today').classList.contains('active')) renderAdminToday();
+      if (currentUser.role === 'admin' && document.getElementById('sc-admin').classList.contains('active')) renderAdmin();
       if (currentUser.role === 'leader' && document.getElementById('sc-leader').classList.contains('active')) renderLeader();
       if (document.getElementById('sc-admin-prayers') && document.getElementById('sc-admin-prayers').classList.contains('active')) renderAdminPrayers();
       if (currentUser.role === 'member' && document.getElementById('sc-member').classList.contains('active')) updateMemberDash();
@@ -2214,6 +2251,8 @@ function renderAdmin() {
   if (adminPrayerBanner) {
     adminPrayerBanner.innerHTML = getHighPriorityPrayerBanner('admin');
   }
+  const globalBC = document.getElementById('globalBroadcastBannerAdmin');
+  if (globalBC) globalBC.innerHTML = renderGlobalBroadcast();
 
   const isAlsoLeader = DB.classes.some(c => c.leaderPhones && c.leaderPhones.includes(currentUser.phone));
   const swBtn = document.getElementById('admin-switch-leader-btn');
@@ -3480,12 +3519,12 @@ function adminActionViewAttendance() {
   document.getElementById('adminCarecellActionModal').classList.remove('active');
   
   currentLeaderCarecell = DB.classes.find(c => c.id === classId);
-  const members = DB.members.filter(s => s.classId === currentLeaderCarecell.id);
+  const fullRoster = getCarecellRoster();
   
   document.getElementById('att-title-label').textContent = `Edit: ${currentLeaderCarecell.name}`;
   
-  backTarget = document.getElementById('adminCarecellActionModal').dataset.sourceScreen || 'sc-admin-today';
-  renderAttendanceList(members);
+  backTarget = document.getElementById('adminCarecellActionModal').dataset.sourceScreen || 'sc-admin';
+  renderAttendanceList(fullRoster);
   navTo('sc-att');
 }
 
@@ -3868,6 +3907,8 @@ function renderLeader() {
   if (lPrayerBanner) {
     lPrayerBanner.innerHTML = getHighPriorityPrayerBanner('leader');
   }
+  const globalBC = document.getElementById('globalBroadcastBannerLeader');
+  if (globalBC) globalBC.innerHTML = renderGlobalBroadcast();
 
   const swBtn = document.getElementById('leader-switch-admin-btn');
   if (swBtn) swBtn.style.display = (currentUser.role === 'admin') ? 'flex' : 'none';
@@ -4035,6 +4076,19 @@ function backFromAtt() {
   navTo(backTarget);
 }
 
+function getCarecellRoster() {
+  if (!currentLeaderCarecell) return [];
+  const members = DB.members.filter(s => s.classId === currentLeaderCarecell.id);
+  const leaders = DB.users.filter(u => currentLeaderCarecell.leaderPhones && currentLeaderCarecell.leaderPhones.includes(u.phone));
+  const mappedLeaders = leaders.map(l => ({
+    id: l.id,
+    name: l.name,
+    phone: l.phone,
+    isLeader: true
+  }));
+  return [...mappedLeaders, ...members];
+}
+
 function changeAttDate() {
   const selectedDate = document.getElementById('att-date-picker').value;
   if (!selectedDate) return;
@@ -4056,8 +4110,8 @@ function changeAttDate() {
     document.getElementById('att-offering').value = '';
   }
   
-  const members = DB.members.filter(s => s.classId === currentLeaderCarecell.id);
-  renderAttendanceList(members);
+  const fullRoster = getCarecellRoster();
+  renderAttendanceList(fullRoster);
 }
 
 function renderAttendanceList(members) {
@@ -4071,13 +4125,14 @@ function renderAttendanceList(members) {
     if(state === 'absent') rowCarecell = 'st-absent';
     
     const init = s.name.split(' ').map(n=>n[0]).join('').substring(0,2);
+    const leaderBadge = s.isLeader ? `<span style="background:var(--warning); color:#fff; font-size:10px; padding:2px 6px; border-radius:4px; margin-left:6px; font-weight:700;"><i class="ti ti-crown"></i> LEADER</span>` : '';
     
     list.innerHTML += `
       <div class="att-row ${rowCarecell}" id="row-${s.id}" onclick="toggleAtt('${s.id}')">
         <div class="av" style="background:var(--primary-light); color:var(--primary)">${init}</div>
         <div class="li-body">
-          <div class="li-title">${s.name}</div>
-          <div class="li-sub">${s.phone}</div>
+          <div class="li-title">${s.name} ${leaderBadge}</div>
+          <div class="li-sub">${s.phone || ''}</div>
         </div>
         <div class="att-toggle">
           <button class="tg-btn p" onclick="event.stopPropagation(); setAtt('${s.id}', 'present')"><i class="ti ti-check"></i></button>
@@ -4093,7 +4148,7 @@ function setAtt(id, val) {
   attendanceState[id] = val;
   const row = document.getElementById('row-'+id);
   row.className = 'att-row ' + (val === 'present' ? 'st-present' : 'st-absent');
-  updateAttCounter(DB.members.filter(s => s.classId === currentLeaderCarecell.id).length);
+  updateAttCounter(getCarecellRoster().length);
 }
 
 function toggleAtt(id) {
@@ -4102,12 +4157,12 @@ function toggleAtt(id) {
 }
 
 function markAllAtt(val) {
-  const members = DB.members.filter(s => s.classId === currentLeaderCarecell.id);
-  members.forEach(s => setAtt(s.id, val));
+  const fullRoster = getCarecellRoster();
+  fullRoster.forEach(s => setAtt(s.id, val));
 }
 
 function updateAttCounter(total) {
-  const classMembers = DB.members.filter(s => s.classId === currentLeaderCarecell.id);
+  const classMembers = getCarecellRoster();
   const done = classMembers.filter(s => attendanceState[s.id] !== undefined).length;
   document.getElementById('att-counter').textContent = `${done} / ${total}`;
   
@@ -4127,11 +4182,11 @@ function updateAttCounter(total) {
 async function submitAttendance() {
   
   
-  const members = DB.members.filter(s => s.classId === currentLeaderCarecell.id);
-  const markedMembers = members.filter(s => attendanceState[s.id] !== undefined);
+  const fullRoster = getCarecellRoster();
+  const markedMembers = fullRoster.filter(s => attendanceState[s.id] !== undefined);
   
-  if(markedMembers.length < members.length) {
-    return showToast("Please mark attendance for all members before submitting.");
+  if(markedMembers.length < fullRoster.length) {
+    return showToast("Please mark attendance for everyone (including Leader) before submitting.");
   }
   
   const btn = document.getElementById('btn-submit-att');
@@ -4204,6 +4259,8 @@ function updateMemberDash() {
   if (memberPrayerBanner) {
     memberPrayerBanner.innerHTML = getHighPriorityPrayerBanner('member');
   }
+  const globalBC = document.getElementById('globalBroadcastBannerMember');
+  if (globalBC) globalBC.innerHTML = renderGlobalBroadcast();
   renderMemberList();
 }
 
@@ -4750,8 +4807,8 @@ function openExportScreen() {
   document.getElementById('exportEndDate').value = today;
   document.getElementById('exportMonth').value = today.substring(0, 7);
   
-  const classFilter = document.getElementById('exportClassFilter');
-  classFilter.innerHTML = '<option value="all">All Classes</option>';
+  const classFilter = document.getElementById('exportCarecellFilter');
+  classFilter.innerHTML = '<option value="all">All Carecells</option>';
   DB.classes.forEach(c => {
     classFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
   });
@@ -4768,13 +4825,35 @@ function toggleExportInputs() {
 
 async function generateExcelReport() {
   const type = document.getElementById('exportType').value;
-  const targetClassId = document.getElementById('exportClassFilter').value;
+  const targetClassId = document.getElementById('exportCarecellFilter').value;
   let dates = [];
+  if (type === 'directory') {
+    const btn = document.getElementById('btnGenerateExcel');
+    const ogText = btn.innerHTML;
+    btn.innerHTML = `<i class="ti ti-loader" style="animation: spin 1s linear infinite;"></i> Generating...`;
+    btn.disabled = true;
+    try {
+      await generateDirectoryExcel(targetClassId);
+    } finally {
+      btn.innerHTML = ogText;
+      btn.disabled = false;
+    }
+    return;
+  }
   
   if (type === 'single') {
     const val = document.getElementById('exportSingleDate').value;
-    if(!val) return showToast('Please select a date');
-    dates.push(val);
+    if(!val) return showToast('Please select a date in the week');
+    const d = new Date(val);
+    const day = d.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const diff = day === 0 ? 6 : day - 1; // distance from Monday
+    const startOfWeek = new Date(d);
+    startOfWeek.setDate(d.getDate() - diff);
+    for(let i=0; i<7; i++) {
+      const temp = new Date(startOfWeek);
+      temp.setDate(startOfWeek.getDate() + i);
+      dates.push(temp.toISOString().split('T')[0]);
+    }
   } else if (type === 'range') {
     const start = document.getElementById('exportStartDate').value;
     const end = document.getElementById('exportEndDate').value;
@@ -4795,6 +4874,9 @@ async function generateExcelReport() {
       const dStr = `${year}-${month}-${i.toString().padStart(2, '0')}`;
       dates.push(dStr);
     }
+  } else if (type === 'alltime') {
+    dates = Array.from(new Set(pastAttendance.map(r => r.date))).sort();
+    if(dates.length === 0) return showToast('No attendance history found');
   }
 
   const btn = document.getElementById('btnGenerateExcel');
@@ -4811,118 +4893,169 @@ async function generateExcelReport() {
     const redFont = { color: { argb: 'FF9C0006' }, bold: true };
     const greenFont = { color: { argb: 'FF006100' }, bold: true };
 
-    // TAB 1: Students
-    const wsStudents = wb.addWorksheet('Students');
-    let studentHeaders = ['Student Name', 'Class', 'Parent Name', 'Parent Phone', 'At Risk'];
-    dates.forEach(d => studentHeaders.push(d));
-    wsStudents.addRow(studentHeaders);
-    
-    wsStudents.getRow(1).font = { bold: true };
-    wsStudents.views = [{ state: 'frozen', ySplit: 1, xSplit: 2 }];
+    // TAB 1: Summary Report
+    const wsSummary = wb.addWorksheet('Summary Report');
+    wsSummary.addRow(['Date', 'Carecells Conducted', 'Total Members', 'Total Present', 'Total Absent', 'Total Offering (₹)']);
+    wsSummary.getRow(1).font = { bold: true };
+    wsSummary.views = [{ state: 'frozen', ySplit: 1 }];
 
-    let filteredStudents = DB.members;
-    if(targetClassId !== 'all') {
-      filteredStudents = DB.members.filter(s => s.classId === targetClassId);
-    }
-
-    filteredStudents.forEach(st => {
-      const cls = DB.classes.find(c => c.id === st.classId);
-      const isAtRisk = st.atRisk ? 'Yes' : 'No';
-      let row = [st.name, cls ? cls.name : 'Unknown', st.parentName || '', st.parentPhone || '', isAtRisk];
-      dates.forEach(d => {
-        const record = pastAttendance.find(r => r.id === d);
-        let status = 'Not Marked';
-        if(record && record.records && record.records[st.id]) {
-          status = record.records[st.id] === 'present' ? 'Present' : 'Absent';
-        }
-        row.push(status);
-      });
-      const excelRow = wsStudents.addRow(row);
-      
-      if (st.atRisk) excelRow.getCell(5).font = redFont;
-      dates.forEach((d, i) => {
-        const cell = excelRow.getCell(6 + i);
-        if (cell.value === 'Absent') {
-          cell.fill = redFill;
-          cell.font = redFont;
-        } else if (cell.value === 'Present') {
-          cell.font = greenFont;
-        }
-      });
-    });
-
-    // TAB 2: Teachers
-    const wsTeachers = wb.addWorksheet('Teachers');
-    let teacherHeaders = ['Teacher Name', 'Assigned Class', 'Teacher Phone'];
-    dates.forEach(d => teacherHeaders.push(d));
-    wsTeachers.addRow(teacherHeaders);
-    wsTeachers.getRow(1).font = { bold: true };
-    wsTeachers.views = [{ state: 'frozen', ySplit: 1, xSplit: 1 }];
-
-    let filteredTeachers = DB.users.filter(u => u.role === 'teacher');
-    if(targetClassId !== 'all') {
-      filteredTeachers = filteredTeachers.filter(t => {
-        const cls = DB.classes.find(c => c.id === targetClassId);
-        return cls && cls.teachers && cls.teachers.includes(t.id);
-      });
-    }
-
-    filteredTeachers.forEach(t => {
-      const cls = DB.classes.find(c => c.teachers && c.teachers.includes(t.id));
-      let row = [t.name, cls ? cls.name : 'None', t.phone];
-      dates.forEach(d => {
-        let status = 'Not Tracked';
-        row.push(status);
-      });
-      const excelRow = wsTeachers.addRow(row);
-      
-      dates.forEach((d, i) => {
-        const cell = excelRow.getCell(4 + i);
-        if (cell.value === 'Absent') {
-          cell.fill = redFill;
-          cell.font = redFont;
-        } else if (cell.value === 'Present') {
-          cell.font = greenFont;
-        }
-      });
-    });
-
-    // TAB 3: Schedule
-    const wsSchedule = wb.addWorksheet('Schedule Summary');
-    wsSchedule.addRow(['Date', 'Schedule Type', 'Title / Reason', 'Student Att.', 'Teacher Att.']);
-    wsSchedule.getRow(1).font = { bold: true };
-    
     dates.forEach(d => {
-      const sch = DB.schedules.find(s => s.date === d);
-      let type = 'Regular Class';
-      let title = '-';
-      if(sch) {
-        type = sch.isHoliday ? 'Holiday' : 'Event / Special';
-        title = sch.title || '-';
+      const record = pastAttendance.find(r => r.date === d);
+      if (!record) {
+        wsSummary.addRow([d, 0, 0, 0, 0, 0]);
+        return;
       }
+
+      let sids = Object.keys(record.records);
+      let validClassIds = new Set();
       
-      let sPresent = 0, sTotal = 0;
-      const sRecord = pastAttendance.find(r => r.id === d);
-      if(sRecord && sRecord.records) {
-        Object.keys(sRecord.records).forEach(sid => {
-          if (DB.members.find(x => x.id === sid)) {
-            sTotal++;
-            if(sRecord.records[sid] === 'present') sPresent++;
+      let present = 0;
+      let absent = 0;
+
+      sids.forEach(sid => {
+        const mem = DB.members.find(m => m.id === sid);
+        if (mem) {
+          if (targetClassId === 'all' || mem.classId === targetClassId) {
+            validClassIds.add(mem.classId);
+            if (record.records[sid] === 'present') present++;
+            else absent++;
           }
+        }
+      });
+      
+      let offeringTotal = 0;
+      if (record.offerings) {
+        validClassIds.forEach(cid => {
+          offeringTotal += (record.offerings[cid] || 0);
         });
       }
-      
-      let tPresent = 0, tTotal = 0;
-      // Teacher attendance tracking not yet implemented in DB.
 
-      wsSchedule.addRow([
-        d, type, title, 
-        sTotal > 0 ? `${sPresent} / ${sTotal}` : '-',
-        tTotal > 0 ? `${tPresent} / ${tTotal}` : '-'
-      ]);
+      wsSummary.addRow([d, validClassIds.size, present + absent, present, absent, offeringTotal]);
     });
 
-    [wsStudents, wsTeachers, wsSchedule].forEach(ws => {
+    // TAB 2: Detailed Member Attendance
+    const wsMembers = wb.addWorksheet('Member Attendance');
+    let memberHeaders = ['Member Name', 'Carecell', 'Phone', 'At Risk'];
+    dates.forEach(d => memberHeaders.push(d));
+    wsMembers.addRow(memberHeaders);
+    wsMembers.getRow(1).font = { bold: true };
+    wsMembers.views = [{ state: 'frozen', ySplit: 1, xSplit: 2 }];
+
+    let filteredMembers = DB.members;
+    if(targetClassId !== 'all') {
+      filteredMembers = DB.members.filter(s => s.classId === targetClassId);
+    }
+
+    filteredMembers.forEach(m => {
+      const cls = DB.classes.find(c => c.id === m.classId);
+      const isAtRisk = m.atRisk ? 'Yes' : 'No';
+      let row = [m.name, cls ? cls.name : 'Unknown', m.phone || '', isAtRisk];
+      dates.forEach(d => {
+        const record = pastAttendance.find(r => r.date === d);
+        let status = 'Not Marked';
+        if(record && record.records && record.records[m.id]) {
+          status = record.records[m.id] === 'present' ? 'Present' : 'Absent';
+        }
+        row.push(status);
+      });
+      const excelRow = wsMembers.addRow(row);
+      
+      if (m.atRisk) excelRow.getCell(4).font = redFont;
+      dates.forEach((d, i) => {
+        const cell = excelRow.getCell(5 + i);
+        if (cell.value === 'Absent') {
+          cell.fill = redFill;
+          cell.font = redFont;
+        } else if (cell.value === 'Present') {
+          cell.font = greenFont;
+        }
+      });
+    });
+
+    // TAB 3: Carecell Breakdown
+    const wsCarecells = wb.addWorksheet('Carecell Breakdown');
+    wsCarecells.addRow(['Date', 'Carecell', 'Leader(s)', 'Total Evaluated', 'Present', 'Absent', 'Offering (₹)']);
+    wsCarecells.getRow(1).font = { bold: true };
+    wsCarecells.views = [{ state: 'frozen', ySplit: 1 }];
+
+    let filteredCarecells = DB.classes;
+    if(targetClassId !== 'all') {
+      filteredCarecells = DB.classes.filter(c => c.id === targetClassId);
+    }
+
+    dates.forEach(d => {
+      const record = pastAttendance.find(r => r.date === d);
+      if(!record) return;
+
+      filteredCarecells.forEach(c => {
+        let present = 0;
+        let absent = 0;
+        let total = 0;
+        
+        const cMembers = DB.members.filter(s => s.classId === c.id);
+        const cLeaders = DB.users.filter(u => c.leaderPhones && c.leaderPhones.includes(u.phone));
+        const allRoster = [...cMembers, ...cLeaders];
+
+        let hasData = false;
+        allRoster.forEach(mem => {
+          if (record.records[mem.id] !== undefined) {
+             hasData = true;
+             total++;
+             if (record.records[mem.id] === 'present') present++;
+             else absent++;
+          }
+        });
+
+        if (hasData) {
+           let off = 0;
+           if (record.offerings && record.offerings[c.id]) {
+             off = record.offerings[c.id];
+           }
+           const leaderNames = cLeaders.map(l => l.name).join(', ');
+           wsCarecells.addRow([d, c.name, leaderNames, total, present, absent, off]);
+        }
+      });
+    });
+
+    // TAB 4: Detailed Records
+    const wsDetailed = wb.addWorksheet('Detailed Records');
+    wsDetailed.addRow(['Date', 'Carecell', 'Leader(s)', 'Total Offering (₹)', 'Present List', 'Absent List']);
+    wsDetailed.getRow(1).font = { bold: true };
+    wsDetailed.views = [{ state: 'frozen', ySplit: 1 }];
+
+    dates.forEach(d => {
+      const record = pastAttendance.find(r => r.date === d);
+      if(!record) return;
+
+      filteredCarecells.forEach(c => {
+        const cMembers = DB.members.filter(s => s.classId === c.id);
+        const cLeaders = DB.users.filter(u => c.leaderPhones && c.leaderPhones.includes(u.phone));
+        const allRoster = [...cMembers, ...cLeaders];
+
+        let presentList = [];
+        let absentList = [];
+        let hasData = false;
+
+        allRoster.forEach(mem => {
+          if (record.records[mem.id] !== undefined) {
+             hasData = true;
+             if (record.records[mem.id] === 'present') presentList.push(mem.name);
+             else absentList.push(mem.name);
+          }
+        });
+
+        if (hasData) {
+           let off = 0;
+           if (record.offerings && record.offerings[c.id]) {
+             off = record.offerings[c.id];
+           }
+           const leaderNames = cLeaders.map(l => l.name).join(', ');
+           wsDetailed.addRow([d, c.name, leaderNames, off, presentList.join(', '), absentList.join(', ')]);
+        }
+      });
+    });
+
+    [wsSummary, wsMembers, wsCarecells, wsDetailed].forEach(ws => {
       ws.columns.forEach(column => {
         let maxLength = 0;
         column["eachCell"]({ includeEmpty: true }, function(cell) {
@@ -4949,10 +5082,98 @@ async function generateExcelReport() {
     showToast('Report downloaded successfully!', 'success');
   } catch (err) {
     console.error("Export Error:", err);
-    showToast('Failed to generate Excel report');
+    showToast('Failed to generate report', 'error');
   } finally {
     btn.innerHTML = ogText;
     btn.disabled = false;
+  }
+}
+
+async function generateDirectoryExcel(targetClassId) {
+  try {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Carecell App';
+    wb.created = new Date();
+
+    // TAB 1: Carecells
+    const wsCarecells = wb.addWorksheet('Carecells');
+    wsCarecells.addRow(['Carecell Name', 'Leader Name(s)', 'Leader Phone(s)', 'Total Members']);
+    wsCarecells.getRow(1).font = { bold: true };
+    wsCarecells.views = [{ state: 'frozen', ySplit: 1 }];
+
+    let filteredCarecells = DB.classes;
+    if(targetClassId !== 'all') {
+      filteredCarecells = DB.classes.filter(c => c.id === targetClassId);
+    }
+
+    filteredCarecells.forEach(c => {
+      const cLeaders = DB.users.filter(u => c.leaderPhones && c.leaderPhones.includes(u.phone));
+      const leaderNames = cLeaders.map(l => l.name).join(', ');
+      const leaderPhones = cLeaders.map(l => l.phone).join(', ');
+      const mCount = DB.members.filter(m => m.classId === c.id).length;
+      wsCarecells.addRow([c.name, leaderNames, leaderPhones, mCount]);
+    });
+
+    // TAB 2: Leaders
+    const wsLeaders = wb.addWorksheet('Leaders');
+    wsLeaders.addRow(['Leader Name', 'Phone', 'Assigned Carecell(s)']);
+    wsLeaders.getRow(1).font = { bold: true };
+    wsLeaders.views = [{ state: 'frozen', ySplit: 1 }];
+
+    let filteredLeaders = DB.users.filter(u => u.role === 'leader' || u.role === 'admin');
+    if(targetClassId !== 'all') {
+       filteredLeaders = filteredLeaders.filter(u => {
+          const cls = DB.classes.find(c => c.id === targetClassId);
+          return cls && cls.leaderPhones && cls.leaderPhones.includes(u.phone);
+       });
+    }
+
+    filteredLeaders.forEach(l => {
+      const assigned = DB.classes.filter(c => c.leaderPhones && c.leaderPhones.includes(l.phone)).map(c => c.name).join(', ');
+      wsLeaders.addRow([l.name, l.phone, assigned]);
+    });
+
+    // TAB 3: Members
+    const wsMembers = wb.addWorksheet('Members');
+    wsMembers.addRow(['Member Name', 'Phone', 'Carecell', 'Parent Name', 'Parent Phone', 'Address', 'At Risk']);
+    wsMembers.getRow(1).font = { bold: true };
+    wsMembers.views = [{ state: 'frozen', ySplit: 1 }];
+
+    let filteredMembers = DB.members;
+    if(targetClassId !== 'all') {
+      filteredMembers = DB.members.filter(m => m.classId === targetClassId);
+    }
+
+    filteredMembers.forEach(m => {
+      const cls = DB.classes.find(c => c.id === m.classId);
+      const isAtRisk = m.atRisk ? 'Yes' : 'No';
+      wsMembers.addRow([m.name, m.phone || '', cls ? cls.name : 'Unknown', m.parentName || '', m.parentPhone || '', m.address || '', isAtRisk]);
+    });
+
+    [wsCarecells, wsLeaders, wsMembers].forEach(ws => {
+      ws.columns.forEach(column => {
+        let maxLength = 0;
+        column["eachCell"]({ includeEmpty: true }, function(cell) {
+          let columnLength = cell.value ? cell.value.toString().length : 10;
+          if (columnLength > maxLength) maxLength = columnLength;
+        });
+        column.width = maxLength < 10 ? 10 : maxLength + 2;
+      });
+    });
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = targetClassId === 'all' ? 'Carecell_Master_Directory.xlsx' : 'Carecell_Directory.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('Directory downloaded successfully!', 'success');
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to generate directory', 'error');
   }
 }
 /* ================= PRAYER REQUESTS LOGIC ================= */
@@ -5367,6 +5588,82 @@ const selectObserver = new MutationObserver((mutations) => {
   }
   if (shouldApply) applyCustomSelects();
 });
+
+// ================= BROADCAST FUNCTIONS =================
+function openBroadcastModal() {
+  document.getElementById('broadcastModal').classList.add('active');
+  const bc = DB.settings && DB.settings.active_broadcast;
+  if(bc && bc.message) {
+    document.getElementById('bc-message').value = bc.message;
+    document.getElementById('bc-audience').value = bc.audience || 'all';
+  } else {
+    document.getElementById('bc-message').value = '';
+    document.getElementById('bc-audience').value = 'all';
+  }
+}
+
+function closeBroadcastModal() {
+  document.getElementById('broadcastModal').classList.remove('active');
+}
+
+async function postBroadcast() {
+  const msg = document.getElementById('bc-message').value.trim();
+  if(!msg) return showToast('Please enter a message.');
+  
+  const aud = document.getElementById('bc-audience').value;
+  const btn = document.getElementById('btn-post-bc');
+  btn.innerHTML = '<i class="ti ti-loader" style="animation: spin 1s linear infinite;"></i>';
+  btn.disabled = true;
+  
+  try {
+    const { db, doc, setDoc } = window.firebase;
+    await setDoc(doc(db, 'cc_settings', 'active_broadcast'), {
+      message: msg,
+      audience: aud,
+      timestamp: Date.now()
+    });
+    showToast('Broadcast posted!', 'success');
+    closeBroadcastModal();
+  } catch(e) {
+    console.error(e);
+    showToast('Failed to post broadcast', 'error');
+  }
+  btn.innerHTML = 'Post Broadcast';
+  btn.disabled = false;
+}
+
+async function deleteBroadcast() {
+  try {
+    const { db, doc, deleteDoc } = window.firebase;
+    await deleteDoc(doc(db, 'cc_settings', 'active_broadcast'));
+    showToast('Broadcast removed.', 'success');
+    closeBroadcastModal();
+  } catch(e) {
+    console.error(e);
+    showToast('Error removing broadcast.', 'error');
+  }
+}
+
+function renderGlobalBroadcast() {
+  const bc = DB.settings && DB.settings.active_broadcast;
+  if(!bc || !bc.message) return '';
+  
+  if(currentUser.role === 'admin') {
+     // Admin always sees it to know it's active
+  } else if(bc.audience !== 'all' && bc.audience !== currentUser.role) {
+     return '';
+  }
+
+  return `
+    <div style="background:#e0f2fe; border-left:4px solid #0284c7; padding:16px; margin-bottom:24px; border-radius:12px; display:flex; align-items:flex-start; gap:16px;">
+      <i class="ti ti-speakerphone" style="color:#0284c7; font-size:24px; margin-top:2px;"></i>
+      <div>
+        <div style="font-weight:800; color:#0284c7; font-size:14px; margin-bottom:4px; text-transform:uppercase; letter-spacing:1px;">Broadcast Announcement</div>
+        <div style="font-size:15px; color:var(--text-main); font-weight:600; line-height:1.4;">${bc.message}</div>
+      </div>
+    </div>
+  `;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   applyCustomSelects();
