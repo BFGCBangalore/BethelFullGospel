@@ -33,6 +33,9 @@
       --warning: #D97706;
       --warning-light: #FEF3C7;
       
+      --info: #3B82F6;
+      --info-light: #DBEAFE;
+      
       --surface-bg: #F8FAFC;
       --surface-card: #FFFFFF;
       
@@ -396,6 +399,77 @@
     .cal-day.holiday .cal-dot { background: var(--danger); }
     .cal-day.scheduled { background: rgba(59, 130, 246, 0.1); }
     .cal-day.scheduled .cal-dot { background: var(--primary); }
+
+  /* ================= CUSTOM SELECT ================= */
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+  font-family: inherit;
+}
+.custom-select-display {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-bg);
+  color: var(--text-main);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  min-height: 46px;
+  font-weight: 500;
+}
+.custom-select-display:hover {
+  border-color: var(--primary);
+}
+.custom-select-display.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+.custom-select-options {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: var(--surface-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 10000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+}
+.custom-select-options.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.custom-select-option {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.custom-select-option:hover {
+  background: var(--surface-card);
+  color: var(--primary);
+}
+.custom-select-option.selected {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 700;
+}
+select.customized {
+  display: none !important;
+}
     
   </style>
 </head>
@@ -669,6 +743,29 @@
     </div>
   </div>
 
+  <!-- ================= ADMIN CLASS HISTORY ================= -->
+  <div class="screen" id="sc-admin-class-history">
+    <div class="app-header" style="flex-direction:column; align-items:stretch; padding:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <button class="header-btn" onclick="navTo('sc-admin')"><i class="ti ti-arrow-left"></i></button>
+        <div class="header-title">Class History</div>
+        <div style="width:40px;"></div>
+      </div>
+      <div class="search-bar" style="margin:0; margin-bottom:12px;">
+        <i class="ti ti-users"></i>
+        <select id="historyClassFilter" onchange="renderClassHistoryDates()" style="width:100%; border:none; outline:none; background:transparent; font-family:inherit; color:var(--text-main);">
+        </select>
+      </div>
+      <div class="search-bar" style="margin:0;">
+        <i class="ti ti-calendar"></i>
+        <select id="historyDateFilter" onchange="renderClassHistoryList()" style="width:100%; border:none; outline:none; background:transparent; font-family:inherit; color:var(--text-main);">
+        </select>
+      </div>
+    </div>
+    <div class="scroll-body" style="padding-top:16px;" id="historyListContainer">
+    </div>
+  </div>
+
   <!-- ================= ADMIN FOLLOW UPS ================= -->
   <div class="screen" id="sc-admin-followups">
     <div class="app-header" style="flex-direction:column; align-items:stretch; padding:16px;">
@@ -714,6 +811,14 @@
         </div>
       </div>
       
+      <div class="list-item" style="cursor:pointer; margin-bottom:12px; background:var(--surface-bg); border:1px solid var(--border);" onclick="adminActionViewHistory()">
+        <div class="av" style="background:var(--info-light); color:var(--info)"><i class="ti ti-history"></i></div>
+        <div class="li-body">
+          <div class="li-title">View Attendance History</div>
+          <div class="li-sub">Check past attendance records</div>
+        </div>
+      </div>
+
       <div class="list-item" style="cursor:pointer; margin-bottom:12px; background:var(--surface-bg); border:1px solid var(--border);" onclick="adminActionManageClass()">
         <div class="av" style="background:var(--primary-light); color:var(--primary)"><i class="ti ti-settings"></i></div>
         <div class="li-body">
@@ -799,6 +904,8 @@
             <option value="single">Single Date</option>
             <option value="range">Date Range</option>
             <option value="month">Entire Month</option>
+            <option value="alltime">All Time (Entire History)</option>
+            <option value="directory">Master Directory (No Dates)</option>
           </select>
         </div>
 
@@ -1308,8 +1415,11 @@
       <div class="drawer-item" onclick="viewAcademicCalendar(); closeDrawer()">
         <i class="ti ti-calendar"></i> Academic Calendar
       </div>
-      <div class="drawer-item" onclick="showToast('This feature will be available after 1 month of production.', 'info'); closeDrawer()" style="opacity: 0.5; cursor: not-allowed;">
-        <i class="ti ti-file-export"></i> Export Reports <span style="font-size: 10px; background: var(--primary-light); color: var(--primary); padding: 2px 6px; border-radius: 4px; margin-left: 8px;">Coming Soon</span>
+      <div class="drawer-item" onclick="openExportScreen(); closeDrawer()">
+        <i class="ti ti-file-export"></i> Export Reports
+      </div>
+      <div class="drawer-item" id="admin-switch-teacher-btn" style="display:none; color:var(--primary); font-weight:600;" onclick="navTo('sc-teacher'); closeDrawer()">
+        <i class="ti ti-exchange" style="color:var(--primary)"></i> Switch to Teacher View
       </div>
       <div class="drawer-item" onclick="logout()" style="color:var(--danger); border-top:1px solid var(--border); border-bottom:none; margin-top:auto;">
         <i class="ti ti-logout" style="color:var(--danger)"></i> Logout
@@ -1345,6 +1455,9 @@
       </div>
       <div class="drawer-item" onclick="viewAcademicCalendar(); closeTeacherDrawer()">
         <i class="ti ti-calendar-event"></i> Academic Calendar
+      </div>
+      <div class="drawer-item" id="teacher-switch-admin-btn" style="display:none; color:var(--success); font-weight:600;" onclick="navTo('sc-admin'); closeTeacherDrawer()">
+        <i class="ti ti-exchange" style="color:var(--success)"></i> Switch to Admin View
       </div>
       <div class="drawer-item" onclick="logout()" style="color:var(--danger); border-top:1px solid var(--border); border-bottom:none; margin-top:auto;">
         <i class="ti ti-logout" style="color:var(--danger)"></i> Logout
@@ -1546,7 +1659,10 @@ function navTo(screenId, pushHistory = true) {
   
   // Trigger graph rendering on relevant screens
   if(screenId === 'sc-admin') {
+     renderAdmin();
      renderSchoolTrendGraph('dash-trend-graph', 4);
+  } else if(screenId === 'sc-teacher') {
+     renderTeacher();
   } else if(screenId === 'sc-admin-history') {
      renderSchoolTrendGraph('hist-trend-graph', 0);
   }
@@ -1702,8 +1818,14 @@ function resetLogin() {
 
 function routeUser() {
   if(currentUser.role === 'admin') {
-    renderAdmin();
-    navTo('sc-admin');
+    const isAlsoTeacher = DB.classes.some(c => c.teacherPhones && c.teacherPhones.includes(currentUser.phone));
+    if (isAlsoTeacher) {
+      renderTeacher();
+      navTo('sc-teacher');
+    } else {
+      renderAdmin();
+      navTo('sc-admin');
+    }
   } else if(currentUser.role === 'teacher') {
     renderTeacher();
     navTo('sc-teacher');
@@ -1875,7 +1997,8 @@ function checkIfLoaded() {
        if(document.getElementById('sc-admin-history') && document.getElementById('sc-admin-history').classList.contains('active')) renderHistory();
        if(document.getElementById('sc-admin-history-detail') && document.getElementById('sc-admin-history-detail').classList.contains('active')) renderHistoryDetail();
        if(document.getElementById('sc-admin-followups') && document.getElementById('sc-admin-followups').classList.contains('active')) renderFollowups();
-
+       if(currentUser.role === 'admin' && document.getElementById('sc-admin-calendar').classList.contains('active')) renderCalendar();
+       if(currentUser.role === 'admin' && document.getElementById('sc-admin-class-history') && document.getElementById('sc-admin-class-history').classList.contains('active')) renderClassHistoryList();
        if(currentUser.role === 'parent' && document.getElementById('sc-parent').classList.contains('active')) renderParentList();
     }
   }
@@ -1889,6 +2012,10 @@ function renderAdmin() {
   if (adminHolidayContainer) {
     adminHolidayContainer.innerHTML = getUpcomingHolidayBanner();
   }
+
+  const isAlsoTeacher = DB.classes.some(c => c.teacherPhones && c.teacherPhones.includes(currentUser.phone));
+  const swBtn = document.getElementById('admin-switch-teacher-btn');
+  if (swBtn) swBtn.style.display = isAlsoTeacher ? 'flex' : 'none';
 
   // Update Session Status
   const sessionStatusText = document.getElementById('adminSessionStatusText');
@@ -2348,7 +2475,7 @@ function deleteFollowup(id, e) {
 function openManualFollowupModal() {
   const sel = document.getElementById('manualFollowupAssignee');
   if(sel) {
-    sel.innerHTML = '<option value="Unassigned">Unassigned</option>' + DB.users.filter(u => u.role === 'teacher').map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+    sel.innerHTML = '<option value="Unassigned">Unassigned</option>' + DB.users.filter(u => u.role === 'teacher' || u.role === 'admin').map(t => `<option value="${t.name}">${t.name}</option>`).join('');
   }
   document.getElementById('manualFollowupModal').classList.add('active');
 }
@@ -2370,7 +2497,7 @@ function openAssignFollowup(id, e) {
   if (e) e.stopPropagation();
   document.getElementById('assignFollowupId').value = id;
   const sel = document.getElementById('assignFollowupSelect');
-  sel.innerHTML = '<option value="Unassigned">Unassigned</option>' + DB.users.filter(u => u.role === 'teacher').map(t => `<option value="${t.name}">${t.name}</option>`).join('');
+  sel.innerHTML = '<option value="Unassigned">Unassigned</option>' + DB.users.filter(u => u.role === 'teacher' || u.role === 'admin').map(t => `<option value="${t.name}">${t.name}</option>`).join('');
   
   // preselect
   if (followupState.assignees[id]) {
@@ -2793,7 +2920,7 @@ function renderDynamicTeacherFields(containerId, prefix, selectedPhones = []) {
 
 function addDynamicTeacherField(containerId, prefix, selectedPhone = '', isFirst = false) {
   const container = document.getElementById(containerId);
-  const teachers = DB.users.filter(u => u.role === 'teacher');
+  const teachers = DB.users.filter(u => u.role === 'teacher' || u.role === 'admin');
   const optionsHtml = '<option value="">-- Unassigned --</option>' + teachers.map(t => `<option value="${t.phone}">${t.name} (${t.phone})</option>`).join('') + '<option value="ADD_NEW" style="font-weight:bold; color:var(--primary);">+ Add New Teacher</option>';
   
   const div = document.createElement('div');
@@ -2864,7 +2991,7 @@ function renderAllTeachers() {
   list.innerHTML = '';
   const query = document.getElementById('tchSearchText').value.toLowerCase();
   
-  const teachers = DB.users.filter(u => u.role === 'teacher');
+  const teachers = DB.users.filter(u => u.role === 'teacher' || u.role === 'admin');
   document.getElementById('hdr-all-teachers').textContent = `All Teachers (${teachers.length})`;
   
   const filtered = teachers.filter(t => t.name.toLowerCase().includes(query) || t.phone.includes(query));
@@ -3112,6 +3239,105 @@ function adminActionViewAttendance() {
   backTarget = document.getElementById('adminClassActionModal').dataset.sourceScreen || 'sc-admin-today';
   renderAttendanceList(students);
   navTo('sc-att');
+}
+
+function adminActionViewHistory() {
+  document.getElementById('adminClassActionModal').classList.remove('active');
+  const classId = document.getElementById('adminClassActionId').value;
+  openClassHistory(classId);
+}
+
+function openClassHistory(classId) {
+  const cSelect = document.getElementById('historyClassFilter');
+  cSelect.innerHTML = DB.classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  cSelect.value = classId;
+  renderClassHistoryDates();
+  navTo('sc-admin-class-history');
+}
+
+function renderClassHistoryDates() {
+  const classId = document.getElementById('historyClassFilter').value;
+  const dSelect = document.getElementById('historyDateFilter');
+  
+  const classStudents = DB.students.filter(s => s.classId === classId).map(s => s.id);
+  
+  const availableDates = pastAttendance.filter(a => {
+    return Object.keys(a.records).some(sid => classStudents.includes(sid));
+  });
+  
+  if(availableDates.length === 0) {
+    dSelect.innerHTML = '<option value="">No attendance records</option>';
+  } else {
+    dSelect.innerHTML = availableDates.map(a => `<option value="${a.date}">${a.label}</option>`).join('');
+  }
+  
+  renderClassHistoryList();
+}
+
+function renderClassHistoryList() {
+  const classId = document.getElementById('historyClassFilter').value;
+  const dateStr = document.getElementById('historyDateFilter').value;
+  const container = document.getElementById('historyListContainer');
+  
+  if(!dateStr) {
+    container.innerHTML = '<div style="text-align:center; padding:32px; color:var(--text-sub)">No data to display.</div>';
+    return;
+  }
+  
+  const attData = pastAttendance.find(a => a.date === dateStr);
+  if(!attData) return;
+  
+  const classStudents = DB.students.filter(s => s.classId === classId);
+  
+  const presentStudents = classStudents.filter(s => attData.records[s.id] === 'present');
+  const absentStudents = classStudents.filter(s => attData.records[s.id] === 'absent');
+  
+  let html = '';
+  
+  // Present Section
+  html += `<div style="font-size:13px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; margin-left:8px;">Present (${presentStudents.length})</div>`;
+  if(presentStudents.length === 0) {
+    html += `<div style="padding:16px; text-align:center; color:var(--text-sub); background:var(--surface-bg); border-radius:12px; margin-bottom:24px;">No students present</div>`;
+  } else {
+    presentStudents.forEach(s => {
+      const init = s.name.split(' ').map(n=>n[0]).join('').substring(0,2);
+      html += `
+        <div class="list-item" style="margin-bottom:8px">
+          <div class="av" style="background:var(--success-light); color:var(--success)">${init}</div>
+          <div class="li-body">
+            <div class="li-title">${s.name}</div>
+            <div class="li-sub">${s.parentPhone || s.phone || 'No Phone'}</div>
+          </div>
+          <div style="color:var(--success)"><i class="ti ti-check"></i></div>
+        </div>
+      `;
+    });
+    html += '<div style="height:16px;"></div>';
+  }
+  
+  // Absent Section
+  html += `<div style="font-size:13px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; margin-left:8px;">Absent (${absentStudents.length})</div>`;
+  if(absentStudents.length === 0) {
+    html += `<div style="padding:16px; text-align:center; color:var(--text-sub); background:var(--surface-bg); border-radius:12px; margin-bottom:24px;">No students absent</div>`;
+  } else {
+    absentStudents.forEach(s => {
+      const init = s.name.split(' ').map(n=>n[0]).join('').substring(0,2);
+      html += `
+        <div class="list-item" style="margin-bottom:8px">
+          <div class="av" style="background:var(--danger-light); color:var(--danger)">${init}</div>
+          <div class="li-body">
+            <div class="li-title">${s.name}</div>
+            <div class="li-sub">${s.parentPhone || s.phone || 'No Phone'}</div>
+          </div>
+          <div style="color:var(--danger)"><i class="ti ti-x"></i></div>
+        </div>
+      `;
+    });
+  }
+  
+  html += '<div style="height:40px;"></div>';
+  
+  container.innerHTML = html;
 }
 
 function adminActionManageClass() {
@@ -3434,6 +3660,10 @@ function isSessionOpen() {
 }
 
 function renderTeacher() {
+  const isAlsoAdmin = (currentUser.role === 'admin');
+  const swBtn = document.getElementById('teacher-switch-admin-btn');
+  if (swBtn) swBtn.style.display = isAlsoAdmin ? 'flex' : 'none';
+
   currentTeacherClass = DB.classes.find(c => (c.teacherPhones || []).includes(currentUser.phone));
   if(!currentTeacherClass) {
     document.getElementById('t-header').textContent = "Dashboard";
@@ -4334,6 +4564,20 @@ async function generateExcelReport() {
   const targetClassId = document.getElementById('exportClassFilter').value;
   let dates = [];
   
+  if (type === 'directory') {
+    const btn = document.getElementById('btnGenerateExcel');
+    const ogText = btn.innerHTML;
+    btn.innerHTML = `<i class="ti ti-loader" style="animation: spin 1s linear infinite;"></i> Generating...`;
+    btn.disabled = true;
+    try {
+      await generateDirectoryExcel(targetClassId);
+    } finally {
+      btn.innerHTML = ogText;
+      btn.disabled = false;
+    }
+    return;
+  }
+
   if (type === 'single') {
     const val = document.getElementById('exportSingleDate').value;
     if(!val) return showToast('Please select a date');
@@ -4358,6 +4602,9 @@ async function generateExcelReport() {
       const dStr = `${year}-${month}-${i.toString().padStart(2, '0')}`;
       dates.push(dStr);
     }
+  } else if (type === 'alltime') {
+    dates = Array.from(new Set(pastAttendance.map(r => r.id))).sort();
+    if(dates.length === 0) return showToast('No attendance history found');
   }
 
   const btn = document.getElementById('btnGenerateExcel');
@@ -4422,7 +4669,7 @@ async function generateExcelReport() {
     wsTeachers.getRow(1).font = { bold: true };
     wsTeachers.views = [{ state: 'frozen', ySplit: 1, xSplit: 1 }];
 
-    let filteredTeachers = DB.users.filter(u => u.role === 'teacher');
+    let filteredTeachers = DB.users.filter(u => u.role === 'teacher' || u.role === 'admin');
     if(targetClassId !== 'all') {
       filteredTeachers = filteredTeachers.filter(t => {
         const cls = DB.classes.find(c => c.id === targetClassId);
@@ -4450,7 +4697,48 @@ async function generateExcelReport() {
       });
     });
 
-    // TAB 3: Schedule
+    // TAB 3: Class Breakdown
+    const wsClasses = wb.addWorksheet('Class Breakdown');
+    wsClasses.addRow(['Date', 'Class', 'Teacher(s)', 'Total Students Tracked', 'Present', 'Absent']);
+    wsClasses.getRow(1).font = { bold: true };
+    wsClasses.views = [{ state: 'frozen', ySplit: 1 }];
+
+    let filteredClasses = DB.classes;
+    if(targetClassId !== 'all') {
+      filteredClasses = DB.classes.filter(c => c.id === targetClassId);
+    }
+
+    dates.forEach(d => {
+      const record = pastAttendance.find(r => r.id === d);
+      if(!record) return;
+
+      filteredClasses.forEach(c => {
+        let present = 0;
+        let absent = 0;
+        let total = 0;
+        
+        const cMembers = DB.students.filter(s => s.classId === c.id);
+        const cTeachers = DB.users.filter(u => c.teacherPhones && c.teacherPhones.includes(u.phone));
+        const allRoster = [...cMembers, ...cTeachers];
+
+        let hasData = false;
+        allRoster.forEach(mem => {
+          if (record.records[mem.id] !== undefined) {
+             hasData = true;
+             total++;
+             if (record.records[mem.id] === 'present') present++;
+             else absent++;
+          }
+        });
+
+        if (hasData) {
+           const teacherNames = cTeachers.map(l => l.name).join(', ');
+           wsClasses.addRow([d, c.name, teacherNames, total, present, absent]);
+        }
+      });
+    });
+
+    // TAB 4: Schedule
     const wsSchedule = wb.addWorksheet('Schedule Summary');
     wsSchedule.addRow(['Date', 'Schedule Type', 'Title / Reason', 'Student Att.', 'Teacher Att.']);
     wsSchedule.getRow(1).font = { bold: true };
@@ -4485,7 +4773,7 @@ async function generateExcelReport() {
       ]);
     });
 
-    [wsStudents, wsTeachers, wsSchedule].forEach(ws => {
+    [wsStudents, wsTeachers, wsClasses, wsSchedule].forEach(ws => {
       ws.columns.forEach(column => {
         let maxLength = 0;
         column["eachCell"]({ includeEmpty: true }, function(cell) {
@@ -4504,6 +4792,7 @@ async function generateExcelReport() {
     if(type === 'single') fName = `Report_${dates[0]}`;
     if(type === 'range') fName = `Report_${dates[0]}_to_${dates[dates.length-1]}`;
     if(type === 'month') fName = `Report_${document.getElementById('exportMonth').value}`;
+    if(type === 'alltime') fName = `Report_AllTime`;
     link.download = `SundaySchool_${fName}.xlsx`;
     document.body.appendChild(link);
     link.click();
@@ -4518,6 +4807,190 @@ async function generateExcelReport() {
     btn.disabled = false;
   }
 }
+
+async function generateDirectoryExcel(targetClassId) {
+  try {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'Sunday School App';
+    wb.created = new Date();
+
+    // TAB 1: Classes
+    const wsClasses = wb.addWorksheet('Classes');
+    wsClasses.addRow(['Class Name', 'Teacher Name(s)', 'Teacher Phone(s)', 'Total Students']);
+    wsClasses.getRow(1).font = { bold: true };
+    wsClasses.views = [{ state: 'frozen', ySplit: 1 }];
+
+    let filteredClasses = DB.classes;
+    if(targetClassId !== 'all') {
+      filteredClasses = DB.classes.filter(c => c.id === targetClassId);
+    }
+
+    filteredClasses.forEach(c => {
+      const cTeachers = DB.users.filter(u => c.teacherPhones && c.teacherPhones.includes(u.phone));
+      const teacherNames = cTeachers.map(l => l.name).join(', ');
+      const teacherPhones = cTeachers.map(l => l.phone).join(', ');
+      const mCount = DB.students.filter(m => m.classId === c.id).length;
+      wsClasses.addRow([c.name, teacherNames, teacherPhones, mCount]);
+    });
+
+    // TAB 2: Teachers
+    const wsTeachers = wb.addWorksheet('Teachers');
+    wsTeachers.addRow(['Teacher Name', 'Phone', 'Assigned Class(es)']);
+    wsTeachers.getRow(1).font = { bold: true };
+    wsTeachers.views = [{ state: 'frozen', ySplit: 1 }];
+
+    let filteredTeachers = DB.users.filter(u => u.role === 'teacher' || u.role === 'admin');
+    if(targetClassId !== 'all') {
+       filteredTeachers = filteredTeachers.filter(u => {
+          const cls = DB.classes.find(c => c.id === targetClassId);
+          return cls && cls.teacherPhones && cls.teacherPhones.includes(u.phone);
+       });
+    }
+
+    filteredTeachers.forEach(l => {
+      const assigned = DB.classes.filter(c => c.teacherPhones && c.teacherPhones.includes(l.phone)).map(c => c.name).join(', ');
+      wsTeachers.addRow([l.name, l.phone, assigned]);
+    });
+
+    // TAB 3: Students
+    const wsStudents = wb.addWorksheet('Students');
+    wsStudents.addRow(['Student Name', 'Phone', 'Class', 'Parent Name', 'Parent Phone', 'Address', 'At Risk']);
+    wsStudents.getRow(1).font = { bold: true };
+    wsStudents.views = [{ state: 'frozen', ySplit: 1 }];
+
+    let filteredStudents = DB.students;
+    if(targetClassId !== 'all') {
+      filteredStudents = DB.students.filter(m => m.classId === targetClassId);
+    }
+
+    filteredStudents.forEach(m => {
+      const cls = DB.classes.find(c => c.id === m.classId);
+      const isAtRisk = m.atRisk ? 'Yes' : 'No';
+      wsStudents.addRow([m.name, m.phone || '', cls ? cls.name : 'Unknown', m.parentName || '', m.parentPhone || '', m.address || '', isAtRisk]);
+    });
+
+    [wsClasses, wsTeachers, wsStudents].forEach(ws => {
+      ws.columns.forEach(column => {
+        let maxLen = 0;
+        column.eachCell({ includeEmpty: true }, cell => {
+          const len = cell.value ? cell.value.toString().length : 10;
+          if(len > maxLen) maxLen = len;
+        });
+        column.width = Math.min(maxLen + 2, 40);
+      });
+    });
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SundaySchool_Master_Directory_${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast("Master directory generated successfully!", "success");
+  } catch (err) {
+    console.error(err);
+    showToast("Error generating directory: " + err.message, "danger");
+  }
+}
+
+/* ================= CUSTOM SELECT LOGIC ================= */
+const originalSelectVal = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+Object.defineProperty(HTMLSelectElement.prototype, 'value', {
+  get: function() { return originalSelectVal.get.call(this); },
+  set: function(val) {
+    originalSelectVal.set.call(this, val);
+    if (this.customSelectUpdate) this.customSelectUpdate();
+  }
+});
+
+function applyCustomSelects() {
+  document.querySelectorAll('select:not(.customized)').forEach(sel => {
+    if(sel.style.display === 'none' || sel.classList.contains('no-custom')) return;
+    
+    sel.classList.add('customized');
+    
+    const wrapper = document.createElement('div');
+    wrapper.className = 'custom-select-wrapper';
+    
+    const display = document.createElement('div');
+    display.className = 'custom-select-display';
+    
+    const optionsWrap = document.createElement('div');
+    optionsWrap.className = 'custom-select-options';
+    
+    const buildOptions = () => {
+      optionsWrap.innerHTML = '';
+      Array.from(sel.options).forEach((opt, idx) => {
+        const optDiv = document.createElement('div');
+        optDiv.className = 'custom-select-option' + (idx === sel.selectedIndex ? ' selected' : '');
+        optDiv.textContent = opt.text;
+        optDiv.dataset.value = opt.value;
+        optDiv.onclick = (e) => {
+          e.stopPropagation();
+          sel.value = opt.value;
+          display.querySelector('span').textContent = opt.text;
+          wrapper.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+          optDiv.classList.add('selected');
+          optionsWrap.classList.remove('open');
+          display.classList.remove('active');
+          sel.dispatchEvent(new Event('change'));
+        };
+        optionsWrap.appendChild(optDiv);
+      });
+      display.innerHTML = `<span>${sel.options[sel.selectedIndex]?.text || ''}</span><i class="ti ti-chevron-down"></i>`;
+    };
+    
+    buildOptions();
+    
+    display.onclick = (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.custom-select-options.open').forEach(el => {
+        if (el !== optionsWrap) {
+          el.classList.remove('open');
+          el.previousElementSibling.classList.remove('active');
+        }
+      });
+      optionsWrap.classList.toggle('open');
+      display.classList.toggle('active');
+    };
+    
+    wrapper.appendChild(display);
+    wrapper.appendChild(optionsWrap);
+    sel.parentNode.insertBefore(wrapper, sel.nextSibling);
+    
+    sel.customSelectUpdate = () => { buildOptions(); };
+    
+    const obs = new MutationObserver(() => { buildOptions(); });
+    obs.observe(sel, { childList: true });
+  });
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.custom-select-options.open').forEach(el => {
+    el.classList.remove('open');
+    el.previousElementSibling.classList.remove('active');
+  });
+});
+
+const selectObserver = new MutationObserver((mutations) => {
+  let shouldApply = false;
+  for(let i=0; i<mutations.length; i++) {
+    if (mutations[i].addedNodes.length > 0) {
+      shouldApply = true;
+      break;
+    }
+  }
+  if (shouldApply) applyCustomSelects();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyCustomSelects();
+  selectObserver.observe(document.body, { childList: true, subtree: true });
+});
 </script>
 
 </body>
