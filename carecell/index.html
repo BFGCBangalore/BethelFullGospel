@@ -74,6 +74,12 @@
     input:checked + .slider { background-color: var(--success); }
     input:checked + .slider:before { transform: translateX(22px); }
 
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(225, 29, 72, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     html, body {
@@ -404,13 +410,14 @@
     .cal-day.holiday .cal-dot { background: var(--danger); }
     .cal-day.scheduled { background: rgba(59, 130, 246, 0.1); }
     .cal-day.scheduled .cal-dot { background: var(--primary); }
+
   /* ================= CUSTOM SELECT ================= */
-.custom-select-wrapper {
-  position: relative;
-  width: 100%;
-  font-family: inherit;
-}
-.custom-select-display {
+  .custom-select-wrapper {
+    position: relative;
+    width: 100%;
+    font-family: inherit;
+  }
+  .custom-select-display {
   width: 100%;
   padding: 12px 16px;
   border: 1px solid var(--border);
@@ -1024,7 +1031,6 @@ select.customized {
           <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:6px;">
             <i class="ti ti-calendar-event" style="font-size:16px"></i> THIS WEEK PLAN
           </div>
-          <div style="color:var(--primary); font-size:13px; font-weight:700; cursor:pointer; padding-left:12px;" onclick="event.stopPropagation(); manageSchedule()">Edit <i class="ti ti-pencil"></i></div>
         </div>
         <div id="tch-schedule-content" style="display:block; border-top:1px solid var(--border);">
           <div id="tch-schedule-container"></div>
@@ -1171,7 +1177,18 @@ select.customized {
       </div>
       
       <div class="form-group">
-        <label>Message</label>
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px;">
+          <label style="margin-bottom:0;">Message</label>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <select id="bc-voice-lang" class="no-custom" style="font-size:13px; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text-main); outline:none; font-weight:600; cursor:pointer;">
+              <option value="en-IN">English</option>
+              <option value="kn-IN">ಕನ್ನಡ</option>
+            </select>
+            <button id="btn-bc-voice-dictation" onclick="toggleVoiceDictation('btn-bc-voice-dictation', 'bc-message', 'bc-voice-lang')" style="width:42px; height:42px; flex-shrink:0; border-radius:50%; border:none; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+              <i class="ti ti-microphone" style="font-size:22px;"></i>
+            </button>
+          </div>
+        </div>
         <textarea id="bc-message" rows="3" placeholder="Type your announcement here..."></textarea>
       </div>
       
@@ -1282,7 +1299,18 @@ select.customized {
         </select>
       </div>
       <div class="form-group">
-        <label>Prayer Details</label>
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:8px;">
+          <label style="margin-bottom:0;">Prayer Details</label>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <select id="voice-lang" class="no-custom" style="font-size:13px; padding:6px 10px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text-main); outline:none; font-weight:600; cursor:pointer;">
+              <option value="en-IN">English</option>
+              <option value="kn-IN">ಕನ್ನಡ</option>
+            </select>
+            <button id="btn-voice-dictation" onclick="toggleVoiceDictation('btn-voice-dictation', 'mod-pr-text', 'voice-lang')" style="width:42px; height:42px; flex-shrink:0; border-radius:50%; border:none; background:var(--primary-light); color:var(--primary); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+              <i class="ti ti-microphone" style="font-size:22px;"></i>
+            </button>
+          </div>
+        </div>
         <textarea id="mod-pr-text" class="inp" rows="4" placeholder="Enter prayer request details..."></textarea>
       </div>
       <div class="form-group" id="mod-pr-priority-wrapper" style="display:none;">
@@ -5663,6 +5691,76 @@ function renderGlobalBroadcast() {
       </div>
     </div>
   `;
+}
+/* ================= VOICE DICTATION LOGIC ================= */
+let dictationRecognition = null;
+let isDictationRecording = false;
+
+function toggleVoiceDictation(btnId, textareaId, langId) {
+  const btn = document.getElementById(btnId);
+  const textarea = document.getElementById(textareaId);
+  const lang = document.getElementById(langId).value;
+  
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    return showToast('Voice typing is not supported on this browser.', 'error');
+  }
+
+  if (isDictationRecording) {
+    if (dictationRecognition) dictationRecognition.stop();
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  dictationRecognition = new SpeechRecognition();
+  dictationRecognition.lang = lang;
+  dictationRecognition.continuous = true;
+  dictationRecognition.interimResults = true;
+
+  dictationRecognition.onstart = () => {
+    isDictationRecording = true;
+    btn.style.background = 'var(--danger)';
+    btn.style.color = '#fff';
+    btn.style.animation = 'pulse 1.5s infinite';
+    btn.innerHTML = '<i class="ti ti-microphone" style="font-size:20px;"></i>';
+  };
+
+  dictationRecognition.onresult = (event) => {
+    let finalTranscript = '';
+    
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      if (event.results[i].isFinal) {
+        finalTranscript += event.results[i][0].transcript + ' ';
+      }
+    }
+    
+    if (finalTranscript) {
+       const current = textarea.value;
+       const sep = current && !current.endsWith(' ') ? ' ' : '';
+       textarea.value = current + sep + finalTranscript;
+    }
+  };
+
+  dictationRecognition.onerror = (event) => {
+    console.error('Speech recognition error', event.error);
+    stopDictationUI();
+  };
+
+  dictationRecognition.onend = () => {
+    stopDictationUI();
+  };
+
+  function stopDictationUI() {
+    isDictationRecording = false;
+    btn.style.background = 'var(--primary-light)';
+    btn.style.color = 'var(--primary)';
+    btn.style.animation = 'none';
+  }
+
+  try {
+    dictationRecognition.start();
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
