@@ -132,6 +132,28 @@
       font-style: italic;
     }
   </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBd_8BSq9RnIQNMJCEI9QUr2OOvjcuUe-Y",
+      authDomain: "bfgc-carecell.firebaseapp.com",
+      projectId: "bfgc-carecell"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const docRef = doc(db, "config", "status");
+
+    onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            if (docSnap.data().is_crashed) {
+                window.location.href = 'crash.html';
+            }
+        }
+    });
+  </script>
 </head>
 <body>
 
@@ -144,9 +166,85 @@
     <div class="empty-state">Waiting for verse selection...</div>
   </div>
 
+  <!-- DroidCam Camera Overlay -->
+  <div class="droidcam-overlay circle" id="droidcamOverlay" style="display:none; width:150px; height:150px; bottom:40px; right:40px;">
+    <video id="droidcamVideo" autoplay muted playsinline></video>
+    <div class="droidcam-resize-handle" id="droidcamResize"></div>
+  </div>
+
   <div class="controls">
     <button class="btn" id="fsBtn" onclick="toggleFullScreen()">Enter Fullscreen</button>
   </div>
+
+  <style>
+    /* DroidCam Overlay Styles for Presenter */
+    .droidcam-overlay {
+      position: absolute;
+      z-index: 50;
+      overflow: hidden;
+      cursor: grab;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 3px rgba(108, 92, 255, 0.3);
+      transition: border-radius 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+      touch-action: none;
+    }
+    .droidcam-overlay.circle {
+      border-radius: 50%;
+    }
+    .droidcam-overlay.square {
+      border-radius: 16px;
+    }
+    .droidcam-overlay.rect {
+      border-radius: 12px;
+    }
+    .droidcam-overlay.full {
+      border-radius: 0;
+      width: 100vw !important;
+      height: 100vh !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: auto !important;
+      bottom: auto !important;
+    }
+    .droidcam-overlay.full .droidcam-resize-handle {
+      display: none !important;
+    }
+    .droidcam-overlay:active {
+      cursor: grabbing;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 4px rgba(108, 92, 255, 0.5);
+    }
+    .droidcam-overlay video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+    .droidcam-resize-handle {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 20px;
+      height: 20px;
+      cursor: nwse-resize;
+      z-index: 51;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .droidcam-overlay:hover .droidcam-resize-handle {
+      opacity: 0.7;
+    }
+    .droidcam-resize-handle::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid rgba(255,255,255,0.7);
+      border-bottom: 2px solid rgba(255,255,255,0.7);
+    }
+  </style>
 
   <script>
     function toggleFullScreen() {
@@ -215,6 +313,31 @@
           } catch (err) { console.error(err); }
         }
       }
+      // DroidCam commands from the main bible page
+      if (e.key === 'droidcam_command') {
+        if (e.newValue) {
+          try {
+            const cmd = JSON.parse(e.newValue);
+            handleDroidcamCommand(cmd);
+          } catch (err) { console.error(err); }
+        }
+      }
+      // Position sync from live monitor drag
+      if (e.key === 'droidcam_position') {
+        if (e.newValue) {
+          try {
+            const pos = JSON.parse(e.newValue);
+            if (pos.leftPct !== undefined && pos.topPct !== undefined) {
+              const bodyW = document.body.clientWidth;
+              const bodyH = document.body.clientHeight;
+              overlay.style.left = (pos.leftPct / 100 * bodyW) + 'px';
+              overlay.style.top = (pos.topPct / 100 * bodyH) + 'px';
+              overlay.style.right = 'auto';
+              overlay.style.bottom = 'auto';
+            }
+          } catch (err) { console.error(err); }
+        }
+      }
     });
 
     // Check immediately on load
@@ -222,6 +345,208 @@
     if (initial) {
       try { updateDisplay(JSON.parse(initial)); } catch (err) {}
     }
+
+    /* =========================================================
+       DroidCam Overlay Logic
+       ========================================================= */
+    let camShape = 'circle';
+    let camWidth = 150;
+    let camHeight = 150;
+    let isDragging = false;
+    let isResizing = false;
+    let dragOffset = { x: 0, y: 0 };
+
+    const overlay = document.getElementById('droidcamOverlay');
+    const video = document.getElementById('droidcamVideo');
+    const resizeHandle = document.getElementById('droidcamResize');
+
+    // Presenter no longer captures the camera itself.
+    // It receives the MediaStream from bible.js via window.opener
+    
+    function applySavedPositionAndSize() {
+      // Apply saved shape and size
+      const savedShape = localStorage.getItem('droidcam_shape');
+      const savedW = localStorage.getItem('droidcam_width');
+      const savedH = localStorage.getItem('droidcam_height');
+      if (savedShape) camShape = savedShape;
+      if (savedW) camWidth = parseInt(savedW);
+      if (savedH) camHeight = parseInt(savedH);
+
+      overlay.classList.remove('circle', 'square', 'rect', 'full');
+      overlay.classList.add(camShape);
+      overlay.style.width = camWidth + 'px';
+      overlay.style.height = camHeight + 'px';
+      
+      // Apply saved position if available
+      const savedPos = localStorage.getItem('droidcam_position');
+      if (savedPos) {
+        try {
+          const pos = JSON.parse(savedPos);
+          if (pos.leftPct !== undefined && pos.topPct !== undefined) {
+            const bodyW = document.body.clientWidth;
+            const bodyH = document.body.clientHeight;
+            overlay.style.left = (pos.leftPct / 100 * bodyW) + 'px';
+            overlay.style.top = (pos.topPct / 100 * bodyH) + 'px';
+            overlay.style.right = 'auto';
+            overlay.style.bottom = 'auto';
+          }
+        } catch(e) {}
+      }
+    }
+
+    function checkCameraStatus() {
+      const statusStr = localStorage.getItem('droidcam_status');
+      if (statusStr) {
+        try {
+          const status = JSON.parse(statusStr);
+          if (status.active && window.opener && window.opener.camStream) {
+            video.srcObject = window.opener.camStream;
+            overlay.style.display = 'block';
+            applySavedPositionAndSize();
+          } else {
+            video.srcObject = null;
+            overlay.style.display = 'none';
+          }
+        } catch(e) {}
+      }
+    }
+
+    // Check immediately on load
+    checkCameraStatus();
+
+    // Listen to changes from the main window specifically for camera stream
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'droidcam_status') {
+        checkCameraStatus();
+      }
+    });
+
+    function handleDroidcamCommand(cmd) {
+      if (cmd.action === 'shape') {
+        camShape = cmd.value;
+        overlay.classList.remove('circle', 'square', 'rect', 'full');
+        overlay.classList.add(camShape);
+        // For circle, enforce equal dimensions
+        if (camShape === 'circle') {
+          const minDim = Math.min(camWidth, camHeight);
+          camWidth = minDim;
+          camHeight = minDim;
+          overlay.style.width = camWidth + 'px';
+          overlay.style.height = camHeight + 'px';
+        }
+      } else if (cmd.action === 'resize') {
+        camWidth = parseInt(cmd.width) || camWidth;
+        camHeight = parseInt(cmd.height) || camHeight;
+        overlay.style.width = camWidth + 'px';
+        overlay.style.height = camHeight + 'px';
+      }
+    }
+
+    // Dragging logic
+    overlay.addEventListener('mousedown', (e) => {
+      if (e.target === resizeHandle || e.target.closest('.droidcam-resize-handle')) return;
+      isDragging = true;
+      const rect = overlay.getBoundingClientRect();
+      dragOffset.x = e.clientX - rect.left;
+      dragOffset.y = e.clientY - rect.top;
+      overlay.style.transition = 'none';
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const x = e.clientX - dragOffset.x;
+        const y = e.clientY - dragOffset.y;
+        overlay.style.left = x + 'px';
+        overlay.style.top = y + 'px';
+        overlay.style.right = 'auto';
+        overlay.style.bottom = 'auto';
+        e.preventDefault();
+      }
+      if (isResizing) {
+        const rect = overlay.getBoundingClientRect();
+        const newW = Math.max(80, Math.min(800, e.clientX - rect.left + 10));
+        const newH = Math.max(80, Math.min(800, e.clientY - rect.top + 10));
+        
+        if (camShape === 'circle') {
+          // Keep equal for circle
+          const size = Math.max(newW, newH);
+          overlay.style.width = size + 'px';
+          overlay.style.height = size + 'px';
+          camWidth = size;
+          camHeight = size;
+        } else {
+          overlay.style.width = newW + 'px';
+          overlay.style.height = newH + 'px';
+          camWidth = newW;
+          camHeight = newH;
+        }
+        // Sync back to main page
+        localStorage.setItem('droidcam_size_sync', JSON.stringify({ w: camWidth, h: camHeight }));
+        e.preventDefault();
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        overlay.style.transition = '';
+        // Sync position back to live monitor as percentage-based coordinates
+        const bodyW = document.body.clientWidth;
+        const bodyH = document.body.clientHeight;
+        const leftPx = parseFloat(overlay.style.left) || 0;
+        const topPx = parseFloat(overlay.style.top) || 0;
+        const leftPct = (leftPx / bodyW) * 100;
+        const topPct = (topPx / bodyH) * 100;
+        localStorage.setItem('droidcam_position', JSON.stringify({
+          leftPct: leftPct,
+          topPct: topPct,
+          timestamp: Date.now()
+        }));
+      }
+      if (isResizing) {
+        isResizing = false;
+      }
+    });
+
+    // Resize handle
+    resizeHandle.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      e.stopPropagation();
+      e.preventDefault();
+    });
+
+    // Touch support for dragging
+    overlay.addEventListener('touchstart', (e) => {
+      if (e.target === resizeHandle || e.target.closest('.droidcam-resize-handle')) return;
+      isDragging = true;
+      const touch = e.touches[0];
+      const rect = overlay.getBoundingClientRect();
+      dragOffset.x = touch.clientX - rect.left;
+      dragOffset.y = touch.clientY - rect.top;
+      overlay.style.transition = 'none';
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+      if (isDragging && e.touches.length > 0) {
+        const touch = e.touches[0];
+        const x = touch.clientX - dragOffset.x;
+        const y = touch.clientY - dragOffset.y;
+        overlay.style.left = x + 'px';
+        overlay.style.top = y + 'px';
+        overlay.style.right = 'auto';
+        overlay.style.bottom = 'auto';
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    document.addEventListener('touchend', () => {
+      if (isDragging) {
+        isDragging = false;
+        overlay.style.transition = '';
+      }
+    });
+
   </script>
 </body>
 </html>

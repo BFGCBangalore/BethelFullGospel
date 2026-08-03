@@ -693,6 +693,416 @@
         }
       };
     }
+
+    /* =========================================================
+       Live Monitor & DroidCam Controls
+       ========================================================= */
+    const lmFab = document.getElementById('liveMonitorFab');
+    const lmPanel = document.getElementById('liveMonitorPanel');
+    const lmContent = document.getElementById('lmContent');
+    const lmCamToggle = document.getElementById('lmCamToggle');
+    const lmCamControls = document.getElementById('lmCamControls');
+    const lmCamPreview = document.getElementById('lmCamPreview');
+    const lmCamVideo = document.getElementById('lmCamVideo');
+    const camShapeCircleBtn = document.getElementById('camShapeCircle');
+    const camShapeSquareBtn = document.getElementById('camShapeSquare');
+    const camShapeRectBtn = document.getElementById('camShapeRect');
+    const camShapeFullBtn = document.getElementById('camShapeFull');
+    const camWidthSlider = document.getElementById('camWidthSlider');
+    const camHeightSlider = document.getElementById('camHeightSlider');
+    const camWidthLbl = document.getElementById('camWidthLabel');
+    const camHeightLbl = document.getElementById('camHeightLabel');
+    const camDeviceSelect = document.getElementById('camDeviceSelect');
+    const fabIcon = document.getElementById('fabIcon');
+
+    let lmOpen = false;
+    let camActive = false;
+    let camShape = 'circle';
+    let camW = 150;
+    let camH = 150;
+    let lmCamStream = null; // Separate stream for live monitor preview
+
+    // Toggle Live Monitor panel
+    if (lmFab) {
+      lmFab.onclick = () => {
+        lmOpen = !lmOpen;
+        if (lmPanel) {
+          lmPanel.classList.toggle('open', lmOpen);
+        }
+        lmFab.classList.toggle('active', lmOpen);
+        if (fabIcon) {
+          fabIcon.className = lmOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-tv';
+        }
+        // Update mini preview on open
+        if (lmOpen) {
+          updateMiniPreview();
+          // If camera is active, start local preview stream
+          if (camActive && !lmCamStream) {
+            startLocalCamPreview();
+          } else if (camActive && lmCamStream && lmCamPreview) {
+            lmCamPreview.style.display = 'block';
+            lmCamPreview.classList.add(camShape);
+          }
+          // Try to populate camera list
+          populateCameraList();
+        } else {
+          // Hide local preview stream when panel closes, DO NOT stop camera
+          if (lmCamPreview) lmCamPreview.style.display = 'none';
+        }
+      };
+    }
+
+    // Update mini presenter preview
+    function updateMiniPreview() {
+      if (!lmContent) return;
+      const raw = localStorage.getItem('presenter_state');
+      if (!raw) {
+        lmContent.innerHTML = '<div class="mini-empty">Waiting for verse selection...</div>';
+        return;
+      }
+      try {
+        const state = JSON.parse(raw);
+        if (!state.ref) {
+          lmContent.innerHTML = '<div class="mini-empty">Waiting for verse selection...</div>';
+          return;
+        }
+        let html = `<div class="mini-ref">${state.ref}</div>`;
+        if (state.lang === 'en' || state.lang === 'en-kn' || state.lang === 'en-hi' || state.lang === 'all') {
+          html += `<div class="mini-verse-en">${state.enText}</div>`;
+        }
+        if (state.lang === 'kn' || state.lang === 'en-kn' || state.lang === 'kn-hi' || state.lang === 'all') {
+          html += `<div class="mini-verse-kn">${state.knText}</div>`;
+        }
+        if (state.lang === 'hi' || state.lang === 'en-hi' || state.lang === 'kn-hi' || state.lang === 'all') {
+          html += `<div class="mini-verse-hi">${state.hiText}</div>`;
+        }
+        lmContent.innerHTML = html;
+      } catch (e) {
+        lmContent.innerHTML = '<div class="mini-empty">Waiting for verse selection...</div>';
+      }
+    }
+
+    // Patch updatePresenterState to also update mini preview
+    const originalUpdatePresenter = updatePresenterState;
+    updatePresenterState = function() {
+      originalUpdatePresenter();
+      if (lmOpen) updateMiniPreview();
+    };
+
+    /* --- Local Camera Preview for Live Monitor --- */
+    async function startLocalCamPreview() {
+      if (!lmCamVideo || !lmCamPreview) return;
+      try {
+        const constraints = {
+          video: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            frameRate: { ideal: 30 }
+          }
+        };
+        // Use the same device if one is selected
+        const savedDevice = localStorage.getItem('droidcam_selected_device');
+        if (savedDevice) {
+          constraints.video.deviceId = { exact: savedDevice };
+        }
+        lmCamStream = await navigator.mediaDevices.getUserMedia(constraints);
+        lmCamVideo.srcObject = lmCamStream;
+        window.camStream = lmCamStream; // EXPORT FOR PRESENTER
+
+        if (lmOpen) {
+          lmCamPreview.style.display = 'block';
+          lmCamPreview.classList.remove('circle', 'square', 'rect', 'full');
+          lmCamPreview.classList.add(camShape);
+          updateMiniCamSize();
+        }
+        localStorage.setItem('droidcam_status', JSON.stringify({ active: true, timestamp: Date.now() }));
+      } catch (err) {
+        console.warn('Could not start local preview:', err);
+        localStorage.setItem('droidcam_status', JSON.stringify({ active: false, error: err.message, timestamp: Date.now() }));
+      }
+    }
+
+    function stopLocalCamPreview() {
+      if (lmCamStream) {
+        lmCamStream.getTracks().forEach(t => t.stop());
+        lmCamStream = null;
+        window.camStream = null; // CLEAR EXPORT
+      }
+      if (lmCamVideo) lmCamVideo.srcObject = null;
+      if (lmCamPreview) lmCamPreview.style.display = 'none';
+      localStorage.setItem('droidcam_status', JSON.stringify({ active: false, timestamp: Date.now() }));
+    }
+
+    /* --- Mini cam preview dragging inside Live Monitor --- */
+    let lmCamDragging = false;
+    let lmCamDragOffset = { x: 0, y: 0 };
+
+    if (lmCamPreview) {
+      lmCamPreview.addEventListener('mousedown', (e) => {
+        lmCamDragging = true;
+        const rect = lmCamPreview.getBoundingClientRect();
+        lmCamDragOffset.x = e.clientX - rect.left;
+        lmCamDragOffset.y = e.clientY - rect.top;
+        lmCamPreview.style.transition = 'none';
+        e.preventDefault();
+        e.stopPropagation();
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!lmCamDragging) return;
+        const container = document.getElementById('lmPreview');
+        if (!container) return;
+        const containerRect = container.getBoundingClientRect();
+        const x = e.clientX - containerRect.left - lmCamDragOffset.x;
+        const y = e.clientY - containerRect.top - lmCamDragOffset.y;
+        // Clamp within preview bounds
+        const maxX = containerRect.width - lmCamPreview.offsetWidth;
+        const maxY = containerRect.height - lmCamPreview.offsetHeight;
+        lmCamPreview.style.left = Math.max(0, Math.min(maxX, x)) + 'px';
+        lmCamPreview.style.top = Math.max(0, Math.min(maxY, y)) + 'px';
+        lmCamPreview.style.right = 'auto';
+        lmCamPreview.style.bottom = 'auto';
+        e.preventDefault();
+      });
+
+      document.addEventListener('mouseup', () => {
+        if (lmCamDragging) {
+          lmCamDragging = false;
+          lmCamPreview.style.transition = '';
+          // Sync drag position to presenter as percentage-based coordinates
+          const container = document.getElementById('lmPreview');
+          if (container) {
+            const containerRect = container.getBoundingClientRect();
+            const leftPx = parseFloat(lmCamPreview.style.left) || 0;
+            const topPx = parseFloat(lmCamPreview.style.top) || 0;
+            const leftPct = (leftPx / containerRect.width) * 100;
+            const topPct = (topPx / containerRect.height) * 100;
+            localStorage.setItem('droidcam_position', JSON.stringify({
+              leftPct: leftPct,
+              topPct: topPct,
+              timestamp: Date.now()
+            }));
+          }
+        }
+      });
+    }
+
+    /* --- Camera Device Selector --- */
+    let cachedDeviceList = null;
+    async function populateCameraList() {
+      if (!camDeviceSelect) return;
+      // Try to get from localStorage first (set by presenter)
+      const devicesJson = localStorage.getItem('droidcam_devices');
+      if (devicesJson) {
+        try {
+          const devices = JSON.parse(devicesJson);
+          if (devices.length > 0) {
+            cachedDeviceList = devices;
+            const savedDevice = localStorage.getItem('droidcam_selected_device');
+            camDeviceSelect.innerHTML = devices.map(d =>
+              `<option value="${d.deviceId}" ${d.deviceId === savedDevice ? 'selected' : ''}>${d.label}</option>`
+            ).join('');
+            return;
+          }
+        } catch(e) {}
+      }
+      // If no devices from presenter, try to enumerate directly
+      if (!cachedDeviceList) {
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoDevices = devices.filter(d => d.kind === 'videoinput');
+          if (videoDevices.length > 0) {
+            cachedDeviceList = videoDevices.map(d => ({
+              deviceId: d.deviceId,
+              label: d.label || `Camera ${videoDevices.indexOf(d) + 1}`
+            }));
+            localStorage.setItem('droidcam_devices', JSON.stringify(cachedDeviceList));
+            const savedDevice = localStorage.getItem('droidcam_selected_device');
+            camDeviceSelect.innerHTML = cachedDeviceList.map(d =>
+              `<option value="${d.deviceId}" ${d.deviceId === savedDevice ? 'selected' : ''}>${d.label}</option>`
+            ).join('');
+            return;
+          }
+        } catch(e) {}
+      }
+      if (cachedDeviceList && cachedDeviceList.length > 0) {
+        const savedDevice = localStorage.getItem('droidcam_selected_device');
+        camDeviceSelect.innerHTML = cachedDeviceList.map(d =>
+          `<option value="${d.deviceId}" ${d.deviceId === savedDevice ? 'selected' : ''}>${d.label}</option>`
+        ).join('');
+      } else {
+        camDeviceSelect.innerHTML = '<option value="">No cameras found</option>';
+      }
+    }
+
+    if (camDeviceSelect) {
+      camDeviceSelect.onchange = () => {
+        const deviceId = camDeviceSelect.value;
+        localStorage.setItem('droidcam_selected_device', deviceId);
+        // Restart local preview with new device
+        if (lmCamStream) {
+          stopLocalCamPreview();
+          startLocalCamPreview();
+        }
+      };
+    }
+
+    // Also listen for storage events (from presenter or other tabs)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'presenter_state' && lmOpen) {
+        updateMiniPreview();
+      }
+      // bible.js is now the master of the camera stream, so we don't listen to status changes from elsewhere
+      // Sync size from presenter resize handle
+      if (e.key === 'droidcam_size_sync') {
+        try {
+          const dims = JSON.parse(e.newValue);
+          if (camWidthSlider) { camWidthSlider.value = dims.w; camW = dims.w; }
+          if (camHeightSlider) { camHeightSlider.value = dims.h; camH = dims.h; }
+          if (camWidthLbl) camWidthLbl.textContent = dims.w;
+          if (camHeightLbl) camHeightLbl.textContent = dims.h;
+          // Also update mini cam preview size
+          if (lmCamPreview) {
+            lmCamPreview.style.width = dims.w + 'px';
+            lmCamPreview.style.height = dims.h + 'px';
+          }
+        } catch(e) {}
+      }
+      // Sync position from presenter drag
+      if (e.key === 'droidcam_position') {
+        try {
+          const pos = JSON.parse(e.newValue);
+          if (pos.leftPct !== undefined && pos.topPct !== undefined && lmCamPreview) {
+            const container = document.getElementById('lmPreview');
+            if (container) {
+              const containerRect = container.getBoundingClientRect();
+              lmCamPreview.style.left = (pos.leftPct / 100 * containerRect.width) + 'px';
+              lmCamPreview.style.top = (pos.topPct / 100 * containerRect.height) + 'px';
+              lmCamPreview.style.right = 'auto';
+              lmCamPreview.style.bottom = 'auto';
+            }
+          }
+        } catch(e) {}
+      }
+      // Camera device list updated
+      if (e.key === 'droidcam_devices') {
+        populateCameraList();
+      }
+    });
+
+    // DroidCam Toggle
+    if (lmCamToggle) {
+      lmCamToggle.onclick = () => {
+        camActive = !camActive;
+        lmCamToggle.classList.toggle('active', camActive);
+        if (lmCamControls) lmCamControls.classList.toggle('visible', camActive);
+        if (camActive) {
+          startLocalCamPreview();
+        } else {
+          stopLocalCamPreview();
+        }
+      };
+    }
+
+    // Shape buttons helper
+    function setAllShapeButtons(active) {
+      [camShapeCircleBtn, camShapeSquareBtn, camShapeRectBtn, camShapeFullBtn].forEach(b => {
+        if (b) b.classList.remove('active');
+      });
+      if (active) active.classList.add('active');
+    }
+
+    function sendShapeCommand(shape) {
+      camShape = shape;
+      localStorage.setItem('droidcam_command', JSON.stringify({
+        action: 'shape', value: shape, timestamp: Date.now()
+      }));
+      localStorage.setItem('droidcam_shape', shape);
+      // Update mini preview shape
+      if (lmCamPreview) {
+        lmCamPreview.classList.remove('circle', 'square', 'rect', 'full');
+        lmCamPreview.classList.add(shape);
+      }
+      if (shape === 'circle') {
+        const minDim = Math.min(camW, camH);
+        camW = minDim;
+        camH = minDim;
+        if (camWidthSlider) camWidthSlider.value = minDim;
+        if (camHeightSlider) camHeightSlider.value = minDim;
+        if (camWidthLbl) camWidthLbl.textContent = minDim;
+        if (camHeightLbl) camHeightLbl.textContent = minDim;
+      } else if (shape === 'rect') {
+        if (camW === camH) {
+          // Make it explicitly rectangular 16:9
+          camW = Math.min(Math.round(camH * 1.77), 500);
+          if (camWidthSlider) camWidthSlider.value = camW;
+          if (camWidthLbl) camWidthLbl.textContent = camW;
+        }
+      }
+      updateMiniCamSize();
+    }
+
+    if (camShapeCircleBtn) {
+      camShapeCircleBtn.onclick = () => { setAllShapeButtons(camShapeCircleBtn); sendShapeCommand('circle'); };
+    }
+    if (camShapeSquareBtn) {
+      camShapeSquareBtn.onclick = () => { setAllShapeButtons(camShapeSquareBtn); sendShapeCommand('square'); };
+    }
+    if (camShapeRectBtn) {
+      camShapeRectBtn.onclick = () => { setAllShapeButtons(camShapeRectBtn); sendShapeCommand('rect'); };
+    }
+    if (camShapeFullBtn) {
+      camShapeFullBtn.onclick = () => { setAllShapeButtons(camShapeFullBtn); sendShapeCommand('full'); };
+    }
+
+    // Helper to update mini cam preview size in live monitor proportionally to the 1920px presenter
+    function updateMiniCamSize() {
+      if (!lmCamPreview) return;
+      const container = document.getElementById('lmPreview');
+      const scale = (container && container.clientWidth > 0) ? (container.clientWidth / 1920) : 0.166;
+      lmCamPreview.style.width = (camW * scale) + 'px';
+      lmCamPreview.style.height = (camH * scale) + 'px';
+    }
+
+    // Width slider
+    if (camWidthSlider) {
+      camWidthSlider.oninput = () => {
+        camW = parseInt(camWidthSlider.value);
+        if (camWidthLbl) camWidthLbl.textContent = camW;
+        // For circle, sync height too
+        if (camShape === 'circle') {
+          camH = camW;
+          if (camHeightSlider) camHeightSlider.value = camW;
+          if (camHeightLbl) camHeightLbl.textContent = camW;
+        }
+        updateMiniCamSize();
+        localStorage.setItem('droidcam_command', JSON.stringify({
+          action: 'resize', width: camW, height: camH, timestamp: Date.now()
+        }));
+        localStorage.setItem('droidcam_width', String(camW));
+        localStorage.setItem('droidcam_height', String(camH));
+      };
+    }
+
+    // Height slider
+    if (camHeightSlider) {
+      camHeightSlider.oninput = () => {
+        camH = parseInt(camHeightSlider.value);
+        if (camHeightLbl) camHeightLbl.textContent = camH;
+        // For circle, sync width too
+        if (camShape === 'circle') {
+          camW = camH;
+          if (camWidthSlider) camWidthSlider.value = camH;
+          if (camWidthLbl) camWidthLbl.textContent = camH;
+        }
+        updateMiniCamSize();
+        localStorage.setItem('droidcam_command', JSON.stringify({
+          action: 'resize', width: camW, height: camH, timestamp: Date.now()
+        }));
+        localStorage.setItem('droidcam_width', String(camW));
+        localStorage.setItem('droidcam_height', String(camH));
+      };
+    }
   }
 
   if (document.readyState === 'loading') {
