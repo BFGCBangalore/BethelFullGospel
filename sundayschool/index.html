@@ -1101,6 +1101,10 @@ select.customized {
         <label>Parent Mobile Number</label>
         <input type="tel" id="mod-p-phone" placeholder="E.g. 9876543210" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)">
       </div>
+      <div class="form-group">
+        <label>Student Birthday (Optional)</label>
+        <input type="date" id="mod-st-dob" style="color:var(--text-main);">
+      </div>
       <div class="form-group" id="mod-class-group">
         <label>Assign to Class</label>
         <select id="mod-st-class" style="width:100%; padding:14px; border:2px solid var(--border); border-radius:var(--radius-md); font-family:'Outfit'; font-size:16px; font-weight:500; background:var(--surface-bg); outline:none;"></select>
@@ -3406,18 +3410,22 @@ function openStudentModal(studentId = null) {
   
   classSelect.innerHTML = DB.classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
   
-  if(studentId) {
+  if (studentId) {
+    editingStudentId = studentId;
     title.textContent = "Edit Student";
     const s = DB.students.find(x => x.id === studentId);
     document.getElementById('mod-st-name').value = s.name;
     document.getElementById('mod-p-name').value = s.parentName;
     document.getElementById('mod-p-phone').value = s.parentPhone;
+    document.getElementById('mod-st-dob').value = s.dob || '';
     classSelect.value = s.classId;
   } else {
+    editingStudentId = null;
     title.textContent = "Add Student";
     document.getElementById('mod-st-name').value = '';
     document.getElementById('mod-p-name').value = '';
     document.getElementById('mod-p-phone').value = '';
+    document.getElementById('mod-st-dob').value = '';
     if(editingClassId) classSelect.value = editingClassId;
   }
   
@@ -3439,6 +3447,7 @@ async function saveStudentModal() {
   const name = document.getElementById('mod-st-name').value.trim();
   const pName = document.getElementById('mod-p-name').value.trim();
   const pPhone = document.getElementById('mod-p-phone').value.trim();
+  const dob = document.getElementById('mod-st-dob').value;
   const cid = document.getElementById('mod-st-class').value;
   
   if(!name || !pName || !pPhone) {
@@ -3452,12 +3461,12 @@ async function saveStudentModal() {
   
   if(editingStudentId) {
     await updateDoc(doc(db, 'ss_students', editingStudentId), {
-      name: name, parentName: pName, parentPhone: pPhone, classId: cid
+      name: name, parentName: pName, parentPhone: pPhone, dob: dob, classId: cid
     });
   } else {
     const newRef = doc(collection(db, 'ss_students'));
     await setDoc(newRef, {
-      id: newRef.id, classId: cid, name: name, parentPhone: pPhone, parentName: pName, presentDays: 0, absentDays: 0
+      id: newRef.id, classId: cid, name: name, parentPhone: pPhone, parentName: pName, dob: dob, presentDays: 0, absentDays: 0
     });
   }
   
@@ -4993,5 +5002,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+  <script src="import_data.js"></script>
 </body>
 </html>
