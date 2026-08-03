@@ -891,47 +891,40 @@
     let cachedDeviceList = null;
     async function populateCameraList() {
       if (!camDeviceSelect) return;
-      // Try to get from localStorage first (set by presenter)
-      const devicesJson = localStorage.getItem('droidcam_devices');
-      if (devicesJson) {
-        try {
-          const devices = JSON.parse(devicesJson);
-          if (devices.length > 0) {
-            cachedDeviceList = devices;
-            const savedDevice = localStorage.getItem('droidcam_selected_device');
-            camDeviceSelect.innerHTML = devices.map(d =>
-              `<option value="${d.deviceId}" ${d.deviceId === savedDevice ? 'selected' : ''}>${d.label}</option>`
-            ).join('');
-            return;
+      try {
+        let devices = await navigator.mediaDevices.enumerateDevices();
+        let videoDevices = devices.filter(d => d.kind === 'videoinput');
+        
+        // If we don't have labels, we need to request permission first
+        const hasLabels = videoDevices.some(d => d.label);
+        if (!hasLabels) {
+          try {
+            const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            tempStream.getTracks().forEach(t => t.stop());
+            // Re-enumerate now that we have permission
+            devices = await navigator.mediaDevices.enumerateDevices();
+            videoDevices = devices.filter(d => d.kind === 'videoinput');
+          } catch (e) {
+            console.warn('Could not get camera permission for labels:', e);
           }
-        } catch(e) {}
-      }
-      // If no devices from presenter, try to enumerate directly
-      if (!cachedDeviceList) {
-        try {
-          const devices = await navigator.mediaDevices.enumerateDevices();
-          const videoDevices = devices.filter(d => d.kind === 'videoinput');
-          if (videoDevices.length > 0) {
-            cachedDeviceList = videoDevices.map(d => ({
-              deviceId: d.deviceId,
-              label: d.label || `Camera ${videoDevices.indexOf(d) + 1}`
-            }));
-            localStorage.setItem('droidcam_devices', JSON.stringify(cachedDeviceList));
-            const savedDevice = localStorage.getItem('droidcam_selected_device');
-            camDeviceSelect.innerHTML = cachedDeviceList.map(d =>
-              `<option value="${d.deviceId}" ${d.deviceId === savedDevice ? 'selected' : ''}>${d.label}</option>`
-            ).join('');
-            return;
-          }
-        } catch(e) {}
-      }
-      if (cachedDeviceList && cachedDeviceList.length > 0) {
-        const savedDevice = localStorage.getItem('droidcam_selected_device');
-        camDeviceSelect.innerHTML = cachedDeviceList.map(d =>
-          `<option value="${d.deviceId}" ${d.deviceId === savedDevice ? 'selected' : ''}>${d.label}</option>`
-        ).join('');
-      } else {
-        camDeviceSelect.innerHTML = '<option value="">No cameras found</option>';
+        }
+        
+        if (videoDevices.length > 0) {
+          cachedDeviceList = videoDevices.map(d => ({
+            deviceId: d.deviceId,
+            label: d.label || `Camera ${videoDevices.indexOf(d) + 1}`
+          }));
+          
+          const savedDevice = localStorage.getItem('droidcam_selected_device');
+          camDeviceSelect.innerHTML = cachedDeviceList.map(d =>
+            `<option value="${d.deviceId}" ${d.deviceId === savedDevice ? 'selected' : ''}>${d.label}</option>`
+          ).join('');
+        } else {
+          camDeviceSelect.innerHTML = '<option value="">No cameras found</option>';
+        }
+      } catch(e) {
+        console.error('Failed to enumerate cameras:', e);
+        camDeviceSelect.innerHTML = '<option value="">Error finding cameras</option>';
       }
     }
 
