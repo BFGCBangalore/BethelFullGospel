@@ -107,6 +107,73 @@
           </div>
   </div>
 
+  <!-- Live Monitor Floating Action Button -->
+  <button class="live-monitor-fab" id="liveMonitorFab" title="Live Monitor">
+    <i class="fa-solid fa-tv" id="fabIcon"></i>
+  </button>
+
+  <!-- Live Monitor Panel -->
+  <div class="live-monitor-panel" id="liveMonitorPanel">
+    <div class="lm-header">
+      <div class="lm-header-left">
+        <div class="lm-dot"></div>
+        <span class="lm-header-title">Live Monitor</span>
+      </div>
+      <div class="lm-header-actions">
+        <button class="lm-action-btn" id="lmCamToggle" title="Toggle Camera">
+          <i class="fa-solid fa-video"></i>
+        </button>
+        <button class="lm-action-btn" id="lmPopOutBtn" title="Open Presenter Window" onclick="window.open('presenter.html', 'PresenterView', 'width=1024,height=768')">
+          <i class="fa-solid fa-up-right-from-square"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Mini Presenter Preview -->
+    <div class="lm-preview" id="lmPreview">
+      <div class="mini-watermark">
+        <img src="logo.png" alt="">
+        <h2>Bethel Full Gospel Church</h2>
+      </div>
+      <div class="mini-content" id="lmContent">
+        <div class="mini-empty">Waiting for verse selection...</div>
+      </div>
+      <!-- Live camera preview inside mini monitor (draggable) -->
+      <div class="lm-cam-preview circle" id="lmCamPreview" style="display:none;">
+        <video id="lmCamVideo" autoplay muted playsinline></video>
+      </div>
+    </div>
+    <!-- DroidCam Controls -->
+    <div class="lm-cam-controls" id="lmCamControls">
+      <!-- Camera selector -->
+      <div style="display:flex;align-items:center;gap:6px;width:100%;margin-bottom:6px;">
+        <span class="lm-cam-label"><i class="fa-solid fa-camera" style="margin-right:3px;"></i>Cam:</span>
+        <select class="lm-cam-select" id="camDeviceSelect">
+          <option value="">Detecting cameras...</option>
+        </select>
+      </div>
+      <!-- Shape -->
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        <span class="lm-cam-label">Shape:</span>
+        <button class="lm-cam-btn active" id="camShapeCircle" data-shape="circle">⬤ Circle</button>
+        <button class="lm-cam-btn" id="camShapeSquare" data-shape="square">⬜ Square</button>
+        <button class="lm-cam-btn" id="camShapeRect" data-shape="rect">▬ Rect</button>
+        <button class="lm-cam-btn" id="camShapeFull" data-shape="full">🔲 Full</button>
+      </div>
+      <!-- Width -->
+      <div style="display:flex;align-items:center;gap:6px;width:100%;margin-top:6px;">
+        <span class="lm-cam-label">W:</span>
+        <input type="range" class="lm-cam-size-slider" id="camWidthSlider" min="80" max="500" value="150" step="5">
+        <span class="lm-cam-size-val" id="camWidthLabel">150</span>
+      </div>
+      <!-- Height -->
+      <div style="display:flex;align-items:center;gap:6px;width:100%;">
+        <span class="lm-cam-label">H:</span>
+        <input type="range" class="lm-cam-size-slider" id="camHeightSlider" min="80" max="500" value="150" step="5">
+        <span class="lm-cam-size-val" id="camHeightLabel">150</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer -->
 
   <!-- Firebase SDK -->
