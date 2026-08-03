@@ -2460,3 +2460,419 @@ img, video, iframe { max-width: 100%; }
     padding: 60px 0;
   }
 }
+
+/* =========================================================
+   Live Monitor & DroidCam Overlay
+   ========================================================= */
+
+/* Floating Action Button */
+.live-monitor-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--grad-1);
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(108, 92, 255, 0.45), 0 2px 8px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s var(--ease);
+  animation: fab-pulse 2s ease-in-out infinite;
+}
+.live-monitor-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 32px rgba(108, 92, 255, 0.6), 0 4px 12px rgba(0,0,0,0.3);
+}
+.live-monitor-fab.active {
+  background: linear-gradient(135deg, #ff5c5c, #ff3b3b);
+  box-shadow: 0 6px 24px rgba(255, 59, 59, 0.45);
+  animation: none;
+}
+@keyframes fab-pulse {
+  0%, 100% { box-shadow: 0 6px 24px rgba(108, 92, 255, 0.45), 0 2px 8px rgba(0,0,0,0.2); }
+  50% { box-shadow: 0 6px 32px rgba(108, 92, 255, 0.65), 0 2px 12px rgba(0,0,0,0.3); }
+}
+
+/* Live Monitor Panel */
+.live-monitor-panel {
+  position: fixed;
+  bottom: 96px;
+  right: 28px;
+  z-index: 9998;
+  width: 480px;
+  max-width: calc(100vw - 56px);
+  background: var(--surface-strong);
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+  overflow: hidden;
+  transform: translateY(20px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(20px);
+}
+.live-monitor-panel.open {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Panel Header */
+.lm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(108, 92, 255, 0.08);
+  border-bottom: 1px solid var(--border);
+}
+.lm-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lm-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ff5c5c;
+  animation: lm-blink 1.5s ease-in-out infinite;
+}
+@keyframes lm-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.lm-header-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.03em;
+}
+.lm-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.lm-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s var(--ease);
+}
+.lm-action-btn:hover {
+  color: var(--text);
+  border-color: var(--brand);
+  background: var(--border);
+}
+.lm-action-btn.active {
+  background: var(--grad-1);
+  color: #fff;
+  border-color: transparent;
+}
+
+/* Mini Presenter Preview */
+.lm-preview {
+  aspect-ratio: 16 / 9;
+  background: #0b0f1a;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.lm-preview .mini-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.04;
+  z-index: 1;
+  pointer-events: none;
+}
+.lm-preview .mini-watermark img {
+  width: 40%;
+  max-width: 160px;
+  margin-bottom: 8px;
+  filter: grayscale(100%) contrast(150%);
+}
+.lm-preview .mini-watermark h2 {
+  font-family: "Fraunces", serif;
+  font-size: 1rem;
+  text-align: center;
+  margin: 0;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+.lm-preview .mini-content {
+  position: relative;
+  z-index: 10;
+  width: 88%;
+  text-align: center;
+  color: #fff;
+}
+.lm-preview .mini-ref {
+  font-family: "Fraunces", serif;
+  color: #6c5cff;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.lm-preview .mini-verse-en {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #ffffff;
+}
+.lm-preview .mini-verse-kn,
+.lm-preview .mini-verse-hi {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+.lm-preview .mini-empty {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-style: italic;
+}
+
+/* DroidCam Overlay inside Presenter */
+.droidcam-overlay {
+  position: absolute;
+  z-index: 50;
+  overflow: hidden;
+  cursor: grab;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 3px rgba(108, 92, 255, 0.3);
+  transition: border-radius 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  user-select: none;
+  touch-action: none;
+}
+.droidcam-overlay.circle {
+  border-radius: 50%;
+}
+.droidcam-overlay.square {
+  border-radius: 16px;
+}
+.droidcam-overlay:active {
+  cursor: grabbing;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 4px rgba(108, 92, 255, 0.5);
+}
+.droidcam-overlay video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+/* DroidCam Resize Handle */
+.droidcam-resize-handle {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  z-index: 51;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.droidcam-overlay:hover .droidcam-resize-handle {
+  opacity: 0.7;
+}
+.droidcam-resize-handle::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid rgba(255,255,255,0.7);
+  border-bottom: 2px solid rgba(255,255,255,0.7);
+}
+
+/* DroidCam controls inside Live Monitor */
+.lm-cam-controls {
+  display: none;
+  padding: 10px 18px;
+  background: rgba(0,0,0,0.15);
+  border-top: 1px solid var(--border);
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.lm-cam-controls.visible {
+  display: flex;
+}
+.lm-cam-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-right: 4px;
+}
+.lm-cam-btn {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+.lm-cam-btn:hover {
+  color: var(--text);
+  border-color: var(--brand);
+}
+.lm-cam-btn.active {
+  background: var(--grad-1);
+  color: #fff;
+  border-color: transparent;
+}
+.lm-cam-size-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-strong);
+  outline: none;
+  cursor: pointer;
+}
+.lm-cam-size-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brand);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(108, 92, 255, 0.4);
+}
+.lm-cam-size-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brand);
+  cursor: pointer;
+  border: none;
+}
+
+/* Live Camera Preview inside Mini Monitor */
+.lm-cam-preview {
+  position: absolute;
+  z-index: 55;
+  width: 70px;
+  height: 70px;
+  bottom: 8px;
+  right: 8px;
+  overflow: hidden;
+  cursor: grab;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5), 0 0 0 2px rgba(108, 92, 255, 0.4);
+  transition: border-radius 0.3s ease;
+  user-select: none;
+}
+.lm-cam-preview:active {
+  cursor: grabbing;
+}
+.lm-cam-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+.lm-cam-preview.circle {
+  border-radius: 50%;
+}
+.lm-cam-preview.square {
+  border-radius: 8px;
+}
+.lm-cam-preview.rect {
+  border-radius: 6px;
+  width: 90px;
+  height: 55px;
+}
+
+/* Camera Device Selector */
+.lm-cam-select {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  font-family: "Inter", sans-serif;
+  transition: border-color 0.2s var(--ease);
+  max-width: 280px;
+}
+.lm-cam-select:hover,
+.lm-cam-select:focus {
+  border-color: var(--brand);
+}
+.lm-cam-select option {
+  background: var(--surface-strong);
+  color: var(--text);
+}
+
+/* Size value display */
+.lm-cam-size-val {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 28px;
+  text-align: right;
+}
+
+/* Rectangle shape for DroidCam overlay */
+.droidcam-overlay.rect {
+  border-radius: 12px;
+}
+
+/* Responsive for Live Monitor */
+@media (max-width: 560px) {
+  .live-monitor-panel {
+    width: calc(100vw - 32px);
+    right: 16px;
+    bottom: 88px;
+  }
+  .live-monitor-fab {
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+  .lm-cam-select {
+    max-width: 180px;
+  }
+}
