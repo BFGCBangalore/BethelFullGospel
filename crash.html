@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Failure</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        :root {
+            --bg-color: #030014;
+            --primary: #00f0ff;
+            --secondary: #ff0055;
+            --tertiary: #7000ff;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+        }
+
+        /* Animated Mesh Background */
+        .background {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(112, 0, 255, 0.15), transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.15), transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(255, 0, 85, 0.15), transparent 40%);
+            filter: blur(60px);
+            animation: breathe 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes breathe {
+            0% { opacity: 0.6; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1.1); }
+        }
+
+        /* Ambient Grid */
+        .grid {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            background-size: 50px 50px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: linear-gradient(to bottom, transparent, black, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, transparent, black, transparent);
+        }
+
+        /* Matrix Canvas */
+        #matrix-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        /* Main Glassmorphic Card */
+        .card {
+            position: relative;
+            z-index: 10;
+            background: rgba(15, 15, 25, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 40px;
+            padding: 4rem 5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: slideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            0% { transform: translateY(50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Image Styling */
+        .profile-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin-bottom: 2.5rem;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .halo {
+            position: absolute;
+            inset: -5px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, var(--primary), var(--tertiary), var(--secondary), var(--primary));
+            animation: spin 4s linear infinite;
+            filter: blur(15px);
+            opacity: 0.85;
+            z-index: -1;
+        }
+
+        .halo::after {
+            content: "";
+            position: absolute;
+            inset: -15px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, var(--primary), var(--tertiary), var(--secondary), var(--primary));
+            animation: spin 4s linear infinite reverse;
+            filter: blur(35px);
+            opacity: 0.5;
+            z-index: -2;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .profile-pic {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            margin: 0 0 0.5rem 0;
+            text-align: center;
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #a5a5a5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 500;
+            color: #ffffff;
+            margin: 0 0 3rem 0;
+            padding: 10px 25px;
+            background: rgba(255, 0, 85, 0.1);
+            border: 1px solid rgba(255, 0, 85, 0.3);
+            border-radius: 100px;
+            letter-spacing: 2px;
+            display: inline-block;
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.2);
+        }
+
+        .highlight {
+            color: var(--secondary);
+            font-weight: 700;
+            text-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
+        }
+
+        /* Terminal Window */
+        .terminal {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 240, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .terminal::before {
+            content: "ERROR LOG";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 240, 255, 0.1);
+            padding: 4px 15px;
+            font-size: 0.75rem;
+            color: rgba(0, 240, 255, 0.8);
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        .prompt {
+            color: #888;
+            margin-right: 15px;
+            margin-top: 15px;
+        }
+
+        .typing-container {
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 12px;
+            height: 1.1em;
+            background-color: var(--primary);
+            vertical-align: middle;
+            animation: blink 1s step-end infinite;
+            margin-left: 5px;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Glitch Effect on H1 */
+        .glitch-wrapper {
+            position: relative;
+        }
+
+        .glitch-wrapper::before,
+        .glitch-wrapper::after {
+            content: "SYSTEM CRASHED";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            -webkit-text-fill-color: white;
+        }
+
+        .glitch-wrapper::before {
+            left: 2px;
+            text-shadow: -2px 0 var(--secondary);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+            z-index: -1;
+        }
+
+        .glitch-wrapper::after {
+            left: -2px;
+            text-shadow: -2px 0 var(--primary);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+            z-index: -2;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(10px, 9999px, 83px, 0); }
+            20% { clip: rect(32px, 9999px, 14px, 0); }
+            40% { clip: rect(54px, 9999px, 98px, 0); }
+            60% { clip: rect(89px, 9999px, 11px, 0); }
+            80% { clip: rect(21px, 9999px, 63px, 0); }
+            100% { clip: rect(5px, 9999px, 45px, 0); }
+        }
+        
+        @keyframes glitch-anim2 {
+            0% { clip: rect(15px, 9999px, 94px, 0); }
+            20% { clip: rect(62px, 9999px, 34px, 0); }
+            40% { clip: rect(24px, 9999px, 78px, 0); }
+            60% { clip: rect(49px, 9999px, 51px, 0); }
+            80% { clip: rect(91px, 9999px, 23px, 0); }
+            100% { clip: rect(35px, 9999px, 65px, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <canvas id="matrix-canvas"></canvas>
+    <div class="grid"></div>
+    
+    <div class="card">
+        <div class="profile-container">
+            <div class="halo"></div>
+            <img src="images/developer/rahulpic.jpeg" alt="Developer Rahul" class="profile-pic">
+        </div>
+        
+        <h1 class="glitch-wrapper">SYSTEM CRASHED</h1>
+        <h2>Call the Developer: <span class="highlight">9591542901</span></h2>
+        
+        <div class="terminal">
+            <span class="prompt">root@bfgc:~$</span>
+            <div class="typing-container">
+                <span id="typed-text"></span><span class="cursor"></span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase Connection
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBd_8BSq9RnIQNMJCEI9QUr2OOvjcuUe-Y",
+          authDomain: "bfgc-carecell.firebaseapp.com",
+          projectId: "bfgc-carecell"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const docRef = doc(db, "config", "status");
+
+        onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                if (!docSnap.data().is_crashed) {
+                    window.location.href = 'presenter.html';
+                }
+            } else {
+                window.location.href = 'presenter.html';
+            }
+        });
+
+        // Typing Animation Logic
+        const messages = [
+            "Analyzing fatal exception...",
+            "Stack trace: NullPointer at deployment_module",
+            "Emergency protocols engaged.",
+            "Paging Rahul immediately...",
+            "Attempting to restart services...",
+            "Wait, who pushed straight to main?",
+            "Rebooting flux capacitors..."
+        ];
+
+        let messageIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let textElement = document.getElementById('typed-text');
+        
+        function type() {
+            const currentMessage = messages[messageIndex];
+            
+            if (isDeleting) {
+                textElement.textContent = currentMessage.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                textElement.textContent = currentMessage.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let typeSpeed = isDeleting ? 20 : 50;
+
+            if (!isDeleting && charIndex === currentMessage.length) {
+                typeSpeed = 2500; // Pause at end of sentence
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                messageIndex = (messageIndex + 1) % messages.length;
+                typeSpeed = 500; // Pause before new word
+            }
+
+            // Randomize typing speed for realism
+            if (!isDeleting) {
+                typeSpeed += Math.random() * 40;
+            }
+
+            setTimeout(type, typeSpeed);
+        }
+
+        setTimeout(type, 1500);
+
+        // Background Matrix Error Code Animation
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const errorSnippets = [
+            "ERR_CONNECTION_TIMED_OUT", "0x00000000", "0x00000001", "FATAL_EXCEPTION", 
+            "NULL_POINTER_EXCEPTION", "SEGMENTATION_FAULT", "Uncaught TypeError", 
+            "NetworkError", "101010", "010101", "CORE_DUMPED", "MEMORY_LEAK", 
+            "STACK_OVERFLOW", "NaN", "undefined is not a function"
+        ];
+        
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(3, 0, 20, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = fontSize + 'px "JetBrains Mono", monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                // Randomly pick an error snippet or character
+                const text = errorSnippets[Math.floor(Math.random() * errorSnippets.length)];
+                
+                // Random color between red and cyan based on the glitch vibe
+                ctx.fillStyle = Math.random() > 0.5 ? '#ff0055' : '#00f0ff';
+                
+                ctx.fillText(text, i * fontSize * 10, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                
+                // Speed up the drop rate slightly
+                drops[i] += 1.5;
+            }
+        }
+
+        // Run the background animation rapidly
+        setInterval(drawMatrix, 50);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
