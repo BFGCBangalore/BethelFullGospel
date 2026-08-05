@@ -7,10 +7,10 @@
     @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400;500;600&display=swap');
     
     :root {
-      --bg: #0b0f1a;
+      --bg: #000000;
       --text: #ffffff;
       --muted: rgba(255, 255, 255, 0.4);
-      --highlight: #6c5cff;
+      --highlight: #FFD700;
     }
     body {
       margin: 0;
@@ -149,7 +149,9 @@
     onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
             if (docSnap.data().is_crashed) {
-                window.location.href = 'crash.html';
+                setTimeout(() => {
+                    window.location.href = 'crash.html';
+                }, 2000);
             }
         }
     });
