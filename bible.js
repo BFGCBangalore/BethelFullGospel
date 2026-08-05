@@ -701,6 +701,7 @@
     const lmPanel = document.getElementById('liveMonitorPanel');
     const lmContent = document.getElementById('lmContent');
     const lmCamToggle = document.getElementById('lmCamToggle');
+    const lmCamProjectToggle = document.getElementById('lmCamProjectToggle');
     const lmCamControls = document.getElementById('lmCamControls');
     const lmCamPreview = document.getElementById('lmCamPreview');
     const lmCamVideo = document.getElementById('lmCamVideo');
@@ -717,6 +718,7 @@
 
     let lmOpen = false;
     let camActive = false;
+    let camProjected = false;
     let camShape = 'circle';
     let camW = 150;
     let camH = 150;
@@ -795,9 +797,8 @@
       try {
         const constraints = {
           video: {
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            frameRate: { ideal: 30 }
+            width: { ideal: 4096 },
+            height: { ideal: 2160 }
           }
         };
         // Use the same device if one is selected
@@ -815,7 +816,7 @@
           lmCamPreview.classList.add(camShape);
           updateMiniCamSize();
         }
-        localStorage.setItem('droidcam_status', JSON.stringify({ active: true, timestamp: Date.now() }));
+        localStorage.setItem('droidcam_status', JSON.stringify({ active: camProjected, timestamp: Date.now() }));
       } catch (err) {
         console.warn('Could not start local preview:', err);
         localStorage.setItem('droidcam_status', JSON.stringify({ active: false, error: err.message, timestamp: Date.now() }));
@@ -831,6 +832,13 @@
       if (lmCamVideo) lmCamVideo.srcObject = null;
       if (lmCamPreview) lmCamPreview.style.display = 'none';
       localStorage.setItem('droidcam_status', JSON.stringify({ active: false, timestamp: Date.now() }));
+      
+      camProjected = false;
+      if (lmCamProjectToggle) {
+          lmCamProjectToggle.classList.remove('active');
+          lmCamProjectToggle.style.color = '';
+          lmCamProjectToggle.style.display = 'none';
+      }
     }
 
     /* --- Mini cam preview dragging inside Live Monitor --- */
@@ -988,12 +996,23 @@
       lmCamToggle.onclick = () => {
         camActive = !camActive;
         lmCamToggle.classList.toggle('active', camActive);
+        if (lmCamProjectToggle) lmCamProjectToggle.style.display = camActive ? 'flex' : 'none';
         if (lmCamControls) lmCamControls.classList.toggle('visible', camActive);
         if (camActive) {
           startLocalCamPreview();
         } else {
           stopLocalCamPreview();
         }
+      };
+    }
+
+    if (lmCamProjectToggle) {
+      lmCamProjectToggle.onclick = () => {
+        if (!camActive) return;
+        camProjected = !camProjected;
+        lmCamProjectToggle.classList.toggle('active', camProjected);
+        lmCamProjectToggle.style.color = camProjected ? '#ef4444' : '';
+        localStorage.setItem('droidcam_status', JSON.stringify({ active: camProjected, timestamp: Date.now() }));
       };
     }
 
