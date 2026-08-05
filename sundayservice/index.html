@@ -1426,7 +1426,7 @@
       </div>
       <div class="qlm-list" id="qlm-list">
         <!-- Songs populated by JS -->
-      
+      </div>
     </div>
   </div>
 
@@ -1438,7 +1438,7 @@
       <div class="modal-actions">
         <button class="modal-btn-cancel" id="delete-cancel">Cancel</button>
         <button class="modal-btn-danger" id="delete-confirm">Delete</button>
-      
+      </div>
     </div>
   </div>
 
@@ -1510,6 +1510,21 @@
         document.getElementById('user-email-display').title = user.email;
         const initial = user.email ? user.email.charAt(0).toUpperCase() : 'W';
         document.querySelector('.sb-avatar').textContent = initial;
+
+        window.currentUserRole = null;
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            window.currentUserRole = userDoc.data().role;
+            document.querySelector('.sb-urole').textContent = window.currentUserRole || 'Service Manager';
+          } else {
+            document.querySelector('.sb-urole').textContent = 'Service Manager';
+          }
+        } catch(e) {
+          console.error("Error fetching role:", e);
+          document.querySelector('.sb-urole').textContent = 'Service Manager';
+        }
+
         await loadSongs();
       } else {
         clearInterval(sessionInterval);
@@ -1762,7 +1777,7 @@
                 ${song.isFavorite ? 'Unfavorite' : 'Favorite'}
               </button>
               <button class="btn-edit" title="Edit song"><i class="ti ti-pencil"></i> Edit</button>
-              <button class="btn-del" title="Delete song"><i class="ti ti-trash"></i> Delete</button>
+              ${window.currentUserRole === 'superadmin' ? `<button class="btn-del" title="Delete song"><i class="ti ti-trash"></i> Delete</button>` : ''}
             </div>
           </div>`;
 
@@ -1781,6 +1796,16 @@
           e.stopPropagation();
           quickPresentSong(song);
         });
+
+        const delBtn = card.querySelector('.btn-del');
+        if (delBtn) {
+          delBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.remove('active');
+            card.classList.remove('has-active-menu');
+            confirmDeleteSong(song);
+          });
+        }
 
         const moreBtn = card.querySelector('.btn-more');
         const menu = card.querySelector('.song-actions-menu');
@@ -1822,13 +1847,6 @@
           menu.classList.remove('active');
           card.classList.remove('has-active-menu');
           editSong(song);
-        });
-
-        card.querySelector('.btn-del').addEventListener('click', (e) => {
-          e.stopPropagation();
-          menu.classList.remove('active');
-          card.classList.remove('has-active-menu');
-          confirmDeleteSong(song);
         });
 
         container.appendChild(card);
