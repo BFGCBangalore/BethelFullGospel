@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Song Presenter — Bethel Full Gospel Church</title>
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="icon" type="image/png" href="../logo.png">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400;500;600&display=swap');
 
@@ -20,6 +20,10 @@
             --muted: rgba(255,255,255,0.4);
             --highlight: #6c5cff;
             --transition-speed: 0.5s;
+            --canvas-w: 1920;
+            --canvas-h: 1080;
+            --text-shadow-strong: 0 2px 20px rgba(0,0,0,0.5), 0 0 60px rgba(108,92,255,0.08);
+            --text-shadow-weak: 0 2px 16px rgba(0,0,0,0.4);
         }
 
         html, body {
@@ -36,9 +40,32 @@
             cursor: default;
         }
 
-        /* ── Subtle animated gradient background ── */
-        .bg-gradient {
+        /* ── Canvas Wrapper — centers the scaled slide ── */
+        .canvas-wrapper {
             position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* ── Fixed 1920×1080 Slide Canvas ── */
+        .slide-canvas {
+            width: 1920px;
+            height: 1080px;
+            position: relative;
+            transform-origin: center center;
+            /* scale set by JS */
+            background: var(--bg);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        /* ── Subtle animated gradient background inside canvas ── */
+        .bg-gradient {
+            position: absolute;
             inset: 0;
             z-index: 0;
             background:
@@ -56,7 +83,7 @@
 
         /* ── Church logo watermark ── */
         .watermark-logo {
-            position: fixed;
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -77,13 +104,13 @@
 
         /* ── Church name watermark ── */
         .watermark-name {
-            position: fixed;
+            position: absolute;
             bottom: 32px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1;
             font-family: 'Fraunces', serif;
-            font-size: 1em;
+            font-size: 18px;
             letter-spacing: 0.25em;
             text-transform: uppercase;
             color: rgba(255,255,255,0.06);
@@ -92,12 +119,11 @@
             transition: opacity 1s ease;
         }
 
-        /* ── Main content area ── */
+        /* ── Main content area inside canvas ── */
         .presenter-container {
-            position: relative;
+            position: absolute;
+            inset: 0;
             z-index: 2;
-            width: 100%;
-            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -108,10 +134,10 @@
         /* ── Slide label (Verse 1, Chorus, etc.) ── */
         .slide-label {
             font-family: 'Fraunces', serif;
-            font-size: 2.5em;
+            font-size: 42px;
             font-weight: 500;
             color: var(--highlight);
-            margin-bottom: 0.4em;
+            margin-bottom: 16px;
             letter-spacing: 0.04em;
             text-transform: capitalize;
             opacity: 0;
@@ -124,10 +150,9 @@
             transform: translateY(0);
         }
 
-        /* ── Lyrics blocks ── */
         .lyrics-block {
             line-height: 1.55;
-            max-width: 90%;
+            max-width: 100%;
             margin: 0 auto;
             white-space: pre-wrap;
             word-break: break-word;
@@ -142,27 +167,27 @@
         }
 
         .lyrics-en {
-            font-size: 4em;
+            font-size: 64px;
             font-weight: 600;
             color: var(--text);
-            text-shadow: 0 2px 20px rgba(0,0,0,0.5), 0 0 60px rgba(108,92,255,0.08);
-            margin-bottom: 0.35em;
+            text-shadow: var(--text-shadow-strong);
+            margin-bottom: 14px;
         }
 
         .lyrics-kn,
         .lyrics-hi {
-            font-size: 3.5em;
+            font-size: 56px;
             font-weight: 500;
             color: rgba(255,255,255,0.78);
-            text-shadow: 0 2px 16px rgba(0,0,0,0.4);
-            margin-bottom: 0.3em;
+            text-shadow: var(--text-shadow-weak);
+            margin-bottom: 12px;
         }
 
         .lyrics-divider {
             width: 60px;
             height: 2px;
             background: linear-gradient(90deg, transparent, var(--highlight), transparent);
-            margin: 0.3em auto 0.5em;
+            margin: 12px auto 20px;
             border-radius: 2px;
             opacity: 0.5;
         }
@@ -170,7 +195,7 @@
         /* ── Waiting / idle state ── */
         .waiting-message {
             font-family: 'Fraunces', serif;
-            font-size: 2em;
+            font-size: 36px;
             color: var(--muted);
             text-align: center;
             letter-spacing: 0.04em;
@@ -215,6 +240,7 @@
 
         /* ── Controls bar (hover) ── */
         .controls-bar {
+            display: none !important;
             position: fixed;
             bottom: 0;
             left: 0;
@@ -341,19 +367,80 @@
             opacity: 1;
             transform: translate(-50%, -50%) scale(1);
         }
-    </style>
+    
+/* DroidCam Overlay Styles for Presenter */
+.droidcam-overlay {
+  position: absolute;
+  z-index: 10000;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 3px solid rgba(255,255,255,0.2);
+  transition: border-radius 0.3s ease;
+  user-select: none;
+}
+.droidcam-overlay.circle {
+  border-radius: 50%;
+}
+.droidcam-overlay.square {
+  border-radius: 20px;
+}
+.droidcam-overlay.rect {
+  border-radius: 12px;
+}
+.droidcam-overlay.full {
+  border-radius: 0;
+  border: none;
+  width: 100% !important;
+  height: 100% !important;
+  top: 0 !important;
+  left: 0 !important;
+  bottom: auto !important;
+  right: auto !important;
+  box-shadow: none;
+}
+.droidcam-overlay.full .droidcam-resize-handle {
+  display: none !important;
+}
+.droidcam-overlay:active {
+  cursor: grabbing;
+  border-color: rgba(255,255,255,0.5);
+}
+.droidcam-overlay video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+.droidcam-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  cursor: nwse-resize;
+  z-index: 10001;
+  background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.3) 50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: auto;
+}
+.droidcam-overlay:hover .droidcam-resize-handle {
+  opacity: 1;
+}
+.droidcam-resize-handle::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+}
+</style>
 </head>
 <body>
-    <!-- Background gradient removed to match stage display's solid black background -->
-
-    <!-- Church logo watermark -->
-    <div class="watermark-logo">
-        <img src="logo.png" alt="" aria-hidden="true">
-    </div>
-
-    <!-- Church name watermark -->
-    <div class="watermark-name">Bethel Full Gospel Church</div>
-
     <!-- Blank screen overlay -->
     <div class="blank-overlay" id="blankOverlay"></div>
 
@@ -362,17 +449,34 @@
         <div class="song-title-text" id="songTitleText"></div>
     </div>
 
-    <!-- Main content -->
-    <div class="presenter-container" id="presenterContainer">
-        <!-- Slide label -->
-        <div class="slide-label" id="slideLabel"></div>
+    <!-- Canvas Wrapper — centers the scaled slide -->
+    <div class="canvas-wrapper" id="canvasWrapper">
+        <!-- Fixed 1920×1080 Slide Canvas -->
+        <div class="slide-canvas" id="slideCanvas">
+            <!-- Background gradient -->
+            <div class="bg-gradient"></div>
 
-        <!-- Lyrics content -->
-        <div id="lyricsContent"></div>
+            <!-- Church logo watermark -->
+            <div class="watermark-logo">
+                <img src="../logo.png" alt="" aria-hidden="true">
+            </div>
 
-        <!-- Waiting message -->
-        <div class="waiting-message" id="waitingMessage">
-            Waiting for song selection<span class="dot-pulse">.</span><span class="dot-pulse">.</span><span class="dot-pulse">.</span>
+            <!-- Church name watermark -->
+            <div class="watermark-name">Bethel Full Gospel Church</div>
+
+            <!-- Main content -->
+            <div class="presenter-container" id="presenterContainer">
+                <!-- Slide label -->
+                <div class="slide-label" id="slideLabel"></div>
+
+                <!-- Lyrics content -->
+                <div id="lyricsContent"></div>
+
+                <!-- Waiting message -->
+                <div class="waiting-message" id="waitingMessage">
+                    Waiting for song selection<span class="dot-pulse">.</span><span class="dot-pulse">.</span><span class="dot-pulse">.</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -394,18 +498,21 @@
         <span class="ctrl-hint">← → Space &nbsp;|&nbsp; F fullscreen &nbsp;|&nbsp; B blank</span>
     </div>
 
-    <!-- Toast notification -->
-    <div class="toast" id="toast"></div>
 
     <script>
         /* ══════════════════════════════════════════
            Song Presenter — Bethel Full Gospel Church
+           Fixed 1920×1080 canvas with CSS transform scaling
            ══════════════════════════════════════════ */
 
+        const CANVAS_W = 1920;
+        const CANVAS_H = 1080;
         const STORAGE_KEY = 'song_presenter_state';
         const CONTROLS_TIMEOUT = 2000;
 
         // DOM refs
+        const slideCanvas = document.getElementById('slideCanvas');
+        const canvasWrapper = document.getElementById('canvasWrapper');
         const slideLabel = document.getElementById('slideLabel');
         const lyricsContent = document.getElementById('lyricsContent');
         const waitingMessage = document.getElementById('waitingMessage');
@@ -413,24 +520,25 @@
         const controlsBar = document.getElementById('controlsBar');
         const songTitleBar = document.getElementById('songTitleBar');
         const songTitleText = document.getElementById('songTitleText');
-        const toast = document.getElementById('toast');
         const btnPrev = document.getElementById('btnPrev');
         const btnNext = document.getElementById('btnNext');
         const btnBlank = document.getElementById('btnBlank');
         const btnFullscreen = document.getElementById('btnFullscreen');
 
         let controlsTimer = null;
-        let toastTimer = null;
         let isBlank = false;
-        let currentState = null;
 
-        /* ── Toast ── */
-        function showToast(message, duration = 1200) {
-            toast.textContent = message;
-            toast.classList.add('show');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => toast.classList.remove('show'), duration);
+        /* ── Scale canvas to fit window ── */
+        function scaleCanvas() {
+            const wrapW = window.innerWidth;
+            const wrapH = window.innerHeight;
+            const scale = Math.min(wrapW / CANVAS_W, wrapH / CANVAS_H);
+            slideCanvas.style.transform = `scale(${scale})`;
         }
+
+        window.addEventListener('resize', scaleCanvas);
+        window.addEventListener('load', scaleCanvas);
+        scaleCanvas();
 
         /* ── Controls visibility ── */
         function showControls() {
@@ -453,19 +561,20 @@
         /* ── Fullscreen ── */
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
-                showToast('Fullscreen');
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
             } else {
                 document.exitFullscreen();
-                showToast('Exited Fullscreen');
             }
         }
+
+        document.addEventListener('fullscreenchange', scaleCanvas);
 
         /* ── Blank screen ── */
         function toggleBlank() {
             isBlank = !isBlank;
             blankOverlay.classList.toggle('active', isBlank);
-            showToast(isBlank ? 'Screen Blanked' : 'Screen Restored');
         }
 
         /* ── Convert \n to <br> ── */
@@ -476,7 +585,6 @@
 
         /* ── Render lyrics ── */
         function renderPresenter(state) {
-            currentState = state;
 
             if (!state) {
                 // No data — show waiting
@@ -498,6 +606,19 @@
 
             waitingMessage.classList.remove('visible');
 
+            // Apply Quick Presenter Theme (White background, Black text)
+            if (state.isQuickPresenter) {
+                document.documentElement.style.setProperty('--bg', '#ffffff');
+                document.documentElement.style.setProperty('--text', '#000000');
+                document.documentElement.style.setProperty('--text-shadow-strong', 'none');
+                document.documentElement.style.setProperty('--text-shadow-weak', 'none');
+            } else {
+                document.documentElement.style.setProperty('--bg', '#000000');
+                document.documentElement.style.setProperty('--text', '#ffffff');
+                document.documentElement.style.setProperty('--text-shadow-strong', '0 2px 20px rgba(0,0,0,0.5), 0 0 60px rgba(108,92,255,0.08)');
+                document.documentElement.style.setProperty('--text-shadow-weak', '0 2px 16px rgba(0,0,0,0.4)');
+            }
+
             const scaleFactor = (state.fontSize || 13) / 13;
 
             // Song title in hover bar
@@ -512,8 +633,7 @@
             // Build slide label
             if (state.slideLabel) {
                 slideLabel.textContent = state.slideLabel;
-                slideLabel.style.fontSize = `${2.5 * scaleFactor}em`;
-                // Trigger reflow for re-animation
+                slideLabel.style.fontSize = `${42 * scaleFactor}px`;
                 slideLabel.classList.remove('visible');
                 requestAnimationFrame(() => {
                     requestAnimationFrame(() => {
@@ -525,12 +645,22 @@
                 slideLabel.textContent = '';
             }
 
-            // Build lyrics HTML
+            // Build lyrics HTML — all sizes in px for fixed canvas
             let html = '';
             let blockIndex = 0;
 
+            let enSize = Math.round(64 * scaleFactor);
+            if (state.isQuickPresenter) {
+                enSize = Math.round(96 * scaleFactor);
+            }
+            const knHiSize = Math.round(56 * scaleFactor);
+
             if (showEn && state.en) {
-                html += `<div class="lyrics-block lyrics-en" style="font-size:${4 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.en)}</div>`;
+                if (state.enIsHtml) {
+                    html += `<div class="lyrics-block lyrics-en" style="font-size:${enSize}px; transition-delay:${blockIndex * 0.08}s">${state.en}</div>`;
+                } else {
+                    html += `<div class="lyrics-block lyrics-en" style="font-size:${enSize}px; transition-delay:${blockIndex * 0.08}s">${nl2br(state.en)}</div>`;
+                }
                 blockIndex++;
             }
 
@@ -539,7 +669,7 @@
             }
 
             if (showKn && state.kn) {
-                html += `<div class="lyrics-block lyrics-kn" style="font-size:${3.5 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.kn)}</div>`;
+                html += `<div class="lyrics-block lyrics-kn" style="font-size:${knHiSize}px; transition-delay:${blockIndex * 0.08}s">${nl2br(state.kn)}</div>`;
                 blockIndex++;
             }
 
@@ -548,7 +678,7 @@
             }
 
             if (showHi && state.hi) {
-                html += `<div class="lyrics-block lyrics-hi" style="font-size:${3.5 * scaleFactor}em; transition-delay:${blockIndex * 0.08}s">${nl2br(state.hi)}</div>`;
+                html += `<div class="lyrics-block lyrics-hi" style="font-size:${knHiSize}px; transition-delay:${blockIndex * 0.08}s">${nl2br(state.hi)}</div>`;
                 blockIndex++;
             }
 
@@ -560,22 +690,24 @@
             lyricsContent.style.textAlign = state.align || 'center';
 
             setTimeout(() => {
-                lyricsContent.style.fontSize = '1em';
-                if (state.slideLabel) {
-                    slideLabel.style.fontSize = `${2.5 * scaleFactor}em`;
-                }
                 lyricsContent.innerHTML = html;
 
                 requestAnimationFrame(() => {
+                    // Auto-shrink if content overflows the 1080px canvas
                     const container = document.getElementById('presenterContainer');
-                    const maxH = container.clientHeight - 120; // accounting for 60px padding top/bottom
+                    const maxH = CANVAS_H - 120; // 60px padding top + bottom
                     const contentH = slideLabel.offsetHeight + lyricsContent.offsetHeight;
 
                     if (contentH > maxH && maxH > 0) {
                         const shrinkRatio = maxH / contentH;
-                        lyricsContent.style.fontSize = shrinkRatio + 'em';
+                        // Scale down all text proportionally
+                        lyricsContent.querySelectorAll('.lyrics-block').forEach(b => {
+                            const currentFontSize = parseFloat(b.style.fontSize);
+                            b.style.fontSize = Math.round(currentFontSize * shrinkRatio) + 'px';
+                        });
                         if (state.slideLabel) {
-                            slideLabel.style.fontSize = `${2.5 * scaleFactor * shrinkRatio}em`;
+                            const labelSize = parseFloat(slideLabel.style.fontSize);
+                            slideLabel.style.fontSize = Math.round(labelSize * shrinkRatio) + 'px';
                         }
                     }
 
@@ -594,6 +726,7 @@
                 if (!raw) return null;
                 return JSON.parse(raw);
             } catch (e) {
+                console.warn('Failed to parse song presenter state:', e);
                 return null;
             }
         }
@@ -629,11 +762,9 @@
                 e.preventDefault();
                 // Dispatch next slide event to control page
                 localStorage.setItem('song_presenter_nav', JSON.stringify({ action: 'next', ts: Date.now() }));
-                showToast('Next →');
             } else if (key === 'arrowleft') {
                 e.preventDefault();
                 localStorage.setItem('song_presenter_nav', JSON.stringify({ action: 'prev', ts: Date.now() }));
-                showToast('← Previous');
             } else if (key === 'escape') {
                 if (isBlank) {
                     toggleBlank();
@@ -641,15 +772,12 @@
             }
         });
 
-        /* ── Button clicks ── */
         btnPrev.addEventListener('click', () => {
             localStorage.setItem('song_presenter_nav', JSON.stringify({ action: 'prev', ts: Date.now() }));
-            showToast('← Previous');
         });
 
         btnNext.addEventListener('click', () => {
             localStorage.setItem('song_presenter_nav', JSON.stringify({ action: 'next', ts: Date.now() }));
-            showToast('Next →');
         });
 
         btnBlank.addEventListener('click', toggleBlank);
@@ -659,5 +787,180 @@
         renderPresenter(readState());
         lastStateJSON = localStorage.getItem(STORAGE_KEY);
     </script>
+
+    <!-- DroidCam Camera Overlay (MUST be before the camera script) -->
+    <div class="droidcam-overlay circle" id="droidcamOverlay" style="display:none; width:150px; height:150px; bottom:40px; right:40px;">
+      <video id="droidcamVideo" autoplay muted playsinline></video>
+      <div class="droidcam-resize-handle" id="droidcamResize"></div>
+    </div>
+
+    <script>
+    // DroidCam Overlay Logic
+    const overlay = document.getElementById('droidcamOverlay');
+    const video = document.getElementById('droidcamVideo');
+    const resizeHandle = document.getElementById('droidcamResize');
+    
+    let camShape = 'circle';
+    let camWidth = 150;
+    let camHeight = 150;
+    
+    let isDragging = false;
+    let isResizing = false;
+    let dragStartX, dragStartY;
+    let overlayStartX, overlayStartY;
+    let startW, startH;
+
+    function applySavedShapeAndSize() {
+      const savedShape = localStorage.getItem('droidcam_shape');
+      if (savedShape) {
+        try {
+          const s = JSON.parse(savedShape);
+          camShape = s.shape || 'circle';
+          camWidth = parseInt(s.w) || 150;
+          camHeight = parseInt(s.h) || 150;
+        } catch(e) { console.warn('Failed to parse droidcam_shape:', e); }
+      }
+
+      overlay.classList.remove('circle', 'square', 'rect', 'full');
+      overlay.classList.add(camShape);
+      
+      if (camShape === 'full') {
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.left = '0px';
+        overlay.style.top = '0px';
+        overlay.style.right = 'auto';
+        overlay.style.bottom = 'auto';
+      } else {
+        overlay.style.width = camWidth + 'px';
+        overlay.style.height = camHeight + 'px';
+        applySavedPosition();
+      }
+    }
+
+    function applySavedPosition() {
+      if (camShape === 'full') return;
+      const savedPos = localStorage.getItem('droidcam_position');
+      if (savedPos) {
+        try {
+          const pos = JSON.parse(savedPos);
+          if (pos.leftPct !== undefined && pos.topPct !== undefined) {
+            const bodyW = document.body.clientWidth;
+            const bodyH = document.body.clientHeight;
+            overlay.style.left = (pos.leftPct / 100 * bodyW) + 'px';
+            overlay.style.top = (pos.topPct / 100 * bodyH) + 'px';
+            overlay.style.right = 'auto';
+            overlay.style.bottom = 'auto';
+          }
+        } catch(e) { console.warn('Failed to parse droidcam_position:', e); }
+      }
+    }
+
+    function checkCameraStatus() {
+      const statusStr = localStorage.getItem('droidcam_status');
+      if (statusStr) {
+        try {
+          const status = JSON.parse(statusStr);
+          if (status.active && window.opener && window.opener.camStream) {
+            video.srcObject = window.opener.camStream;
+            overlay.style.display = 'block';
+            applySavedShapeAndSize();
+          } else {
+            video.srcObject = null;
+            overlay.style.display = 'none';
+          }
+        } catch(e) { console.warn('Failed to parse droidcam_status:', e); }
+      } else {
+          video.srcObject = null;
+          overlay.style.display = 'none';
+      }
+    }
+
+    checkCameraStatus();
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'droidcam_status') {
+        checkCameraStatus();
+      }
+      if (e.key === 'droidcam_shape') {
+        applySavedShapeAndSize();
+      }
+      if (e.key === 'droidcam_position') {
+        applySavedPosition();
+      }
+    });
+
+    overlay.addEventListener('mousedown', (e) => {
+      if (e.target === resizeHandle || e.target.closest('.droidcam-resize-handle')) return;
+      if (camShape === 'full') return;
+      isDragging = true;
+      document.body.style.cursor = 'grabbing';
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      overlayStartX = overlay.offsetLeft;
+      overlayStartY = overlay.offsetTop;
+      e.stopPropagation();
+    });
+
+    resizeHandle.addEventListener('mousedown', (e) => {
+      if (camShape === 'full') return;
+      isResizing = true;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      startW = overlay.offsetWidth;
+      startH = overlay.offsetHeight;
+      e.stopPropagation();
+      e.preventDefault();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDragging) {
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        overlay.style.left = (overlayStartX + dx) + 'px';
+        overlay.style.top = (overlayStartY + dy) + 'px';
+        overlay.style.right = 'auto';
+        overlay.style.bottom = 'auto';
+      }
+      
+      if (isResizing) {
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        
+        if (camShape === 'circle') {
+          const dMax = Math.max(dx, dy);
+          let newDim = Math.max(80, startW + dMax);
+          camWidth = newDim;
+          camHeight = newDim;
+          overlay.style.width = newDim + 'px';
+          overlay.style.height = newDim + 'px';
+        } else {
+          camWidth = Math.max(80, startW + dx);
+          camHeight = Math.max(80, startH + dy);
+          overlay.style.width = camWidth + 'px';
+          overlay.style.height = camHeight + 'px';
+        }
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        document.body.style.cursor = '';
+        
+        const leftPct = (overlay.offsetLeft / document.body.clientWidth) * 100;
+        const topPct = (overlay.offsetTop / document.body.clientHeight) * 100;
+        localStorage.setItem('droidcam_position', JSON.stringify({
+          leftPct: leftPct,
+          topPct: topPct,
+          timestamp: Date.now()
+        }));
+      }
+      if (isResizing) {
+        isResizing = false;
+        localStorage.setItem('droidcam_shape', JSON.stringify({ w: camWidth, h: camHeight, shape: camShape }));
+      }
+    });
+</script>
 </body>
 </html>

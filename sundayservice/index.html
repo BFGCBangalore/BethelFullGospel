@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sunday Service — Bethel Full Gospel Church</title>
-  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="icon" type="image/png" href="../logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -158,6 +158,9 @@
     .d.sidebar-collapsed { grid-template-columns: 0px 1fr; }
     .d.sidebar-collapsed .sidebar { padding: 0; border: none; }
     .d.active { display: grid; }
+    
+    /* Hide topbar entirely when in quick presenter view for full screen layout */
+    .d.in-quick-view .topbar { display: none; }
 
     /* Sidebar */
     .sidebar {
@@ -212,15 +215,17 @@
       border-bottom: 0.5px solid var(--color-border-tertiary);
     }
     .tb-left { display: flex; align-items: center; gap: 12px; }
-    .tb-title { font-size: 16px; font-weight: 600; color: var(--color-text-primary); }
+    .tb-title { font-size: 16px; font-weight: 600; color: var(--color-text-primary); margin: 0; }
     .tb-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
     .tb-right { display: flex; align-items: center; gap: 10px; }
     .date-badge { font-size: 11px; color: var(--color-text-secondary); background: var(--color-background-secondary); padding: 5px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); }
-    .content { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; flex: 1; }
+    .content { display: flex; flex-direction: column; overflow-y: auto; flex: 1; min-height: 0; }
+    .padded-view { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
 
     /* View Toggle */
     .view-section { display: none; animation: fadeIn 0.3s ease; }
     .view-section.active { display: flex; flex-direction: column; gap: 14px; }
+    #view-quick.active, #view-live.active { flex: 1; min-height: 0; overflow: hidden; gap: 0; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
     /* ========== SEARCH & FILTERS ========== */
@@ -368,10 +373,14 @@
     .live-panel {
       display: none;
       background: var(--color-background-primary);
-      border: 1px solid var(--color-border-tertiary);
-      border-radius: var(--border-radius-lg);
       overflow: hidden;
       animation: fadeIn 0.3s ease;
+      flex: 1;
+    }
+    /* When inside a padded view (Live Control), give it card styling */
+    .padded-view .live-panel {
+      border: 1px solid var(--color-border-tertiary);
+      border-radius: var(--border-radius-lg);
     }
     .live-panel.active { display: flex; flex-direction: column; }
     .live-body { display: flex; flex: 1; min-height: 0; }
@@ -387,7 +396,7 @@
       display: flex; flex-direction: column;
       border-right: 1px solid var(--color-border-tertiary);
       background: var(--color-background-secondary);
-      max-height: 420px;
+      min-height: 0; overflow: hidden;
     }
     .slide-sidebar::-webkit-scrollbar { width: 4px; }
     .slide-sidebar::-webkit-scrollbar-thumb { background: var(--color-border-tertiary); border-radius: 4px; }
@@ -397,7 +406,11 @@
       transition: all 0.15s; text-align: left; font-family: inherit;
     }
     .slide-mini:hover { border-color: var(--primary-color); }
-    .slide-mini.active { border-color: var(--primary-color); background: var(--primary-light); }
+    .slide-mini.active { border-color: var(--primary-color); background: var(--primary-light); box-shadow: 0 0 0 2px var(--primary-color); }
+    .slide-mini.live { border-color: #ef4444 !important; background: #fef2f2 !important; box-shadow: 0 0 0 2px #ef4444 !important; }
+    .slide-mini.active.live { border-color: #a855f7 !important; background: #f3e8ff !important; box-shadow: 0 0 0 2px #a855f7 !important; }
+    body.dark-mode .slide-mini.live { background: rgba(239, 68, 68, 0.15) !important; }
+    body.dark-mode .slide-mini.active.live { background: rgba(168, 85, 247, 0.15) !important; }
     .slide-mini.paused-on { border-color: #f59e0b; background: #fffbeb; }
     .slide-mini-label {
       font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
@@ -413,9 +426,9 @@
 
     /* Pause badge */
     .pause-badge {
-      display: none; position: absolute; top: 12px; right: 12px; z-index: 5;
-      background: #ef4444; color: white; padding: 4px 12px; border-radius: 999px;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+      display: none; position: absolute; top: 0.3em; right: 0.3em; z-index: 5;
+      background: #ef4444; color: white; padding: 0.15em 0.4em; border-radius: 999px;
+      font-size: 0.25em; font-weight: 700; letter-spacing: 0.05em;
       animation: pausePulse 1.5s ease-in-out infinite;
     }
     .pause-badge.active { display: flex; align-items: center; gap: 5px; }
@@ -462,6 +475,162 @@
     .font-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
     .font-label { font-size: 11px; color: var(--color-text-secondary); min-width: 32px; text-align: center; }
 
+    /* ── PPT-Style Rich Editor ── */
+    .quick-format-toolbar {
+      display: flex; align-items: center; gap: 4px; padding: 8px 16px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+      background: var(--color-background-primary); flex-wrap: wrap;
+    }
+    .quick-format-toolbar .fmt-separator {
+      width: 1px; height: 22px; background: var(--color-border-tertiary); margin: 0 6px; flex-shrink: 0;
+    }
+    .quick-format-toolbar .fmt-btn {
+      width: 32px; height: 32px; border-radius: 6px; border: 1px solid transparent;
+      background: transparent; cursor: pointer; font-family: inherit;
+      font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; color: var(--color-text-secondary);
+    }
+    .quick-format-toolbar .fmt-btn:hover { background: var(--color-background-secondary); border-color: var(--color-border-tertiary); }
+    .quick-format-toolbar .fmt-btn.active { background: var(--primary-light); color: var(--primary-color); border-color: var(--primary-color); }
+    .quick-format-toolbar .fmt-btn i { font-size: 16px; }
+    .quick-format-toolbar .color-picker-wrap {
+      position: relative; display: flex; align-items: center;
+    }
+    .quick-format-toolbar .color-picker-wrap input[type="color"] {
+      width: 0; height: 0; padding: 0; border: none; position: absolute; left: 0; top: 100%; opacity: 0;
+    }
+    .quick-format-toolbar .color-swatch {
+      width: 16px; height: 16px; border-radius: 3px; border: 1.5px solid var(--color-border-tertiary);
+      margin-left: 4px; cursor: pointer;
+    }
+    .quick-format-toolbar .fmt-size-group {
+      display: flex; align-items: center; gap: 2px;
+    }
+    .quick-format-toolbar .fmt-size-label {
+      font-size: 12px; font-weight: 600; color: var(--color-text-primary);
+      min-width: 36px; text-align: center; padding: 0 4px;
+      background: var(--color-background-secondary); border-radius: 4px;
+      height: 28px; display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--color-border-tertiary);
+    }
+
+    /* ── Fixed 1920×1080 Slide Canvas System ── */
+    .ppt-canvas-wrapper {
+      flex: 1; min-height: 0; min-width: 0;
+      overflow: hidden; 
+      background: #e6e6e6; /* PowerPoint standard gray workspace */
+      position: relative;
+    }
+    .ppt-canvas {
+      width: 1920px; height: 1080px;
+      position: absolute;
+      top: 50%; left: 50%;
+      margin-top: -540px;
+      margin-left: -960px;
+      transform-origin: center center;
+      /* scale set by JS */
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3); /* PowerPoint-like drop shadow */
+      border: 1px solid #ccc;
+      background: #ffffff; /* Classic White PowerPoint Slide */
+    }
+    .ppt-canvas-editor {
+      background: transparent; color: #000000; /* Black text on white slide */
+      padding: 60px 80px; font-size: 96px; line-height: 1.55; font-weight: 600;
+      font-family: inherit; outline: none; overflow-y: auto; overflow-x: hidden;
+      white-space: pre-wrap; word-break: break-word; cursor: text;
+      width: 100%; height: 100%;
+      box-sizing: border-box;
+      border: none;
+      display: flex; flex-direction: column; align-items: stretch; justify-content: center; text-align: center;
+    }
+    .ppt-canvas-editor:focus-within { 
+      outline: none;
+    }
+    .ppt-canvas-editor:empty::before {
+      content: attr(data-placeholder);
+      color: #999; font-style: normal; pointer-events: none;
+    }
+    .ppt-canvas-editor div { min-height: 1.7em; }
+
+    /* Preview monitor — same fixed canvas but read-only */
+    .ppt-canvas-preview {
+      background: #0b0f1a; color: white;
+      padding: 60px 80px;
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      overflow: hidden; text-align: center;
+      font-size: 22px; line-height: 1.6; font-weight: 500;
+    }
+    .ppt-canvas-preview .preview-text {
+      white-space: pre-wrap; word-break: break-word; width: 100%;
+    }
+    .ppt-canvas-preview .preview-empty {
+      color: rgba(255,255,255,0.15); font-style: italic; font-size: 36px;
+    }
+
+    /* Aspect ratio label */
+    .canvas-label {
+      font-size: 12px; font-weight: 600; color: var(--color-text-secondary);
+      padding: 6px 16px; margin: 0; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .canvas-label .ratio-badge {
+      font-size: 10px; color: var(--color-text-secondary); opacity: 0.6;
+      background: var(--color-background-secondary); padding: 2px 8px; border-radius: 4px;
+    }
+
+    /* Song Library Picker Modal */
+    .quick-library-modal {
+      display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); z-index: 999; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    .quick-library-modal.active { display: flex; }
+    .quick-library-modal .qlm-box {
+      background: var(--color-background-primary); border-radius: var(--border-radius-lg);
+      width: 580px; max-width: 92vw; max-height: 80vh; display: flex; flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: cardIn 0.3s ease;
+      overflow: hidden;
+    }
+    .quick-library-modal .qlm-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--color-border-tertiary);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .quick-library-modal .qlm-header h3 {
+      font-size: 15px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px;
+    }
+    .quick-library-modal .qlm-search {
+      padding: 12px 20px; border-bottom: 1px solid var(--color-border-tertiary);
+    }
+    .quick-library-modal .qlm-search input {
+      width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-tertiary);
+      border-radius: 6px; font-size: 13px; font-family: inherit; outline: none;
+      background: var(--color-background-secondary); color: var(--color-text-primary);
+    }
+    .quick-library-modal .qlm-search input:focus { border-color: var(--primary-color); }
+    .quick-library-modal .qlm-list {
+      flex: 1; overflow-y: auto; padding: 8px;
+    }
+    .quick-library-modal .qlm-item {
+      display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+      border-radius: 8px; cursor: pointer; transition: all 0.15s; border: none;
+      background: transparent; width: 100%; text-align: left; font-family: inherit;
+    }
+    .quick-library-modal .qlm-item:hover { background: var(--primary-light); }
+    .quick-library-modal .qlm-item-icon {
+      width: 36px; height: 36px; border-radius: 8px; background: var(--primary-light);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      color: var(--primary-color); font-size: 16px;
+    }
+    .quick-library-modal .qlm-item-info { flex: 1; min-width: 0; }
+    .quick-library-modal .qlm-item-title {
+      font-size: 13px; font-weight: 600; color: var(--color-text-primary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .quick-library-modal .qlm-item-meta {
+      font-size: 11px; color: var(--color-text-secondary); margin-top: 2px;
+    }
+
     .live-slide-search {
       display: flex; align-items: center; gap: 8px; padding: 10px 20px;
       border-bottom: 1px solid var(--color-border-tertiary);
@@ -490,39 +659,42 @@
     .slide-tab.bridge-tab.active { background: #2563eb; border-color: #2563eb; }
 
     .live-preview {
-      background: #0b0f1a; color: white; padding: 40px; min-height: 250px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      text-align: center; position: relative;
+      /* Inherits mostly from ppt-canvas-editor now */
+      position: relative;
     }
     .live-preview .preview-label {
-      font-size: 16px; color: #6c5cff; font-weight: 600; margin-bottom: 16px; letter-spacing: 0.5px;
+      font-size: 0.4em; color: #6c5cff; font-weight: 600; margin-bottom: 0.5em; letter-spacing: 0.05em;
     }
-    .live-preview .preview-text { font-size: 22px; line-height: 1.6; font-weight: 500; }
-    .live-preview .preview-text.kn, .live-preview .preview-text.hi { opacity: 0.85; font-size: 20px; margin-top: 12px; }
-    .live-preview .preview-empty { color: rgba(255,255,255,0.3); font-style: italic; font-size: 16px; }
+    .live-preview .preview-text { font-size: 1em; line-height: 1.6; font-weight: 500; }
+    .live-preview .preview-text.kn, .live-preview .preview-text.hi { opacity: 0.85; font-size: 0.9em; margin-top: 0.2em; }
+    .live-preview .preview-empty { color: rgba(0,0,0,0.3); font-style: italic; font-size: 0.5em; }
 
     .live-edit-panel {
       display: none; padding: 16px 20px; background: var(--color-background-primary);
-      border-top: 1px solid var(--color-border-tertiary); animation: cardIn 0.3s ease;
+      border-left: 1px solid var(--color-border-tertiary); animation: cardIn 0.3s ease;
+      width: 300px; min-width: 300px; flex-shrink: 0; flex-direction: column; overflow-y: auto;
     }
-    .live-edit-panel.active { display: block; }
-    .live-edit-panel h4 { font-size: 13px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; color: var(--primary-color); }
-    .live-edit-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .live-edit-panel.active { display: flex; }
+    .live-edit-panel h4 { font-size: 13px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; color: var(--primary-color); flex-shrink: 0; }
+    .live-edit-row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; flex: 1; }
     .live-edit-row label { font-size: 11px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 4px; display: block; }
+    .live-edit-row > div { display: flex; flex-direction: column; flex: 1; min-height: 100px; }
     .live-edit-row textarea {
-      width: 100%; min-height: 80px; border: 1px solid var(--color-border-tertiary);
+      width: 100%; flex: 1; border: 1px solid var(--color-border-tertiary);
       border-radius: var(--border-radius-md); padding: 8px 10px; font-size: 12px;
-      font-family: inherit; resize: vertical; background: var(--color-background-secondary);
+      font-family: inherit; resize: none; background: var(--color-background-secondary);
       color: var(--color-text-primary); outline: none; transition: border-color 0.15s;
     }
     .live-edit-row textarea:focus { border-color: var(--primary-color); }
-    .live-edit-actions { display: flex; gap: 8px; justify-content: flex-end; }
-    @media (max-width: 768px) { .live-edit-row { grid-template-columns: 1fr; } }
+    .live-edit-actions { display: flex; gap: 8px; justify-content: flex-end; flex-shrink: 0; }
+    @media (max-width: 900px) { 
+      .live-edit-panel { position: absolute; right: 0; top: 0; bottom: 0; z-index: 100; box-shadow: -5px 0 20px rgba(0,0,0,0.1); }
+    }
 
     .live-nav {
       padding: 14px 20px; border-top: 1px solid var(--color-border-tertiary);
       display: flex; align-items: center; justify-content: center; gap: 10px;
-      background: var(--color-background-secondary);
+      background: var(--color-background-secondary); flex-shrink: 0;
     }
     .nav-btn {
       padding: 8px 20px; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500;
@@ -612,33 +784,6 @@
     .import-item:last-child { border-bottom: none; }
 
     /* ========== FLOATING DEV WIDGET ========== */
-    .floating-dev {
-      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-      display: flex; align-items: center; gap: 12px;
-      background: white; padding: 6px; border-radius: 999px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid var(--color-border-tertiary);
-      text-decoration: none; color: var(--color-text-primary);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      width: 64px; height: 64px; overflow: hidden;
-    }
-    .floating-dev:hover { width: 240px; box-shadow: 0 14px 45px rgba(0,0,0,0.2); }
-    .floating-dev-img {
-      width: 52px; height: 52px; border-radius: 50%; object-fit: cover;
-      flex-shrink: 0; position: relative; z-index: 2; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .floating-dev-status {
-      position: absolute; bottom: 10px; left: 44px; width: 14px; height: 14px;
-      background: #22c55e; border-radius: 50%; border: 2px solid white; z-index: 3;
-    }
-    .floating-dev-text {
-      white-space: nowrap; opacity: 0; transform: translateX(-10px);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex: 1;
-    }
-    .floating-dev:hover .floating-dev-text { opacity: 1; transform: translateX(0); }
-    .floating-dev-title { font-size: 13px; font-weight: 600; line-height: 1.2; color: #111827; }
-    .floating-dev-sub { font-size: 11px; color: #059669; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
-    .floating-dev-sub i { font-size: 14px; }
-
     /* ========== RESPONSIVE ========== */
     @media (max-width: 768px) {
       .d { grid-template-columns: 0px 1fr; }
@@ -648,14 +793,166 @@
       .form-row-2 { grid-template-columns: 1fr; }
       .live-controls-row { flex-direction: column; align-items: flex-start; }
     }
-  </style>
+  
+/* Floating Camera Panel */
+.floating-cam-panel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 300px;
+  background: var(--color-background-primary);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  display: none;
+  flex-direction: column;
+  z-index: 10000;
+  overflow: hidden;
+}
+.floating-cam-panel.visible {
+  display: flex;
+}
+.floating-cam-header {
+  background: var(--color-background-secondary);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-tertiary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+.floating-cam-header-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+}
+.floating-cam-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cam-preview-box {
+  width: 100%;
+  height: 160px;
+  background: #000;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cam-preview-box video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cam-control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.cam-control-row label {
+  min-width: 45px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+.cam-control-row select, .cam-control-row input[type=range] {
+  flex: 1;
+  min-width: 0;
+}
+.cam-shape-btns {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+.cam-shape-btn {
+  flex: 1;
+  background: var(--color-background-secondary);
+  border: 1px solid var(--color-border-tertiary);
+  color: var(--color-text-primary);
+  border-radius: 4px;
+  padding: 4px 0;
+  cursor: pointer;
+  font-size: 11px;
+}
+.cam-shape-btn.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+.btn-cam-toggle {
+  background: none;
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.btn-cam-toggle:hover {
+  background: var(--color-background-secondary);
+}
+.btn-cam-toggle.active {
+  background: var(--danger-color);
+  color: white;
+  border-color: var(--danger-color);
+}
+
+/* DroidCam Overlay Styles for Presenter */
+.droidcam-overlay {
+  position: absolute;
+  z-index: 10000;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 3px solid rgba(255,255,255,0.2);
+  transition: border-radius 0.3s ease;
+  user-select: none;
+}
+.droidcam-overlay.circle {
+  border-radius: 50%;
+}
+.droidcam-overlay.square {
+  border-radius: 20px;
+}
+.droidcam-overlay.rect {
+  border-radius: 12px;
+}
+.droidcam-overlay.full {
+  border-radius: 0;
+  border: none;
+  width: 100% !important;
+  height: 100% !important;
+  top: 0 !important;
+  left: 0 !important;
+  bottom: auto !important;
+  right: auto !important;
+  box-shadow: none;
+}
+.droidcam-overlay video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+</style>
 </head>
 <body>
 
   <!-- Login Screen -->
   <div id="login-screen" class="auth-wrapper active">
     <div class="auth-card">
-      <div class="auth-logo"><img src="logo.png" alt="BFGC Logo"></div>
+      <div class="auth-logo"><img src="../logo.png" alt="BFGC Logo"></div>
       <h2>Sunday Service</h2>
       <p class="auth-sub">Sign in to manage worship songs & lyrics</p>
       <form id="login-form">
@@ -673,7 +970,7 @@
       
       <a href="https://wa.me/919591542901" target="_blank" class="help-desk-btn">
          <div class="hdb-avatars">
-            <img src="images/developer/rahulpic.jpeg" alt="Developer" class="hdb-pic">
+            <img src="../images/developer/rahulpic.jpeg" alt="Developer" class="hdb-pic">
             <div class="hdb-icon"><i class="ti ti-brand-whatsapp"></i></div>
          </div>
          <div class="hdb-info">
@@ -702,12 +999,12 @@
         <button class="nav-item" data-view="live"><i class="ti ti-broadcast" aria-hidden="true"></i>Live Control</button>
         <button class="nav-item" id="btn-popout-sidebar"><i class="ti ti-external-link" aria-hidden="true"></i>Pop Out Display</button>
         <div class="nav-section-label">Navigation</div>
-        <a href="bible.html" class="nav-item" style="text-decoration:none;"><i class="ti ti-book" aria-hidden="true"></i>Bible Reader</a>
-        <a href="index.html" class="nav-item" style="text-decoration:none;"><i class="ti ti-home" aria-hidden="true"></i>Main Website</a>
+        <a href="../bible.html" class="nav-item" style="text-decoration:none;"><i class="ti ti-book" aria-hidden="true"></i>Bible Reader</a>
+        <a href="../index.html" class="nav-item" style="text-decoration:none;"><i class="ti ti-home" aria-hidden="true"></i>Main Website</a>
       </div>
       <div class="sb-bottom">
         <a href="https://wa.me/919591542901" target="_blank" class="developer-tag">
-          <img src="images/developer/rahulpic.jpeg" alt="Rahul Suresh">
+          <img src="../images/developer/rahulpic.jpeg" alt="Rahul Suresh">
           <div style="flex:1;min-width:0;">
             <div class="dev-title">Facing issue?</div>
             <div class="dev-sub">Call developer</div>
@@ -738,13 +1035,14 @@
           </div>
         </div>
         <div class="tb-right">
+          
           <div class="date-badge" id="date-badge"></div>
         </div>
       </div>
 
       <div class="content">
         <!-- VIEW: Song Library -->
-        <div id="view-library" class="view-section active">
+        <div id="view-library" class="view-section padded-view active">
           <div class="search-bar">
             <i class="ti ti-search"></i>
             <input type="text" id="search-input" placeholder="Search songs by title, first line, or keyword...">
@@ -754,7 +1052,7 @@
         </div>
 
         <!-- VIEW: Add/Edit Song -->
-        <div id="view-add-song" class="view-section">
+        <div id="view-add-song" class="view-section padded-view">
           <div class="form-panel">
             <h3 id="form-title"><i class="ti ti-plus" aria-hidden="true"></i> Add New Song</h3>
             <div class="form-row">
@@ -776,6 +1074,7 @@
                   <option value="Children">👶 Children</option>
                   <option value="Hymns">📖 Hymns</option>
                   <option value="General">🎵 General</option>
+                  <option value="Folder">📁 Folder</option>
                 </select>
               </div>
             </div>
@@ -796,7 +1095,7 @@
         </div>
 
         <!-- VIEW: Bulk Import -->
-        <div id="view-import" class="view-section">
+        <div id="view-import" class="view-section padded-view">
           <div class="form-panel">
             <h3><i class="ti ti-file-import" aria-hidden="true"></i> Bulk Import Songs</h3>
             <p style="font-size:13px; color:var(--color-text-secondary); margin-bottom:20px;">
@@ -827,11 +1126,21 @@
           <div id="live-no-song" class="empty-state">
             <i class="ti ti-broadcast"></i>
             <p>No song selected</p>
-            <p class="sub">Go to Song Library and click a song to start presenting</p>
+            <p class="sub">Choose an option below to start presenting:</p>
+            <div style="display:flex; gap: 16px; margin-top: 20px; justify-content:center;">
+                <button class="btn-save" id="btn-live-empty-library" style="padding: 10px 20px;"><i class="ti ti-music"></i> Song Library</button>
+                <button class="btn-cancel" id="btn-live-empty-import" style="padding: 10px 20px; border: 1px solid var(--primary-color); color: var(--primary-color);"><i class="ti ti-upload"></i> Choose File</button>
+            </div>
           </div>
           <div id="live-panel" class="live-panel">
             <div class="live-header">
-              <div class="live-song-title" id="live-title">Song Title</div>
+              <div style="display:flex; align-items:center; gap:16px;">
+                <div class="live-song-title" id="live-title">Song Title</div>
+                <div style="display:flex; gap: 8px;">
+                  <button class="nav-btn" id="btn-live-header-import" style="color:var(--primary-color); border-color:var(--primary-color); padding:6px 12px; font-size:12px;" title="Import from file"><i class="ti ti-upload"></i> Choose File</button>
+                  <button class="nav-btn" id="btn-live-header-library" style="color:var(--primary-color); border-color:var(--primary-color); padding:6px 12px; font-size:12px;" title="Pick from Song Library"><i class="ti ti-music"></i> Song Library</button>
+                </div>
+              </div>
               <div style="display: flex; gap: 8px;">
                 <button class="nav-btn btn-popout" id="btn-popout-stage" title="Pop out stage display"><i class="ti ti-device-desktop"></i> Stage Display</button>
                 <button class="nav-btn btn-popout" id="btn-popout-live" title="Pop out presenter"><i class="ti ti-external-link"></i> Pop Out</button>
@@ -857,40 +1166,98 @@
                 <button class="font-btn" data-align="right" title="Right"><i class="ti ti-align-right" style="font-size:14px;"></i></button>
               </div>
             </div>
-            <div class="live-body">
-              <!-- Slide Sidebar -->
-              <div class="slide-sidebar" id="slide-sidebar"></div>
+            <div class="live-body" style="flex:1; min-height:0; overflow:hidden;">
+              <!-- Slide Sidebar Wrapper -->
+              <div id="live-sidebar-wrap" style="width:220px; min-width:220px; display:flex; flex-direction:column; border-right:1px solid var(--color-border-tertiary); background:var(--color-background-secondary); flex-shrink:0; min-height:0; overflow:hidden;">
+                <div class="sidebar-tabs" style="display:flex; border-bottom:1px solid var(--color-border-tertiary); flex-shrink:0;">
+                  <button class="sidebar-tab active" onclick="switchSidebarTab('live', 'slides')" id="tab-live-slides" style="flex:1; padding:10px; background:none; border:none; cursor:pointer; color:var(--color-text-primary); font-size:13px; font-weight:600; border-bottom:2px solid var(--color-primary);">Slides</button>
+                  <button class="sidebar-tab" onclick="switchSidebarTab('live', 'camera')" id="tab-live-camera" style="flex:1; padding:10px; background:none; border:none; cursor:pointer; color:var(--color-text-secondary); font-size:13px; border-bottom:2px solid transparent;">Camera</button>
+                </div>
+                <div id="content-live-slides" style="display:flex; flex-direction:column; flex:1; min-height:0;">
+                  <div style="padding:10px; border-bottom:1px solid var(--color-border-tertiary); position:relative; flex-shrink:0;">
+                    <input type="text" id="live-search-input" placeholder="Search lyrics..." style="width:100%; padding:6px 24px 6px 8px; border:1px solid var(--color-border-tertiary); border-radius:4px; font-size:12px; background:var(--color-background-primary); color:var(--color-text-primary);">
+                    <button id="live-search-clear" style="position:absolute; right:18px; top:16px; background:none; border:none; cursor:pointer; color:var(--color-text-secondary); display:none; padding:0;"><i class="ti ti-x"></i></button>
+                  </div>
+                  <div class="slide-sidebar" id="slide-sidebar" style="flex:1; width:100%; min-width:0; border-right:none; max-height:none; padding-top:10px;">
+                    <!-- Mini slides go here -->
+                  </div>
+                </div>
+                <div id="content-live-camera" style="display:none; flex-direction:column; flex:1; overflow-y:auto; padding:15px; gap:15px;">
+                  <button id="btnToggleCamera-live" class="btn btn-primary" style="width:100%; display:flex; justify-content:center; gap:8px;"><i class="ti ti-video"></i> <span>Start Camera</span></button>
+                  <div style="background:#000; border-radius:8px; overflow:hidden; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center;">
+                    <video id="localCamVideo-live" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+                  </div>
+                  <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-size:12px; color:var(--color-text-secondary);">Camera Device</label>
+                    <select id="camDeviceSelect-live" class="form-control" style="font-size:12px; padding:6px;"></select>
+                  </div>
+                  <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-size:12px; color:var(--color-text-secondary);">Shape</label>
+                    <div style="display:flex; gap:4px;">
+                      <button class="nav-btn cam-shape-btn cam-shape-btn-live active" data-shape="circle" style="flex:1; font-size:11px; padding:4px;">Circle</button>
+                      <button class="nav-btn cam-shape-btn cam-shape-btn-live" data-shape="square" style="flex:1; font-size:11px; padding:4px;">Square</button>
+                      <button class="nav-btn cam-shape-btn cam-shape-btn-live" data-shape="rect" style="flex:1; font-size:11px; padding:4px;">Rect</button>
+                      <button class="nav-btn cam-shape-btn cam-shape-btn-live" data-shape="full" style="flex:1; font-size:11px; padding:4px;">Full</button>
+                    </div>
+                  </div>
+                  <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-size:12px; color:var(--color-text-secondary); display:flex; justify-content:space-between;">Width <span id="camWidthLbl-live">150px</span></label>
+                    <input type="range" id="camWidthSlider-live" min="50" max="800" value="150" style="width:100%;">
+                  </div>
+                  <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-size:12px; color:var(--color-text-secondary); display:flex; justify-content:space-between;">Height <span id="camHeightLbl-live">150px</span></label>
+                    <input type="range" id="camHeightSlider-live" min="50" max="800" value="150" style="width:100%;">
+                  </div>
+                  <button id="btnProjectCamera-live" class="btn btn-secondary" style="width:100%; display:flex; justify-content:center; gap:8px; margin-top:10px; background:#4CAF50; color:white; border:none; padding:10px; border-radius:6px; font-weight:600;"><i class="ti ti-broadcast"></i> <span>Project Camera</span></button>
+                </div>
+              </div>
+              
               <!-- Main Preview Area -->
-              <div class="live-main">
-                <div class="live-slide-search">
-                  <i class="ti ti-search"></i>
-                  <input type="text" id="live-search-input" placeholder="Search lyrics to find a specific slide...">
-                </div>
-                <div class="slide-tabs" id="slide-tabs"></div>
-                <div class="live-preview" id="live-preview" style="position:relative;">
-                  <div class="pause-badge" id="pause-badge"><i class="ti ti-player-pause"></i> PAUSED</div>
-                  <div class="preview-empty">Select a slide to preview</div>
-                </div>
-                <div class="live-edit-panel" id="live-edit-panel">
-                  <h4><i class="ti ti-pencil"></i> Quick Edit Slide</h4>
-                  <div class="live-edit-row">
-                    <div>
-                      <label>English</label>
-                      <textarea id="live-edit-en" placeholder="English lyrics..."></textarea>
+              <div class="live-main" style="display:flex; flex-direction:column; min-height:0; overflow:hidden;">
+                
+                <div style="display:flex; flex:1; min-height:0; overflow:hidden; gap:0; justify-content: center;">
+                  <div style="flex:1; display:flex; flex-direction:column; min-width:0; min-height:0;">
+                    <div class="canvas-label" style="width: 100%;">
+                      <span id="live-preview-label">Live Presentation</span>
+                      <span class="ratio-badge">16:9 · 1920×1080</span>
                     </div>
-                    <div>
-                      <label>ಕನ್ನಡ</label>
-                      <textarea id="live-edit-kn" placeholder="ಕನ್ನಡ ಸಾಹಿತ್ಯ..."></textarea>
-                    </div>
-                    <div>
-                      <label>हिंदी</label>
-                      <textarea id="live-edit-hi" placeholder="हिंदी गीत..."></textarea>
+                    <div class="ppt-canvas-wrapper" id="live-canvas-wrapper" style="width: 100%; flex: 1;">
+                      <div class="ppt-canvas" id="live-canvas">
+
+<div class="droidcam-overlay circle editor-cam-overlay" style="display:none; width:150px; height:150px; bottom:40px; right:40px; ">
+  <video autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+</div>
+
+                        <div class="live-preview ppt-canvas-editor" id="live-preview" style="cursor: default; user-select: none;">
+                          <div class="pause-badge" id="pause-badge"><i class="ti ti-player-pause"></i> PAUSED</div>
+                          <div class="preview-empty">Select a slide to preview</div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div class="live-edit-actions">
-                    <button class="btn-cancel" id="btn-edit-cancel"><i class="ti ti-x"></i> Cancel</button>
-                    <button class="btn-save" id="btn-edit-save"><i class="ti ti-device-floppy"></i> Save & Update</button>
+                </div>
+              </div>
+
+              <!-- Right Edit Panel Sidebar -->
+              <div class="live-edit-panel" id="live-edit-panel">
+                <h4><i class="ti ti-pencil"></i> Quick Edit Slide</h4>
+                <div class="live-edit-row">
+                  <div>
+                    <label>English</label>
+                    <textarea id="live-edit-en" placeholder="English lyrics..."></textarea>
                   </div>
+                  <div>
+                    <label>ಕನ್ನಡ</label>
+                    <textarea id="live-edit-kn" placeholder="ಕನ್ನಡ ಸಾಹಿತ್ಯ..."></textarea>
+                  </div>
+                  <div>
+                    <label>हिंदी</label>
+                    <textarea id="live-edit-hi" placeholder="हिंदी गीत..."></textarea>
+                  </div>
+                </div>
+                <div class="live-edit-actions">
+                  <button class="btn-cancel" id="btn-edit-cancel"><i class="ti ti-x"></i> Cancel</button>
+                  <button class="btn-save" id="btn-edit-save"><i class="ti ti-device-floppy"></i> Save & Update</button>
                 </div>
               </div>
             </div>
@@ -906,82 +1273,160 @@
 
         <!-- VIEW: Quick Presenter -->
         <div id="view-quick" class="view-section">
-          <div class="live-panel active" style="display:flex; flex-direction:column; height: 100%;">
-            <div class="live-header">
-              <div class="live-song-title">⚡ Quick Presenter</div>
-              <div style="display: flex; gap: 8px;">
-                <button class="nav-btn btn-popout" id="btn-popout-stage-quick" title="Pop out stage display"><i class="ti ti-device-desktop"></i> Stage Display</button>
-                <button class="nav-btn btn-popout" id="btn-popout-quick" title="Pop out presenter"><i class="ti ti-external-link"></i> Pop Out</button>
+          <div class="live-panel active" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden;">
+            
+            <!-- PowerPoint-style Ribbon Header -->
+            <div style="display:flex; flex-direction:column; background:var(--color-background-primary); border-bottom:1px solid var(--color-border-tertiary); flex-shrink:0;">
+              <!-- Top Title Bar -->
+              <div style="display:flex; align-items:center; justify-content:space-between; padding: 12px 16px;">
+                <div style="display:flex; align-items:center; gap: 16px;">
+                  <button id="quick-sidebar-toggle" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--color-text-primary);"><i class="ti ti-menu-2"></i></button>
+                  <div style="font-size: 16px; font-weight: 600; color: var(--color-text-primary); margin-right: 16px;">Presentation - Quick Presenter</div>
+                  
+                  <div style="display:flex; gap: 8px;">
+                    <button class="nav-btn" id="btn-quick-import" style="color:var(--primary-color); border-color:var(--primary-color); padding:6px 12px; font-size:12px;" title="Import from file"><i class="ti ti-upload"></i> Choose File</button>
+                    <button class="nav-btn" id="btn-quick-library" style="color:var(--primary-color); border-color:var(--primary-color); padding:6px 12px; font-size:12px;" title="Pick from Song Library"><i class="ti ti-music"></i> Song Library</button>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="nav-btn btn-popout" id="btn-popout-stage-quick" style="padding:6px 12px; font-size:12px;"><i class="ti ti-device-desktop"></i> Stage Display</button>
+                  <button class="nav-btn btn-popout" id="btn-popout-quick" style="padding:6px 12px; font-size:12px;"><i class="ti ti-external-link"></i> Pop Out Presenter</button>
+                </div>
               </div>
             </div>
             
-            <div class="live-body" style="flex:1;">
+            <div class="live-body" style="flex:1; min-height:0; overflow:hidden;">
               <!-- Slide Sidebar Wrapper -->
-              <div id="quick-sidebar-wrap">
-                <div style="padding:10px; border-bottom:1px solid var(--color-border-tertiary); position:relative; flex-shrink:0;">
-                  <input type="text" id="quick-search" placeholder="Search slides..." style="width:100%; padding:6px 24px 6px 8px; border:1px solid var(--color-border-tertiary); border-radius:4px; font-size:12px; background:var(--color-background-primary); color:var(--color-text-primary);">
-                  <button id="quick-search-clear" style="position:absolute; right:18px; top:16px; background:none; border:none; cursor:pointer; color:var(--color-text-secondary); display:none; padding:0;"><i class="ti ti-x"></i></button>
+              <div id="quick-sidebar-wrap" style="width:220px; min-width:220px; display:flex; flex-direction:column; border-right:1px solid var(--color-border-tertiary); background:var(--color-background-secondary); flex-shrink:0; min-height:0; overflow:hidden;">
+                <div class="sidebar-tabs" style="display:flex; border-bottom:1px solid var(--color-border-tertiary); flex-shrink:0;">
+                  <button class="sidebar-tab active" onclick="switchSidebarTab('quick', 'slides')" id="tab-quick-slides" style="flex:1; padding:10px; background:none; border:none; cursor:pointer; color:var(--color-text-primary); font-size:13px; font-weight:600; border-bottom:2px solid var(--color-primary);">Slides</button>
+                  <button class="sidebar-tab" onclick="switchSidebarTab('quick', 'camera')" id="tab-quick-camera" style="flex:1; padding:10px; background:none; border:none; cursor:pointer; color:var(--color-text-secondary); font-size:13px; border-bottom:2px solid transparent;">Camera</button>
                 </div>
-                <div class="slide-sidebar" id="quick-sidebar" style="flex:1; width:100%; min-width:0; border-right:none; max-height:none; padding-top:10px;">
-                  <!-- Mini slides go here -->
+                <div id="content-quick-slides" style="display:flex; flex-direction:column; flex:1; min-height:0;">
+                  <div style="padding:10px; border-bottom:1px solid var(--color-border-tertiary); position:relative; flex-shrink:0;">
+                    <input type="text" id="quick-search" placeholder="Search slides..." style="width:100%; padding:6px 24px 6px 8px; border:1px solid var(--color-border-tertiary); border-radius:4px; font-size:12px; background:var(--color-background-primary); color:var(--color-text-primary);">
+                    <button id="quick-search-clear" style="position:absolute; right:18px; top:16px; background:none; border:none; cursor:pointer; color:var(--color-text-secondary); display:none; padding:0;"><i class="ti ti-x"></i></button>
+                  </div>
+                  <div class="slide-sidebar" id="quick-sidebar" style="flex:1; width:100%; min-width:0; border-right:none; max-height:none; padding-top:10px;">
+                    <!-- Mini slides go here -->
+                  </div>
+                </div>
+                <div id="content-quick-camera" style="display:none; flex-direction:column; flex:1; overflow-y:auto; padding:15px; gap:15px;">
+                  <button id="btnToggleCamera-quick" class="btn btn-primary" style="width:100%; display:flex; justify-content:center; gap:8px;"><i class="ti ti-video"></i> <span>Start Camera</span></button>
+                  <div class="form-group" style="display:flex; flex-direction:column; gap:6px; margin-top:10px;">
+                    <label style="font-size:12px; color:var(--color-text-secondary);">Camera Device</label>
+                    <select id="camDeviceSelect-quick" class="form-control" style="font-size:12px; padding:6px;"></select>
+                  </div>
+                  <div class="form-group" style="display:flex; flex-direction:column; gap:6px; margin-top:10px;">
+                    <label style="font-size:12px; color:var(--color-text-secondary);">Shape</label>
+                    <div style="display:flex; gap:4px;">
+                      <button class="nav-btn cam-shape-btn cam-shape-btn-quick active" data-shape="circle" style="flex:1; font-size:11px; padding:4px;">Circle</button>
+                      <button class="nav-btn cam-shape-btn cam-shape-btn-quick" data-shape="square" style="flex:1; font-size:11px; padding:4px;">Square</button>
+                      <button class="nav-btn cam-shape-btn cam-shape-btn-quick" data-shape="rect" style="flex:1; font-size:11px; padding:4px;">Rect</button>
+                      <button class="nav-btn cam-shape-btn cam-shape-btn-quick" data-shape="full" style="flex:1; font-size:11px; padding:4px;">Full</button>
+                    </div>
+                  </div>
+                  <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-size:12px; color:var(--color-text-secondary); display:flex; justify-content:space-between;">Width <span id="camWidthLbl-quick">150px</span></label>
+                    <input type="range" id="camWidthSlider-quick" min="50" max="800" value="150" style="width:100%;">
+                  </div>
+                  <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-size:12px; color:var(--color-text-secondary); display:flex; justify-content:space-between;">Height <span id="camHeightLbl-quick">150px</span></label>
+                    <input type="range" id="camHeightSlider-quick" min="50" max="800" value="150" style="width:100%;">
+                  </div>
+                  <button id="btnProjectCamera-quick" class="btn btn-secondary" style="width:100%; display:flex; justify-content:center; gap:8px; margin-top:10px; background:#4CAF50; color:white; border:none; padding:10px; border-radius:6px; font-weight:600;"><i class="ti ti-broadcast"></i> <span>Project Camera</span></button>
                 </div>
               </div>
               
               <!-- Main Area -->
-              <div class="live-main" style="display:flex; flex-direction:column;">
-                
-                <!-- Controls Row -->
-                <div class="live-controls-row" style="padding: 10px 20px; border-bottom: 1px solid var(--color-border-tertiary);">
-                  <button class="nav-btn" id="btn-quick-import" style="color:var(--primary-color); border-color:var(--primary-color); margin-right:6px;" title="Import from file"><i class="ti ti-upload"></i> Choose File</button>
-                  <button class="nav-btn" id="btn-quick-add-slide"><i class="ti ti-plus"></i> Add Slide</button>
-                  <button class="nav-btn" id="btn-quick-delete-slide" style="color:var(--danger-color); border-color:transparent; margin-left:6px;"><i class="ti ti-trash"></i> Delete</button>
-                  <div style="flex:1"></div>
-                  <div class="font-controls">
-                    <button class="font-btn" id="quick-font-dn">A-</button>
-                    <span class="font-label" id="quick-font-label">13px</span>
-                    <button class="font-btn" id="quick-font-up">A+</button>
+              <div class="live-main" style="display:flex; flex-direction:column; min-height:0; overflow:hidden;">
+
+                <!-- Formatting Toolbar -->
+                <div class="quick-format-toolbar" id="quick-format-toolbar" style="flex-shrink:0;">
+                  <button class="nav-btn" id="btn-quick-add-slide" style="padding: 6px 12px; font-size: 13px;"><i class="ti ti-plus"></i> Add Slide</button>
+                  <button class="nav-btn" id="btn-quick-delete-slide" style="color:var(--danger-color); border-color:transparent; padding: 6px 12px; font-size: 13px; margin-right: 8px;"><i class="ti ti-trash"></i> Delete Slide</button>
+                  <div class="fmt-separator"></div>
+                  
+                  <button class="fmt-btn" id="quick-fmt-bold" title="Bold (Ctrl+B)"><i class="ti ti-bold"></i></button>
+                  <button class="fmt-btn" id="quick-fmt-italic" title="Italic (Ctrl+I)"><i class="ti ti-italic"></i></button>
+                  <button class="fmt-btn" id="quick-fmt-underline" title="Underline (Ctrl+U)"><i class="ti ti-underline"></i></button>
+                  <div class="fmt-separator"></div>
+                  <div class="color-picker-wrap">
+                    <button class="fmt-btn" id="quick-fmt-color" title="Text Color"><i class="ti ti-palette"></i></button>
+                    <div class="color-swatch" id="quick-color-swatch" style="background:#ffffff;" title="Click to pick color"></div>
+                    <input type="color" id="quick-color-input" value="#ffffff">
                   </div>
-                  <div class="font-controls" id="quick-align-toggle">
-                    <button class="font-btn active" data-align="center" title="Center"><i class="ti ti-align-center" style="font-size:14px;"></i></button>
-                    <button class="font-btn" data-align="left" title="Left"><i class="ti ti-align-left" style="font-size:14px;"></i></button>
-                    <button class="font-btn" data-align="right" title="Right"><i class="ti ti-align-right" style="font-size:14px;"></i></button>
+                  <div class="fmt-separator"></div>
+                  <div class="fmt-size-group">
+                    <button class="fmt-btn" id="quick-fmt-size-dn" title="Decrease font size (selected text)">A-</button>
+                    <span class="fmt-size-label" id="quick-fmt-size-label">96px</span>
+                    <button class="fmt-btn" id="quick-fmt-size-up" title="Increase font size (selected text)">A+</button>
                   </div>
+                  <div class="fmt-separator"></div>
+                  <button class="fmt-btn active" id="quick-fmt-align-left" data-align="left" title="Align Left"><i class="ti ti-align-left"></i></button>
+                  <button class="fmt-btn" id="quick-fmt-align-center" data-align="center" title="Align Center"><i class="ti ti-align-center"></i></button>
+                  <button class="fmt-btn" id="quick-fmt-align-right" data-align="right" title="Align Right"><i class="ti ti-align-right"></i></button>
+                  <div class="fmt-separator"></div>
+                  <button class="fmt-btn" id="quick-fmt-clear" title="Clear Formatting"><i class="ti ti-clear-formatting"></i></button>
                 </div>
 
-                <!-- Editor & Preview -->
-                <div style="display:flex; flex:1; min-height:0;">
-                  <!-- Text Editor -->
-                  <div style="flex:1; border-right: 1px solid var(--color-border-tertiary); display:flex; flex-direction:column; padding:16px; min-width: 0;">
-                    <label id="quick-editor-label" style="font-size:12px; font-weight:600; color:var(--color-text-secondary); margin-bottom:8px;">Slide Text (Type or Paste here)</label>
-                    <textarea id="quick-editor" style="flex:1; width:100%; border:1px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); padding:12px; font-size:14px; font-family:inherit; resize:none; outline:none; background:var(--color-background-secondary); color:var(--color-text-primary);" placeholder="The Lord is my shepherd..."></textarea>
-                  </div>
-                  
-                  <!-- Live Preview -->
-                  <div style="flex:1; display:flex; flex-direction:column; min-width: 0;">
-                     <div class="live-preview" id="quick-preview" style="flex:1; height: 100%; justify-content:center; border-radius: 0;">
-                       <div class="pause-badge" id="quick-pause-badge"><i class="ti ti-player-pause"></i> PAUSED</div>
-                       <div class="preview-text en" id="quick-preview-text" style="white-space: pre-wrap; word-break: break-word;"></div>
-                     </div>
+                <!-- Editor (Fixed 1920×1080 canvas) -->
+                <div style="display:flex; flex:1; min-height:0; overflow:hidden; gap:0; justify-content: center;">
+                  <!-- Slide Canvas Editor -->
+                  <div style="flex:1; display:flex; flex-direction:column; min-width:0; min-height:0;">
+                    <div class="canvas-label" style="width: 100%;">
+                      <span id="quick-editor-label">Slide 1 of 1</span>
+                      <span class="ratio-badge">16:9 · 1920×1080</span>
+                    </div>
+                    <div class="ppt-canvas-wrapper" id="editor-canvas-wrapper" style="width: 100%; flex: 1;">
+                      <div class="ppt-canvas" id="editor-canvas">
+
+<div class="droidcam-overlay circle editor-cam-overlay" style="display:none; width:150px; height:150px; bottom:40px; right:40px; ">
+  <video autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+</div>
+
+                        <div id="quick-editor" class="ppt-canvas-editor" contenteditable="true" data-placeholder="Click here to type your lyrics..." spellcheck="false"></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
-                <!-- Bottom Action -->
-                <div class="live-nav">
-                  <button class="nav-btn" id="quick-btn-prev"><i class="ti ti-chevron-left"></i> Prev</button>
-                  <button class="nav-btn btn-pause" id="quick-btn-pause" title="Pause projector"><i class="ti ti-player-pause"></i> Pause</button>
-                  <button class="nav-btn btn-clear" id="quick-btn-black"><i class="ti ti-square"></i> Black Screen</button>
-                  <button class="nav-btn" id="quick-btn-next">Next <i class="ti ti-chevron-right"></i></button>
-                </div>
-                <div class="live-nav" style="justify-content:center; gap: 14px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--color-border-tertiary);">
-                  <button class="nav-btn btn-popout" id="btn-quick-project" style="font-size:14px; padding: 10px 24px; box-shadow: 0 4px 12px rgba(83,74,183,0.3);"><i class="ti ti-broadcast"></i> Project Slide</button>
-                  <button class="nav-btn" id="btn-quick-save" style="font-size:14px; padding: 10px 24px;"><i class="ti ti-device-floppy"></i> Save as Song</button>
+                <!-- Compact Status / Action Bar -->
+                <div class="live-nav" style="justify-content: space-between; padding: 10px 20px; background: var(--color-background-primary); border-top: 1px solid var(--color-border-tertiary); margin: 0;">
+                  <div style="display:flex; gap: 8px; align-items:center;">
+                    <button class="nav-btn" id="quick-btn-prev" style="padding: 6px 12px; font-size:13px;"><i class="ti ti-chevron-left"></i> Prev</button>
+                    <button class="nav-btn" id="quick-btn-next" style="padding: 6px 12px; font-size:13px;">Next <i class="ti ti-chevron-right"></i></button>
+                    <div class="fmt-separator" style="margin:0 8px;"></div>
+                    <button class="nav-btn btn-pause" id="quick-btn-pause" style="padding: 6px 12px; font-size:13px;" title="Pause projector"><i class="ti ti-player-pause"></i> Pause</button>
+                    <button class="nav-btn btn-clear" id="quick-btn-black" style="padding: 6px 12px; font-size:13px;"><i class="ti ti-square"></i> Black Screen</button>
+                  </div>
+                  <div style="display:flex; gap: 12px;">
+                    <button class="nav-btn" id="btn-quick-save" style="padding: 6px 16px; font-size:13px;"><i class="ti ti-device-floppy"></i> Save as Song</button>
+                    <button class="nav-btn btn-popout" id="btn-quick-project" style="padding: 6px 20px; font-size:13px; box-shadow: 0 4px 12px rgba(83,74,183,0.3); background:var(--primary-color); color:#fff; border-color:var(--primary-color);"><i class="ti ti-broadcast"></i> Project Slide</button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
+      
+    </div>
+  </div>
+
+  <!-- Song Library Picker Modal (for Quick Presenter) -->
+  <div class="quick-library-modal" id="quick-library-modal">
+    <div class="qlm-box">
+      <div class="qlm-header">
+        <h3><i class="ti ti-music" style="color:var(--primary-color);"></i> Pick from Song Library</h3>
+        <button class="nav-btn" id="qlm-close" style="border:none; padding:4px 8px;"><i class="ti ti-x"></i></button>
       </div>
+      <div class="qlm-search">
+        <input type="text" id="qlm-search-input" placeholder="Search songs by title, author, or lyrics...">
+      </div>
+      <div class="qlm-list" id="qlm-list">
+        <!-- Songs populated by JS -->
+      
     </div>
   </div>
 
@@ -993,22 +1438,13 @@
       <div class="modal-actions">
         <button class="modal-btn-cancel" id="delete-cancel">Cancel</button>
         <button class="modal-btn-danger" id="delete-confirm">Delete</button>
-      </div>
+      
     </div>
   </div>
 
   <!-- Toast Container -->
   <div class="toast-container" id="toast-container"></div>
 
-  <!-- Floating Developer Widget -->
-  <a href="https://wa.me/919591542901" target="_blank" class="floating-dev" id="floating-dev" style="display:none;">
-    <img src="images/developer/rahulpic.jpeg" alt="Developer" class="floating-dev-img">
-    <div class="floating-dev-status"></div>
-    <div class="floating-dev-text">
-      <div class="floating-dev-title">Facing an issue?</div>
-      <div class="floating-dev-sub"><i class="ti ti-brand-whatsapp"></i> Chat with Developer</div>
-    </div>
-  </a>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
@@ -1074,13 +1510,11 @@
         document.getElementById('user-email-display').title = user.email;
         const initial = user.email ? user.email.charAt(0).toUpperCase() : 'W';
         document.querySelector('.sb-avatar').textContent = initial;
-        document.getElementById('floating-dev').style.display = 'flex';
         await loadSongs();
       } else {
         clearInterval(sessionInterval);
         dashboardScreen.classList.remove('active');
         loginScreen.classList.add('active');
-        document.getElementById('floating-dev').style.display = 'none';
       }
     });
 
@@ -1139,14 +1573,28 @@
       const [title, sub] = viewTitles[view] || ['', ''];
       document.getElementById('welcome-msg').textContent = title;
       document.getElementById('topbar-sub').textContent = sub;
+      
+      // Full screen quick presenter mode
+      if (view === 'quick') {
+        document.getElementById('dashboard-screen').classList.add('in-quick-view');
+      } else {
+        document.getElementById('dashboard-screen').classList.remove('in-quick-view');
+      }
+
       // Reset form when entering add-song
       if (view === 'add-song' && !editingSongId) {
         resetForm();
       }
     }
 
-    // Sidebar toggle
+    // Sidebar toggle (global)
     document.getElementById('sidebar-toggle').addEventListener('click', () => {
+      dashboardScreen.classList.toggle('sidebar-collapsed');
+      dashboardScreen.classList.toggle('sidebar-open');
+    });
+    
+    // Sidebar toggle (quick presenter)
+    document.getElementById('quick-sidebar-toggle')?.addEventListener('click', () => {
       dashboardScreen.classList.toggle('sidebar-collapsed');
       dashboardScreen.classList.toggle('sidebar-open');
     });
@@ -1171,20 +1619,36 @@
       window.open('stage-display.html', 'StageDisplay', 'width=1280,height=720');
     });
 
+    // Live Control empty state buttons
+    document.getElementById('btn-live-empty-library')?.addEventListener('click', () => {
+      switchView('library');
+    });
+    document.getElementById('btn-live-empty-import')?.addEventListener('click', () => {
+      switchView('import');
+    });
+    
+    // Live Control header buttons
+    document.getElementById('btn-live-header-library')?.addEventListener('click', () => {
+      switchView('library');
+    });
+    document.getElementById('btn-live-header-import')?.addEventListener('click', () => {
+      switchView('import');
+    });
+
     // ======================== SONGS DATA ========================
     let allSongs = [];
     let editingSongId = null;
     let currentFilter = 'All';
 
-    const CATEGORIES = ['All', 'Favorites', 'Worship', 'Praise', 'Communion', 'Prayer', 'Christmas', 'Easter', 'Children', 'Hymns', 'General'];
-    const CAT_ICONS = { Favorites: '⭐', Worship: '🙏', Praise: '🎉', Communion: '✝️', Prayer: '🕊️', Christmas: '🎄', Easter: '🌅', Children: '👶', Hymns: '📖', General: '🎵' };
+    const CATEGORIES = ['All', 'Favorites', 'Worship', 'Praise', 'Communion', 'Prayer', 'Christmas', 'Easter', 'Children', 'Hymns', 'General', 'Folder'];
+    const CAT_ICONS = { Favorites: '⭐', Worship: '🙏', Praise: '🎉', Communion: '✝️', Prayer: '🕊️', Christmas: '🎄', Easter: '🌅', Children: '👶', Hymns: '📖', General: '🎵', Folder: '📁' };
     const CAT_COLORS = {
       Favorites: { bg: '#FEF9C3', fg: '#EAB308' },
       Worship: { bg: '#EEEDFE', fg: '#3C3489' }, Praise: { bg: '#FEF3C7', fg: '#92400E' },
       Communion: { bg: '#FBEAF0', fg: '#72243E' }, Prayer: { bg: '#E1F5EE', fg: '#085041' },
       Christmas: { bg: '#FCE7E7', fg: '#991B1B' }, Easter: { bg: '#FEF9C3', fg: '#854D0E' },
       Children: { bg: '#DBEAFE', fg: '#1E40AF' }, Hymns: { bg: '#F3E8FF', fg: '#6B21A8' },
-      General: { bg: '#F1F5F9', fg: '#475569' }
+      General: { bg: '#F1F5F9', fg: '#475569' }, Folder: { bg: '#FEF08A', fg: '#854D0E' }
     };
 
     async function loadSongs() {
@@ -1310,7 +1774,7 @@
 
         card.querySelector('.btn-present').addEventListener('click', (e) => {
           e.stopPropagation();
-          quickPresentSong(song);
+          openLiveControl(song);
         });
 
         card.querySelector('.btn-quick-present').addEventListener('click', (e) => {
@@ -1415,9 +1879,13 @@
       }).join('');
 
       block.innerHTML = `
-        <div class="slide-header">
-          <div class="slide-label"><i class="ti ti-file-text"></i> Slide ${slideCounter}</div>
-          <button class="slide-remove" title="Remove slide"><i class="ti ti-x"></i></button>
+        <div class="slide-header" style="cursor: grab;">
+          <div class="slide-label" style="display:flex; align-items:center; gap:8px;"><i class="ti ti-grip-vertical" style="color:var(--color-text-tertiary);"></i> <i class="ti ti-file-text"></i> Slide ${slideCounter}</div>
+          <div style="display:flex; gap:6px;">
+            <button class="slide-move-up" title="Move up" style="background:none; border:1px solid var(--color-border-tertiary); border-radius:4px; padding:4px; cursor:pointer;"><i class="ti ti-arrow-up"></i></button>
+            <button class="slide-move-down" title="Move down" style="background:none; border:1px solid var(--color-border-tertiary); border-radius:4px; padding:4px; cursor:pointer;"><i class="ti ti-arrow-down"></i></button>
+            <button class="slide-remove" title="Remove slide"><i class="ti ti-x"></i></button>
+          </div>
         </div>
         <div class="form-field" style="margin-bottom:12px;">
           <label>Slide Type</label>
@@ -1431,6 +1899,64 @@
 
       block.querySelector('.slide-remove').addEventListener('click', () => {
         block.remove();
+        renumberSlides();
+      });
+
+      block.querySelector('.slide-move-up').addEventListener('click', () => {
+        if (block.previousElementSibling) {
+          container.insertBefore(block, block.previousElementSibling);
+          renumberSlides();
+          block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+
+      block.querySelector('.slide-move-down').addEventListener('click', () => {
+        if (block.nextElementSibling) {
+          container.insertBefore(block, block.nextElementSibling.nextElementSibling);
+          renumberSlides();
+          block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+
+      // Drag and Drop support
+      block.draggable = true;
+      block.addEventListener('dragstart', (e) => {
+        if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') {
+          e.preventDefault();
+          return;
+        }
+        e.dataTransfer.effectAllowed = 'move';
+        const index = Array.from(container.children).indexOf(block);
+        e.dataTransfer.setData('text/plain', index);
+        block.style.opacity = '0.5';
+      });
+      block.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        block.style.borderTop = '3px solid var(--primary-color)';
+      });
+      block.addEventListener('dragleave', (e) => {
+        block.style.borderTop = '';
+      });
+      block.addEventListener('dragend', (e) => {
+        block.style.opacity = '1';
+        Array.from(container.children).forEach(b => b.style.borderTop = '');
+      });
+      block.addEventListener('drop', (e) => {
+        e.preventDefault();
+        block.style.borderTop = '';
+        const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+        if (isNaN(dragIndex)) return;
+        
+        const dropIndex = Array.from(container.children).indexOf(block);
+        if (dragIndex === dropIndex) return;
+        
+        const draggedBlock = container.children[dragIndex];
+        if (dragIndex < dropIndex) {
+          container.insertBefore(draggedBlock, block.nextSibling);
+        } else {
+          container.insertBefore(draggedBlock, block);
+        }
         renumberSlides();
       });
 
@@ -1632,7 +2158,8 @@
 
       quickSlides = song.slides.map((s, i) => {
           const mixedText = [s.en, s.kn, s.hi].filter(Boolean).join('\n');
-          return { id: i + 1, text: mixedText };
+          const htmlContent = escHtml(mixedText).replace(/\n/g, '<br>');
+          return { id: i + 1, text: mixedText, html: htmlContent };
       });
       
       quickActiveSlideIndex = 0;
@@ -1660,37 +2187,23 @@
       document.getElementById('live-search-input').value = '';
 
       renderSlideSidebar();
-      renderSlideTabs();
       selectSlide(0);
     }
 
-    document.getElementById('live-search-input').addEventListener('input', renderSlideTabs);
+    document.getElementById('live-search-input').addEventListener('input', (e) => {
+      const clearBtn = document.getElementById('live-search-clear');
+      if (clearBtn) clearBtn.style.display = e.target.value ? 'block' : 'none';
+      renderSlideSidebar();
+    });
 
-    function renderSlideTabs() {
-      const container = document.getElementById('slide-tabs');
-      container.innerHTML = '';
-      if (!liveSong?.slides) return;
-
-      const searchTerm = document.getElementById('live-search-input').value.toLowerCase().trim();
-
-      liveSong.slides.forEach((slide, i) => {
-        if (searchTerm) {
-          const searchableText = [slide.en, slide.kn, slide.hi, slide.label].filter(Boolean).join(' ').toLowerCase();
-          if (!searchableText.includes(searchTerm)) {
-            return; // Skip this slide tab
-          }
-        }
-
-        const tab = document.createElement('button');
-        let extraClass = '';
-        if (slide.type === 'chorus') extraClass = ' chorus-tab';
-        else if (slide.type === 'bridge') extraClass = ' bridge-tab';
-        tab.className = 'slide-tab' + extraClass + (i === liveSlideIndex ? ' active' : '');
-        tab.textContent = slide.label || `Slide ${i + 1}`;
-        tab.addEventListener('click', () => selectSlide(i));
-        container.appendChild(tab);
-      });
-    }
+    document.getElementById('live-search-clear')?.addEventListener('click', () => {
+      const search = document.getElementById('live-search-input');
+      if (search) {
+        search.value = '';
+        document.getElementById('live-search-clear').style.display = 'none';
+        renderSlideSidebar();
+      }
+    });
 
     function selectSlide(index) {
       if (!liveSong?.slides || index < 0 || index >= liveSong.slides.length) return;
@@ -1716,8 +2229,17 @@
       const sidebar = document.getElementById('slide-sidebar');
       sidebar.innerHTML = '';
       if (!liveSong?.slides) return;
+      
+      const searchTerm = document.getElementById('live-search-input').value.toLowerCase().trim();
 
       liveSong.slides.forEach((slide, i) => {
+        if (searchTerm) {
+          const searchableText = [slide.en, slide.kn, slide.hi, slide.label].filter(Boolean).join(' ').toLowerCase();
+          if (!searchableText.includes(searchTerm)) {
+            return; // Skip this slide card
+          }
+        }
+
         const card = document.createElement('button');
         let typeClass = '';
         if (slide.type === 'chorus') typeClass = ' chorus';
@@ -1728,6 +2250,79 @@
         const previewText = (slide.en || slide.kn || slide.hi || '').split('\n').slice(0, 2).join(' ').substring(0, 60);
         card.innerHTML = `<div class="slide-mini-label">${escHtml(slide.label || 'Slide ' + (i + 1))}</div><div class="slide-mini-text">${escHtml(previewText || 'No lyrics')}</div>`;
         card.addEventListener('click', () => selectSlide(i));
+
+        // Double click to swap with currently active live slide
+        card.addEventListener('dblclick', async (e) => {
+          e.preventDefault();
+          if (i === liveSlideIndex) return;
+          
+          const temp = liveSong.slides[liveSlideIndex];
+          liveSong.slides[liveSlideIndex] = liveSong.slides[i];
+          liveSong.slides[i] = temp;
+          
+          if (pausedSlideIndex === liveSlideIndex) {
+            pausedSlideIndex = i;
+          } else if (pausedSlideIndex === i) {
+            pausedSlideIndex = liveSlideIndex;
+          }
+          
+          renderSlideSidebar();
+          updateLivePreview();
+          updatePresenterState();
+          showToast('Slides swapped');
+          
+          try {
+            await updateDoc(doc(db, "songs", liveSong.id), { slides: liveSong.slides });
+          } catch(err) { console.error('Error saving swap', err); }
+        });
+
+        // Drag and drop to reorder
+        card.draggable = true;
+        card.addEventListener('dragstart', (e) => {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', i);
+          card.style.opacity = '0.5';
+        });
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          card.style.borderTop = '2px solid var(--primary-color)';
+        });
+        card.addEventListener('dragleave', (e) => {
+          card.style.borderTop = '';
+        });
+        card.addEventListener('dragend', (e) => {
+          card.style.opacity = '1';
+        });
+        card.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          card.style.borderTop = '';
+          const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+          if (dragIndex === i || isNaN(dragIndex)) return;
+          
+          const draggedSlide = liveSong.slides.splice(dragIndex, 1)[0];
+          liveSong.slides.splice(i, 0, draggedSlide);
+          
+          if (liveSlideIndex === dragIndex) liveSlideIndex = i;
+          else if (liveSlideIndex > dragIndex && liveSlideIndex <= i) liveSlideIndex--;
+          else if (liveSlideIndex < dragIndex && liveSlideIndex >= i) liveSlideIndex++;
+          
+          if (pausedSlideIndex !== null) {
+            if (pausedSlideIndex === dragIndex) pausedSlideIndex = i;
+            else if (pausedSlideIndex > dragIndex && pausedSlideIndex <= i) pausedSlideIndex--;
+            else if (pausedSlideIndex < dragIndex && pausedSlideIndex >= i) pausedSlideIndex++;
+          }
+          
+          renderSlideSidebar();
+          updateLivePreview();
+          updatePresenterState();
+          showToast('Slides reordered');
+          
+          try {
+            await updateDoc(doc(db, "songs", liveSong.id), { slides: liveSong.slides });
+          } catch(err) { console.error('Error saving reorder', err); }
+        });
+
         sidebar.appendChild(card);
       });
     }
@@ -1760,7 +2355,6 @@
       }
       
       const slide = liveSong.slides[liveSlideIndex];
-      html += `<div class="preview-label">✨ ${escHtml(slide.label || '')} ✨</div>`;
 
       const showLangs = getActiveLangs();
       showLangs.forEach(lang => {
@@ -1821,14 +2415,15 @@
       const title = liveSong.title?.en || liveSong.title?.kn || liveSong.title?.hi || '';
       localStorage.setItem('song_presenter_state', JSON.stringify({
         songTitle: title,
-        slideLabel: slide.label || '',
+        slideLabel: '',
         slideType: slide.type || 'verse',
         en: slide.en || '',
         kn: slide.kn || '',
         hi: slide.hi || '',
         lang: liveLang,
         fontSize: liveFontSize,
-        align: liveAlign
+        align: liveAlign,
+        isQuickPresenter: true
       }));
     }
 
@@ -2164,7 +2759,8 @@
       
       quickSlides = song.slides.map((s, i) => {
           const mixedText = [s.en, s.kn, s.hi].filter(Boolean).join('\n');
-          return { id: i + 1, text: mixedText };
+          const htmlContent = escHtml(mixedText).replace(/\n/g, '<br>');
+          return { id: i + 1, text: mixedText, html: htmlContent };
       });
       
       quickActiveSlideIndex = 0;
@@ -2385,18 +2981,20 @@
       }
     });
 
-    // ======================== QUICK PRESENTER ========================
-    let quickSlides = [{ id: 1, text: '' }];
+    // ======================== QUICK PRESENTER (PPT-STYLE RICH EDITOR) ========================
+    let quickSlides = [{ id: 1, text: '', html: '' }];
     let quickActiveSlideIndex = 0;
-    let quickFontSize = 13;
-    let quickAlign = 'center';
+    let quickLiveSlideIndex = null;
     let quickSlideCounter = 1;
+    let quickCurrentColor = '#ffffff';
 
     function pushQuickToProjector() {
       const slide = quickSlides[quickActiveSlideIndex];
+      const editorHtml = slide ? (slide.html || '') : '';
       const stateObj = slide ? {
         songTitle: 'Quick Presenter', slideLabel: '', slideType: 'verse',
-        en: slide.text, kn: '', hi: '', lang: 'en', fontSize: quickFontSize, align: quickAlign
+        en: editorHtml, enIsHtml: true, isQuickPresenter: true,
+        kn: '', hi: '', lang: 'en', fontSize: 13, align: 'center'
       } : null;
 
       if (stateObj) {
@@ -2405,7 +3003,7 @@
         localStorage.removeItem('stage_display_state');
       }
 
-      if (isPaused) return; // Do not push if paused
+      if (isPaused) return;
       if (isBlackScreen) {
          isBlackScreen = false;
          updateBlackUI();
@@ -2416,6 +3014,9 @@
       } else {
         localStorage.removeItem('song_presenter_state');
       }
+
+      quickLiveSlideIndex = quickActiveSlideIndex;
+      renderQuickSidebar();
     }
 
     function renderQuickSidebar() {
@@ -2423,67 +3024,301 @@
       const filterText = document.getElementById('quick-search')?.value.toLowerCase() || '';
       sidebar.innerHTML = '';
       quickSlides.forEach((slide, i) => {
-        if (filterText && !slide.text.toLowerCase().includes(filterText)) return;
+        const plainText = slide.text || '';
+        if (filterText && !plainText.toLowerCase().includes(filterText)) return;
         
         const card = document.createElement('button');
-        card.className = 'slide-mini' + (i === quickActiveSlideIndex ? ' active' : '');
-        const previewText = slide.text.split('\n').slice(0, 2).join(' ').substring(0, 60);
-        card.innerHTML = `<div class="slide-mini-label">Slide ${i + 1}</div><div class="slide-mini-text">${escHtml(previewText || 'Empty slide')}</div>`;
+        let classes = 'slide-mini';
+        if (i === quickLiveSlideIndex) classes += ' live';
+        if (i === quickActiveSlideIndex) classes += ' active';
+        card.className = classes;
+
+        const previewText = plainText.split('\n').slice(0, 2).join(' ').substring(0, 60);
+        let badgeHTML = '';
+        if (i === quickLiveSlideIndex && i === quickActiveSlideIndex) {
+            badgeHTML = `<span style="float:right; font-size:9px; background:#a855f7; color:white; padding:2px 6px; border-radius:4px;">Editing & Live</span>`;
+        } else if (i === quickLiveSlideIndex) {
+            badgeHTML = `<span style="float:right; font-size:9px; background:#ef4444; color:white; padding:2px 6px; border-radius:4px;">Live</span>`;
+        } else if (i === quickActiveSlideIndex) {
+            badgeHTML = `<span style="float:right; font-size:9px; background:var(--primary-color); color:white; padding:2px 6px; border-radius:4px;">Editing</span>`;
+        }
+
+        card.innerHTML = `<div class="slide-mini-label">Slide ${i + 1} ${badgeHTML}</div><div class="slide-mini-text">${escHtml(previewText || 'Empty slide')}</div>`;
         card.addEventListener('click', () => {
+          // Save current editor content before switching
+          saveCurrentEditorContent();
           quickActiveSlideIndex = i;
           renderQuickSidebar();
           updateQuickEditor();
         });
+
+        // Double click to swap with currently active slide
+        card.addEventListener('dblclick', (e) => {
+          e.preventDefault();
+          if (i === quickActiveSlideIndex) return;
+          saveCurrentEditorContent();
+          
+          const temp = quickSlides[quickActiveSlideIndex];
+          quickSlides[quickActiveSlideIndex] = quickSlides[i];
+          quickSlides[i] = temp;
+          
+          if (quickLiveSlideIndex === quickActiveSlideIndex) {
+            quickLiveSlideIndex = i;
+          } else if (quickLiveSlideIndex === i) {
+            quickLiveSlideIndex = quickActiveSlideIndex;
+          }
+          
+          renderQuickSidebar();
+          updateQuickEditor();
+          showToast('Slides swapped');
+        });
+
+        // Drag and drop to reorder
+        card.draggable = true;
+        card.addEventListener('dragstart', (e) => {
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', i);
+          card.style.opacity = '0.5';
+        });
+        card.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          card.style.borderTop = '2px solid var(--primary-color)';
+        });
+        card.addEventListener('dragleave', (e) => {
+          card.style.borderTop = '';
+        });
+        card.addEventListener('dragend', (e) => {
+          card.style.opacity = '1';
+        });
+        card.addEventListener('drop', (e) => {
+          e.preventDefault();
+          card.style.borderTop = '';
+          const dragIndex = parseInt(e.dataTransfer.getData('text/plain'));
+          if (dragIndex === i || isNaN(dragIndex)) return;
+          
+          saveCurrentEditorContent();
+          
+          const draggedSlide = quickSlides.splice(dragIndex, 1)[0];
+          quickSlides.splice(i, 0, draggedSlide);
+          
+          if (quickActiveSlideIndex === dragIndex) quickActiveSlideIndex = i;
+          else if (quickActiveSlideIndex > dragIndex && quickActiveSlideIndex <= i) quickActiveSlideIndex--;
+          else if (quickActiveSlideIndex < dragIndex && quickActiveSlideIndex >= i) quickActiveSlideIndex++;
+          
+          if (quickLiveSlideIndex !== null) {
+            if (quickLiveSlideIndex === dragIndex) quickLiveSlideIndex = i;
+            else if (quickLiveSlideIndex > dragIndex && quickLiveSlideIndex <= i) quickLiveSlideIndex--;
+            else if (quickLiveSlideIndex < dragIndex && quickLiveSlideIndex >= i) quickLiveSlideIndex++;
+          }
+          
+          renderQuickSidebar();
+          updateQuickEditor();
+        });
+
         sidebar.appendChild(card);
       });
-      // Scroll to active
       const activeCard = sidebar.querySelector('.slide-mini.active');
       if (activeCard && !filterText) activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
+    function saveCurrentEditorContent() {
+      const editor = document.getElementById('quick-editor');
+      if (quickSlides[quickActiveSlideIndex]) {
+        quickSlides[quickActiveSlideIndex].html = editor.innerHTML;
+        quickSlides[quickActiveSlideIndex].text = editor.innerText || '';
+      }
+    }
+
     function updateQuickEditor() {
+      const editor = document.getElementById('quick-editor');
       const label = document.getElementById('quick-editor-label');
       if (quickSlides.length > 0 && quickSlides[quickActiveSlideIndex]) {
-        document.getElementById('quick-editor').value = quickSlides[quickActiveSlideIndex].text;
-        if (label) label.textContent = `Slide ${quickActiveSlideIndex + 1} of ${quickSlides.length} (Type or Paste here)`;
+        const slide = quickSlides[quickActiveSlideIndex];
+        // Load HTML if available, otherwise convert text to HTML
+        if (slide.html) {
+          editor.innerHTML = slide.html;
+        } else if (slide.text) {
+          editor.innerHTML = escHtml(slide.text).replace(/\n/g, '<br>');
+        } else {
+          editor.innerHTML = '';
+        }
+        if (label) label.textContent = `Slide ${quickActiveSlideIndex + 1} of ${quickSlides.length}`;
       } else {
-        document.getElementById('quick-editor').value = '';
-        if (label) label.textContent = 'Slide Text (Type or Paste here)';
+        editor.innerHTML = '';
+        if (label) label.textContent = 'Slide 1 of 1';
       }
       updateQuickPreview();
     }
 
     function updateQuickPreview() {
-      const slide = quickSlides[quickActiveSlideIndex];
-      const previewContainer = document.getElementById('quick-preview');
-      
-      let html = '<div class="pause-badge" id="quick-pause-badge"><i class="ti ti-player-pause"></i> PAUSED</div>';
-      
-      if (!slide || !slide.text) {
-        html += '<div class="preview-empty" style="color:rgba(255,255,255,0.15);">Screen is blank</div>';
-      } else {
-        html += `<div class="preview-text en" id="quick-preview-text">${escHtml(slide.text).replace(/\n/g, '<br>')}</div>`;
-      }
-      
-      previewContainer.innerHTML = html;
-      previewContainer.style.textAlign = quickAlign;
+      // The preview monitor was removed from the UI, so this function is intentionally left as a no-op 
+      // or we just call updatePauseUI() to ensure the pause button states stay in sync.
       updatePauseUI();
     }
 
-    document.getElementById('quick-editor').addEventListener('input', (e) => {
-      quickSlides[quickActiveSlideIndex].text = e.target.value;
+    // ── Rich Text Formatting Helpers ──
+    function applyFormat(command, value) {
+      const editor = document.getElementById('quick-editor');
+      editor.focus();
+      document.execCommand(command, false, value || null);
+      onEditorInput();
+      syncToolbarState();
+    }
+
+    function changeFontSizeSelection(delta) {
+      const editor = document.getElementById('quick-editor');
+      const sel = window.getSelection();
+      if (!sel.rangeCount || !editor.contains(sel.anchorNode)) {
+        editor.focus();
+        return;
+      }
+
+      // Get current font size from the toolbar label (more reliable during repeated clicks)
+      const labelText = document.getElementById('quick-fmt-size-label').textContent;
+      let currentSize = parseInt(labelText);
+      if (isNaN(currentSize)) {
+        const focusEl = sel.focusNode?.nodeType === 3 ? sel.focusNode.parentElement : sel.focusNode;
+        currentSize = parseInt(window.getComputedStyle(focusEl).fontSize) || 96;
+      }
+      const newSize = Math.max(12, Math.min(300, currentSize + delta));
+
+      if (sel.isCollapsed) {
+        // No selection — do nothing meaningful
+        return;
+      }
+
+      // Use execCommand fontSize (1-7) then replace with actual px
+      // This is the most reliable cross-browser approach
+      document.execCommand('fontSize', false, '7');
+      
+      // Find the font elements created and replace with spans
+      const fontEls = Array.from(editor.querySelectorAll('font[size="7"]'));
+      const newSpans = [];
+      fontEls.forEach(el => {
+        const span = document.createElement('span');
+        span.style.fontSize = newSize + 'px';
+        span.innerHTML = el.innerHTML;
+        el.parentNode.replaceChild(span, el);
+        newSpans.push(span);
+      });
+
+      // Restore selection so user can click repeatedly
+      if (newSpans.length > 0) {
+        const newRange = document.createRange();
+        newRange.setStartBefore(newSpans[0]);
+        newRange.setEndAfter(newSpans[newSpans.length - 1]);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+      }
+
+      onEditorInput();
+      document.getElementById('quick-fmt-size-label').textContent = newSize + 'px';
+    }
+
+    function syncToolbarState() {
+      const editor = document.getElementById('quick-editor');
+      if (!editor.contains(document.activeElement) && document.activeElement !== editor) return;
+      
+      // Bold / Italic / Underline
+      document.getElementById('quick-fmt-bold').classList.toggle('active', document.queryCommandState('bold'));
+      document.getElementById('quick-fmt-italic').classList.toggle('active', document.queryCommandState('italic'));
+      document.getElementById('quick-fmt-underline').classList.toggle('active', document.queryCommandState('underline'));
+
+      // Font size at cursor
+      const sel = window.getSelection();
+      if (sel.rangeCount && sel.focusNode) {
+        let el = sel.focusNode.nodeType === 3 ? sel.focusNode.parentElement : sel.focusNode;
+        
+        // If selection spans multiple elements and anchors on the editor itself, look at the first selected node
+        if (el.id === 'quick-editor') {
+          const range = sel.getRangeAt(0);
+          let startNode = range.startContainer;
+          if (startNode.nodeType === 1 && startNode.childNodes.length > range.startOffset) {
+             startNode = startNode.childNodes[range.startOffset];
+          }
+          if (startNode.nodeType === 3) startNode = startNode.parentElement;
+          if (startNode && startNode.nodeType === 1) el = startNode;
+        }
+
+        if (editor.contains(el)) {
+          const size = window.getComputedStyle(el).fontSize;
+          document.getElementById('quick-fmt-size-label').textContent = size;
+        }
+      }
+
+      // Alignment
+      const isCenter = document.queryCommandState('justifyCenter');
+      const isRight = document.queryCommandState('justifyRight');
+      document.getElementById('quick-fmt-align-left').classList.toggle('active', !isCenter && !isRight);
+      document.getElementById('quick-fmt-align-center').classList.toggle('active', isCenter);
+      document.getElementById('quick-fmt-align-right').classList.toggle('active', isRight);
+    }
+
+    function onEditorInput() {
+      const editor = document.getElementById('quick-editor');
+      quickSlides[quickActiveSlideIndex].html = editor.innerHTML;
+      quickSlides[quickActiveSlideIndex].text = editor.innerText || '';
       updateQuickPreview();
       // Update sidebar preview without full re-render
       const activeCardText = document.querySelector('#quick-sidebar .slide-mini.active .slide-mini-text');
       if (activeCardText) {
-        const previewText = e.target.value.split('\n').slice(0, 2).join(' ').substring(0, 60);
-        activeCardText.innerHTML = escHtml(previewText || 'Empty slide');
+        const plainText = (editor.innerText || '').split('\n').slice(0, 2).join(' ').substring(0, 60);
+        activeCardText.innerHTML = escHtml(plainText || 'Empty slide');
+      }
+    }
+
+    // ── Editor Input & Selection Events ──
+    document.getElementById('quick-editor').addEventListener('input', onEditorInput);
+
+    document.addEventListener('selectionchange', () => {
+      const editor = document.getElementById('quick-editor');
+      if (editor.contains(document.getSelection()?.anchorNode)) {
+        syncToolbarState();
       }
     });
 
-    // Navigation and Pause controls for Quick Presenter
+    // ── Paste sanitization — strip unwanted formatting ──
+    document.getElementById('quick-editor').addEventListener('paste', (e) => {
+      e.preventDefault();
+      const text = e.clipboardData.getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
+
+    // ── Formatting Toolbar Buttons ──
+    document.getElementById('quick-fmt-bold').addEventListener('click', () => applyFormat('bold'));
+    document.getElementById('quick-fmt-italic').addEventListener('click', () => applyFormat('italic'));
+    document.getElementById('quick-fmt-underline').addEventListener('click', () => applyFormat('underline'));
+
+    // Color picker
+    document.getElementById('quick-fmt-color').addEventListener('click', () => {
+      document.getElementById('quick-color-input').click();
+    });
+    document.getElementById('quick-color-swatch').addEventListener('click', () => {
+      document.getElementById('quick-color-input').click();
+    });
+    document.getElementById('quick-color-input').addEventListener('input', (e) => {
+      quickCurrentColor = e.target.value;
+      document.getElementById('quick-color-swatch').style.background = quickCurrentColor;
+      applyFormat('foreColor', quickCurrentColor);
+    });
+
+    // Per-selection font size
+    document.getElementById('quick-fmt-size-dn').addEventListener('click', () => changeFontSizeSelection(-8));
+    document.getElementById('quick-fmt-size-up').addEventListener('click', () => changeFontSizeSelection(8));
+
+    // Alignment (per-paragraph)
+    document.getElementById('quick-fmt-align-left').addEventListener('click', () => applyFormat('justifyLeft'));
+    document.getElementById('quick-fmt-align-center').addEventListener('click', () => applyFormat('justifyCenter'));
+    document.getElementById('quick-fmt-align-right').addEventListener('click', () => applyFormat('justifyRight'));
+
+    // Clear formatting
+    document.getElementById('quick-fmt-clear').addEventListener('click', () => applyFormat('removeFormat'));
+
+    // ── Navigation controls ──
     function quickSelectSlide(index) {
       if (index >= 0 && index < quickSlides.length) {
+        saveCurrentEditorContent();
         quickActiveSlideIndex = index;
         renderQuickSidebar();
         updateQuickEditor();
@@ -2509,9 +3344,17 @@
     });
 
     document.getElementById('btn-quick-add-slide').addEventListener('click', () => {
+      saveCurrentEditorContent();
       quickSlideCounter++;
-      quickSlides.push({ id: quickSlideCounter, text: '' });
-      quickActiveSlideIndex = quickSlides.length - 1;
+      const newSlide = { id: quickSlideCounter, text: '', html: '' };
+      
+      quickSlides.splice(quickActiveSlideIndex + 1, 0, newSlide);
+      
+      if (quickLiveSlideIndex !== null && quickLiveSlideIndex > quickActiveSlideIndex) {
+          quickLiveSlideIndex++;
+      }
+      
+      quickActiveSlideIndex++;
       renderQuickSidebar();
       updateQuickEditor();
       document.getElementById('quick-editor').focus();
@@ -2535,26 +3378,38 @@
     document.getElementById('btn-quick-delete-slide').addEventListener('click', () => {
       if (quickSlides.length > 1) {
         quickSlides.splice(quickActiveSlideIndex, 1);
+        
+        if (quickLiveSlideIndex !== null) {
+            if (quickLiveSlideIndex === quickActiveSlideIndex) {
+                quickLiveSlideIndex = null;
+            } else if (quickLiveSlideIndex > quickActiveSlideIndex) {
+                quickLiveSlideIndex--;
+            }
+        }
+        
         if (quickActiveSlideIndex >= quickSlides.length) {
           quickActiveSlideIndex = quickSlides.length - 1;
         }
         renderQuickSidebar();
         updateQuickEditor();
       } else {
-        // Just clear it
         quickSlides[0].text = '';
+        quickSlides[0].html = '';
+        quickLiveSlideIndex = null;
         updateQuickEditor();
         renderQuickSidebar();
       }
     });
 
     document.getElementById('btn-quick-project').addEventListener('click', () => {
+      saveCurrentEditorContent();
       pushQuickToProjector();
       showToast('Slide Projected!', 'success');
     });
 
     document.getElementById('btn-quick-save').addEventListener('click', async () => {
-       const slidesToSave = quickSlides.filter(s => s.text.trim().length > 0).map((s, i) => ({
+       saveCurrentEditorContent();
+       const slidesToSave = quickSlides.filter(s => (s.text || '').trim().length > 0).map((s, i) => ({
           type: 'verse',
           label: `Slide ${i + 1}`,
           order: i + 1,
@@ -2574,20 +3429,18 @@
        btn.disabled = true;
 
        if (liveSong && liveSong.id) {
-           // Update existing song (PUT method)
            try {
                await updateDoc(doc(db, "songs", liveSong.id), {
                    slides: slidesToSave,
                    updatedAt: serverTimestamp()
                });
                
-               // Update local state
                liveSong.slides = slidesToSave;
                const idx = allSongs.findIndex(s => s.id === liveSong.id);
                if (idx !== -1) allSongs[idx] = { ...liveSong };
                
                showToast('Song Updated!', 'success');
-               renderLiveSidebar(); // refresh live control view to show new slides
+               renderSlideSidebar();
            } catch(e) {
                console.error(e);
                showToast('Failed to update', 'error');
@@ -2596,7 +3449,6 @@
                btn.disabled = false;
            }
        } else {
-           // Create new song
            const titleStr = prompt("Enter a title to save this quick presentation:");
            if (!titleStr) {
                btn.innerHTML = originalHtml;
@@ -2631,25 +3483,77 @@
        }
     });
 
-    // Font size & Align
-    document.getElementById('quick-font-dn').addEventListener('click', () => {
-      if (quickFontSize > 8) quickFontSize--;
-      document.getElementById('quick-font-label').textContent = quickFontSize + 'px';
-      pushQuickToProjector();
+    // ── Song Library Picker ──
+    function renderLibraryModal(filterTerm) {
+      const list = document.getElementById('qlm-list');
+      const term = (filterTerm || '').toLowerCase().trim();
+      
+      let filtered = allSongs;
+      if (term) {
+        filtered = allSongs.filter(s => {
+          const searchable = [
+            s.title?.en, s.title?.kn, s.title?.hi,
+            s.author, s.category,
+            ...(s.tags || []),
+            ...(s.searchIndex || [])
+          ].filter(Boolean).join(' ').toLowerCase();
+          return searchable.includes(term);
+        });
+      }
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div style="padding:40px; text-align:center; color:var(--color-text-secondary);"><i class="ti ti-music-off" style="font-size:32px; display:block; margin-bottom:8px;"></i>No songs found</div>';
+        return;
+      }
+
+      list.innerHTML = filtered.slice(0, 100).map((s, idx) => {
+        const title = s.title?.en || s.title?.kn || s.title?.hi || 'Untitled';
+        const slideCount = s.slides?.length || 0;
+        const author = s.author || '';
+        const category = s.category || '';
+        return `<button class="qlm-item" data-song-id="${s.id}">
+          <div class="qlm-item-icon"><i class="ti ti-music"></i></div>
+          <div class="qlm-item-info">
+            <div class="qlm-item-title">${escHtml(title)}</div>
+            <div class="qlm-item-meta">${escHtml(author)}${category ? ' · ' + escHtml(category) : ''} · ${slideCount} slides</div>
+          </div>
+        </button>`;
+      }).join('');
+
+      // Attach click handlers
+      list.querySelectorAll('.qlm-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const songId = item.dataset.songId;
+          const song = allSongs.find(s => s.id === songId);
+          if (song) {
+            document.getElementById('quick-library-modal').classList.remove('active');
+            document.getElementById('qlm-search-input').value = '';
+            quickPresentSong(song);
+          }
+        });
+      });
+    }
+
+    document.getElementById('btn-quick-library').addEventListener('click', () => {
+      document.getElementById('quick-library-modal').classList.add('active');
+      renderLibraryModal('');
+      setTimeout(() => document.getElementById('qlm-search-input').focus(), 100);
     });
-    document.getElementById('quick-font-up').addEventListener('click', () => {
-      if (quickFontSize < 30) quickFontSize++;
-      document.getElementById('quick-font-label').textContent = quickFontSize + 'px';
-      pushQuickToProjector();
+
+    document.getElementById('qlm-close').addEventListener('click', () => {
+      document.getElementById('quick-library-modal').classList.remove('active');
+      document.getElementById('qlm-search-input').value = '';
     });
-    document.getElementById('quick-align-toggle').addEventListener('click', (e) => {
-      const btn = e.target.closest('.font-btn[data-align]');
-      if (!btn) return;
-      quickAlign = btn.dataset.align;
-      document.querySelectorAll('#quick-align-toggle .font-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      updateQuickPreview();
-      pushQuickToProjector();
+
+    document.getElementById('quick-library-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) {
+        document.getElementById('quick-library-modal').classList.remove('active');
+        document.getElementById('qlm-search-input').value = '';
+      }
+    });
+
+    document.getElementById('qlm-search-input').addEventListener('input', (e) => {
+      renderLibraryModal(e.target.value);
     });
 
     // Pop out 
@@ -2661,6 +3565,370 @@
     renderQuickSidebar();
     updateQuickEditor();
 
+    // ======================== PPT CANVAS SCALING ========================
+    const CANVAS_W = 1920;
+    const CANVAS_H = 1080;
+
+    function scaleCanvasToFit(canvasEl, wrapperEl) {
+      if (!wrapperEl || !canvasEl) return;
+      const wW = wrapperEl.clientWidth;
+      const wH = wrapperEl.clientHeight;
+      if (wW === 0 || wH === 0) return;
+      
+      // Subtract just 40px (20px padding on all sides) to maximize slide size
+      const availableW = Math.max(10, wW - 40);
+      const availableH = Math.max(10, wH - 40);
+      
+      const scale = Math.min(availableW / CANVAS_W, availableH / CANVAS_H);
+      canvasEl.style.transform = `scale(${scale})`;
+    }
+
+    function scaleAllCanvases() {
+      scaleCanvasToFit(
+        document.getElementById('editor-canvas'),
+        document.getElementById('editor-canvas-wrapper')
+      );
+      scaleCanvasToFit(
+        document.getElementById('live-canvas'),
+        document.getElementById('live-canvas-wrapper')
+      );
+    }
+
+    // Use ResizeObserver for responsive scaling
+    const canvasResizeObserver = new ResizeObserver(() => {
+      scaleAllCanvases();
+    });
+
+    const editorWrapper = document.getElementById('editor-canvas-wrapper');
+    const liveWrapper = document.getElementById('live-canvas-wrapper');
+    if (editorWrapper) canvasResizeObserver.observe(editorWrapper);
+    if (liveWrapper) canvasResizeObserver.observe(liveWrapper);
+
+    // Also scale when Quick Presenter view becomes active
+    const origSwitchView = switchView;
+    switchView = function(view) {
+      origSwitchView(view);
+      if (view === 'quick' || view === 'live') {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            scaleAllCanvases();
+          });
+        });
+      }
+    };
+
+    // Initial scale
+    requestAnimationFrame(scaleAllCanvases);
+
   </script>
+
+  <!-- Floating Camera Panel -->
+  <script>
+// ======================== NEW CAMERA LOGIC (SIDEBAR TABS) ========================
+function switchSidebarTab(view, tab) {
+  document.getElementById(`tab-${view}-slides`).style.fontWeight = 'normal';
+  document.getElementById(`tab-${view}-slides`).style.color = 'var(--color-text-secondary)';
+  document.getElementById(`tab-${view}-slides`).style.borderBottomColor = 'transparent';
+  document.getElementById(`tab-${view}-camera`).style.fontWeight = 'normal';
+  document.getElementById(`tab-${view}-camera`).style.color = 'var(--color-text-secondary)';
+  document.getElementById(`tab-${view}-camera`).style.borderBottomColor = 'transparent';
+  document.getElementById(`tab-${view}-${tab}`).style.fontWeight = '600';
+  document.getElementById(`tab-${view}-${tab}`).style.color = 'var(--color-text-primary)';
+  document.getElementById(`tab-${view}-${tab}`).style.borderBottomColor = 'var(--color-primary)';
+  document.getElementById(`content-${view}-slides`).style.display = 'none';
+  document.getElementById(`content-${view}-camera`).style.display = 'none';
+  document.getElementById(`content-${view}-${tab}`).style.display = 'flex';
+}
+window.camActive = false;
+window.camProjected = false;
+window.camStream = null;
+window.camW = 150;
+window.camH = 150;
+window.currentShape = 'circle';
+window.editorDragStartX = 0;
+window.editorDragStartY = 0;
+window.isDraggingEditorCam = false;
+
+function syncCameraUI() {
+  ['live', 'quick'].forEach(v => {
+    const btn = document.getElementById(`btnToggleCamera-${v}`);
+    const projBtn = document.getElementById(`btnProjectCamera-${v}`);
+    if(!btn) return;
+    if (window.camActive) {
+      btn.innerHTML = `<i class="ti ti-video-off"></i> <span>Stop Camera</span>`;
+      btn.style.background = '#e74c3c';
+      btn.style.color = '#fff';
+      if (projBtn) projBtn.style.display = 'flex';
+    } else {
+      btn.innerHTML = `<i class="ti ti-video"></i> <span>Start Camera</span>`;
+      btn.style.background = 'var(--primary-color)';
+      btn.style.color = '#fff';
+      if (projBtn) projBtn.style.display = 'none';
+      window.camProjected = false;
+    }
+    
+    if (projBtn) {
+      if (window.camProjected) {
+        projBtn.innerHTML = `<i class="ti ti-video-off"></i> <span>Stop Projecting Camera</span>`;
+        projBtn.style.background = '#e74c3c';
+      } else {
+        projBtn.innerHTML = `<i class="ti ti-broadcast"></i> <span>Project Camera</span>`;
+        projBtn.style.background = '#4CAF50';
+      }
+    }
+    
+    document.querySelectorAll(`.cam-shape-btn-${v}`).forEach(b => {
+      b.classList.remove('active');
+      if (b.dataset.shape === window.currentShape) b.classList.add('active');
+    });
+    
+    document.getElementById(`camWidthSlider-${v}`).value = window.camW;
+    document.getElementById(`camHeightSlider-${v}`).value = window.camH;
+    document.getElementById(`camWidthLbl-${v}`).innerText = window.camW + 'px';
+    document.getElementById(`camHeightLbl-${v}`).innerText = window.camH + 'px';
+  });
+}
+
+function updateEditorOverlays() {
+  document.querySelectorAll('.editor-cam-overlay').forEach(ov => {
+    if (window.camActive && window.camStream) {
+      ov.style.display = 'block';
+      let w = window.camW; let h = window.camH; let br = '0';
+      if (window.currentShape === 'circle') br = '50%';
+      if (window.currentShape === 'full') { w = 1920; h = 1080; br = '0'; ov.style.left = '0px'; ov.style.top = '0px'; }
+      ov.style.width = w + 'px'; ov.style.height = h + 'px'; ov.style.borderRadius = br;
+      const v = ov.querySelector('video');
+      if (v && v.srcObject !== window.camStream) v.srcObject = window.camStream;
+    } else {
+      ov.style.display = 'none';
+      const v = ov.querySelector('video');
+      if (v) v.srcObject = null;
+    }
+  });
+}
+
+async function startLocalCam() {
+  if (window.camStream) stopLocalCam();
+  const liveSelect = document.getElementById('camDeviceSelect-live');
+  const quickSelect = document.getElementById('camDeviceSelect-quick');
+  const devSelect = (quickSelect && quickSelect.offsetParent) ? quickSelect : liveSelect;
+  const constraints = { video: { width: { ideal: 3840 }, height: { ideal: 2160 } } };
+  let selectedDeviceId = null;
+  if (devSelect && devSelect.value) {
+    selectedDeviceId = devSelect.value;
+    constraints.video.deviceId = { exact: selectedDeviceId };
+  }
+  try {
+    window.camStream = await navigator.mediaDevices.getUserMedia(constraints);
+    window.camDeviceId = selectedDeviceId;
+    const mainVid = document.getElementById('localCamVideo-live');
+    if(mainVid) mainVid.srcObject = window.camStream;
+    
+    document.querySelectorAll('.editor-cam-overlay video').forEach(v => {
+      v.srcObject = window.camStream;
+    });
+    
+    window.camActive = true;
+    syncCameraUI();
+    updateEditorOverlays();
+  } catch (err) {
+    console.error("Camera error:", err); alert("Could not access camera: " + err.message);
+    window.camActive = false; syncCameraUI();
+  }
+}
+
+function stopLocalCam() {
+  if (window.camStream) {
+    window.camStream.getTracks().forEach(t => t.stop());
+    window.camStream = null;
+  }
+  const mainVid = document.getElementById('localCamVideo-live');
+  if(mainVid) mainVid.srcObject = null;
+  document.querySelectorAll('.editor-cam-overlay video').forEach(v => {
+    v.srcObject = null;
+  });
+  window.camActive = false;
+  window.camProjected = false;
+  localStorage.setItem('droidcam_status', JSON.stringify({ active: false, timestamp: Date.now() }));
+  syncCameraUI();
+  updateEditorOverlays();
+}
+
+function toggleProjectCamera() {
+  window.camProjected = !window.camProjected;
+  localStorage.setItem('droidcam_status', JSON.stringify({ 
+    active: window.camProjected, 
+    deviceId: window.camDeviceId,
+    timestamp: Date.now() 
+  }));
+  
+  if (window.camProjected) {
+    // Force sync shape and position
+    localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape }));
+    if (window.lastDroppedLeftPct !== undefined) {
+      localStorage.setItem('droidcam_position', JSON.stringify({ leftPct: window.lastDroppedLeftPct, topPct: window.lastDroppedTopPct }));
+    }
+  }
+  syncCameraUI();
+}
+
+async function populateCameraList() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoRevs = devices.filter(d => d.kind === 'videoinput');
+    
+    ['live', 'quick'].forEach(v => {
+      const devSelect = document.getElementById(`camDeviceSelect-${v}`);
+      if(!devSelect) return;
+      
+      const currentVal = devSelect.value;
+      devSelect.innerHTML = '';
+      
+      videoRevs.forEach(d => {
+        const opt = document.createElement('option'); 
+        opt.value = d.deviceId;
+        opt.textContent = d.label || `Camera ${devSelect.length + 1}`;
+        devSelect.appendChild(opt);
+      });
+      
+      if (currentVal) devSelect.value = currentVal;
+      
+      // Sync change event to other dropdown and restart cam if active
+      devSelect.onchange = () => {
+        ['live', 'quick'].forEach(ov => {
+          if (ov !== v) {
+            const otherSel = document.getElementById(`camDeviceSelect-${ov}`);
+            if (otherSel) otherSel.value = devSelect.value;
+          }
+        });
+        if (window.camActive) {
+          startLocalCam();
+        }
+      };
+    });
+  } catch (e) {
+    console.warn('Failed to populate camera list:', e);
+  }
+}
+
+['live', 'quick'].forEach(v => {
+  const btn = document.getElementById(`btnToggleCamera-${v}`);
+  const projBtn = document.getElementById(`btnProjectCamera-${v}`);
+  if(btn) {
+    btn.addEventListener('click', () => {
+      if (window.camActive) {
+        stopLocalCam();
+      } else {
+        populateCameraList().then(() => startLocalCam());
+      }
+    });
+  }
+  if(projBtn) {
+    projBtn.addEventListener('click', () => {
+      toggleProjectCamera();
+    });
+  }
+  const wSlider = document.getElementById(`camWidthSlider-${v}`);
+  if(wSlider) {
+    wSlider.addEventListener('input', (e) => {
+      window.camW = parseInt(e.target.value);
+      if (window.camProjected) {
+        localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape }));
+      }
+      syncCameraUI(); updateEditorOverlays();
+    });
+  }
+  const hSlider = document.getElementById(`camHeightSlider-${v}`);
+  if(hSlider) {
+    hSlider.addEventListener('input', (e) => {
+      window.camH = parseInt(e.target.value);
+      if (window.camProjected) {
+        localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape }));
+      }
+      syncCameraUI(); updateEditorOverlays();
+    });
+  }
+  document.querySelectorAll(`.cam-shape-btn-${v}`).forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      window.currentShape = e.target.dataset.shape;
+      if (window.camProjected) {
+        localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape }));
+      }
+      syncCameraUI(); updateEditorOverlays();
+    });
+  });
+});
+
+try {
+  const savedShape = localStorage.getItem('droidcam_shape');
+  if(savedShape) { const s = JSON.parse(savedShape); window.camW = s.w || 150; window.camH = s.h || 150; window.currentShape = s.shape || 'circle'; }
+} catch(e) { console.warn('Failed to parse droidcam_shape:', e); }
+syncCameraUI();
+localStorage.setItem('droidcam_status', JSON.stringify({ active: false, timestamp: Date.now() }));
+updateEditorOverlays();
+
+document.querySelectorAll('.editor-cam-overlay').forEach(ov => {
+  ov.addEventListener('mousedown', (e) => {
+    if(window.currentShape === 'full') return;
+    window.isDraggingEditorCam = true;
+    window.draggingOverlay = ov;
+    const cw = parseFloat(ov.parentElement.style.width) || ov.parentElement.clientWidth;
+    const ch = parseFloat(ov.parentElement.style.height) || ov.parentElement.clientHeight;
+    const rect = ov.parentElement.getBoundingClientRect();
+    const scale = rect.width / cw;
+    window.editorDragStartX = (e.clientX - rect.left) / scale - parseFloat(ov.style.left || 0);
+    window.editorDragStartY = (e.clientY - rect.top) / scale - parseFloat(ov.style.top || 0);
+    e.stopPropagation();
+  });
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (window.isDraggingEditorCam && window.draggingOverlay) {
+    const ov = window.draggingOverlay;
+    if(window.currentShape === 'full') return;
+    const cw = parseFloat(ov.parentElement.style.width) || ov.parentElement.clientWidth;
+    const ch = parseFloat(ov.parentElement.style.height) || ov.parentElement.clientHeight;
+    const rect = ov.parentElement.getBoundingClientRect();
+    const scale = rect.width / cw;
+    let newX = (e.clientX - rect.left) / scale - window.editorDragStartX;
+    let newY = (e.clientY - rect.top) / scale - window.editorDragStartY;
+    
+    // Sync to all overlays so they match visually, even if hidden
+    document.querySelectorAll('.editor-cam-overlay').forEach(o => {
+      o.style.left = newX + 'px'; o.style.top = newY + 'px';
+      o.style.right = 'auto'; o.style.bottom = 'auto';
+    });
+    
+    let leftPct = (newX / cw) * 100;
+    let topPct = (newY / ch) * 100;
+    window.lastDroppedLeftPct = leftPct;
+    window.lastDroppedTopPct = topPct;
+
+    if (window.camProjected) {
+      localStorage.setItem('droidcam_position', JSON.stringify({ leftPct: leftPct, topPct: topPct }));
+    }
+  }
+});
+window.addEventListener('mouseup', () => { 
+  window.isDraggingEditorCam = false; 
+  window.draggingOverlay = null;
+});
+
+document.querySelectorAll('.editor-cam-overlay').forEach(ov => {
+  const savedPos = localStorage.getItem('droidcam_position');
+  if (savedPos) {
+    try {
+      const pos = JSON.parse(savedPos);
+      if (pos.leftPct !== undefined && pos.topPct !== undefined) {
+        ov.style.left = (pos.leftPct / 100 * 1920) + 'px';
+        ov.style.top = (pos.topPct / 100 * 1080) + 'px';
+        ov.style.right = 'auto'; ov.style.bottom = 'auto';
+      }
+    } catch(e) {
+      console.warn('Failed to parse droidcam_position:', e);
+    }
+  }
+});
+</script>
 </body>
 </html>
