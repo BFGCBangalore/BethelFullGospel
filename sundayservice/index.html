@@ -1363,6 +1363,8 @@
                     <button class="fmt-btn" id="quick-fmt-size-up" title="Increase font size (selected text)">A+</button>
                   </div>
                   <div class="fmt-separator"></div>
+                  <button class="fmt-btn" id="quick-fmt-title" title="Add Title Box"><i class="ti ti-heading"></i></button>
+                  <div class="fmt-separator"></div>
                   <button class="fmt-btn active" id="quick-fmt-align-left" data-align="left" title="Align Left"><i class="ti ti-align-left"></i></button>
                   <button class="fmt-btn" id="quick-fmt-align-center" data-align="center" title="Align Center"><i class="ti ti-align-center"></i></button>
                   <button class="fmt-btn" id="quick-fmt-align-right" data-align="right" title="Align Right"><i class="ti ti-align-right"></i></button>
@@ -2175,8 +2177,13 @@
       liveSong = song; // set liveSong so 'Save as Song' updates this exact song
 
       quickSlides = song.slides.map((s, i) => {
-          const mixedText = [s.en, s.kn, s.hi].filter(Boolean).join('\n');
-          const htmlContent = escHtml(mixedText).replace(/\n/g, '<br>');
+          let mixedText = [s.en, s.kn, s.hi].filter(Boolean).join('\n');
+          let htmlContent = s.isHtml ? s.en : escHtml(mixedText).replace(/\n/g, '<br>');
+          if (s.isHtml) {
+             const temp = document.createElement('div');
+             temp.innerHTML = s.en;
+             mixedText = temp.innerText || temp.textContent;
+          }
           return { id: i + 1, text: mixedText, html: htmlContent };
       });
       
@@ -2620,7 +2627,7 @@
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
       
       if (currentView === 'live' && liveSong) {
         if (e.key === 'ArrowRight' || e.key === ' ') {
@@ -2776,8 +2783,13 @@
       if (!song || !song.slides) return;
       
       quickSlides = song.slides.map((s, i) => {
-          const mixedText = [s.en, s.kn, s.hi].filter(Boolean).join('\n');
-          const htmlContent = escHtml(mixedText).replace(/\n/g, '<br>');
+          let mixedText = [s.en, s.kn, s.hi].filter(Boolean).join('\n');
+          let htmlContent = s.isHtml ? s.en : escHtml(mixedText).replace(/\n/g, '<br>');
+          if (s.isHtml) {
+             const temp = document.createElement('div');
+             temp.innerHTML = s.en;
+             mixedText = temp.innerText || temp.textContent;
+          }
           return { id: i + 1, text: mixedText, html: htmlContent };
       });
       
@@ -3206,26 +3218,35 @@
         return;
       }
 
-      // Use execCommand fontSize (1-7) then replace with actual px
-      // This is the most reliable cross-browser approach
-      document.execCommand('fontSize', false, '7');
+      // Use insertHTML to apply a span with custom font-size.
+      // This is the most reliable way to apply arbitrary pixel sizes while fully preserving the native undo stack.
+      const range = sel.getRangeAt(0);
+      const tempId = 'fs-' + Date.now();
       
-      // Find the font elements created and replace with spans
-      const fontEls = Array.from(editor.querySelectorAll('font[size="7"]'));
-      const newSpans = [];
-      fontEls.forEach(el => {
-        const span = document.createElement('span');
-        span.style.fontSize = newSize + 'px';
-        span.innerHTML = el.innerHTML;
-        el.parentNode.replaceChild(span, el);
-        newSpans.push(span);
+      const span = document.createElement('span');
+      span.style.fontSize = newSize + 'px';
+      span.id = tempId;
+      span.appendChild(range.cloneContents());
+      
+      // Strip any nested font sizes so the new size takes precedence
+      span.querySelectorAll('*').forEach(el => {
+        if (el.style && el.style.fontSize) {
+          el.style.fontSize = '';
+          if (el.getAttribute('style') === '') el.removeAttribute('style');
+        }
+        if (el.tagName === 'FONT') {
+          el.removeAttribute('size');
+        }
       });
-
+      
+      document.execCommand('insertHTML', false, span.outerHTML);
+      
       // Restore selection so user can click repeatedly
-      if (newSpans.length > 0) {
+      const insertedSpan = document.getElementById(tempId);
+      if (insertedSpan) {
+        insertedSpan.removeAttribute('id');
         const newRange = document.createRange();
-        newRange.setStartBefore(newSpans[0]);
-        newRange.setEndAfter(newSpans[newSpans.length - 1]);
+        newRange.selectNodeContents(insertedSpan);
         sel.removeAllRanges();
         sel.addRange(newRange);
       }
@@ -3324,6 +3345,38 @@
     // Per-selection font size
     document.getElementById('quick-fmt-size-dn').addEventListener('click', () => changeFontSizeSelection(-8));
     document.getElementById('quick-fmt-size-up').addEventListener('click', () => changeFontSizeSelection(8));
+
+    // Add Title Box
+    document.getElementById('quick-fmt-title')?.addEventListener('click', () => {
+      const editor = document.getElementById('quick-editor');
+      let titleBox = editor.querySelector('.slide-title-box');
+      if (titleBox) {
+        titleBox.focus();
+      } else {
+        const div = document.createElement('div');
+        div.className = 'slide-title-box';
+        div.style.fontSize = '80px';
+        div.style.fontWeight = 'bold';
+        div.style.textAlign = 'center';
+        div.style.marginBottom = '40px';
+        div.innerHTML = 'Song Title';
+        
+        if (editor.firstChild) {
+          editor.insertBefore(div, editor.firstChild);
+        } else {
+          editor.appendChild(div);
+        }
+        
+        const range = document.createRange();
+        range.selectNodeContents(div);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+      if (typeof onEditorInput === 'function') onEditorInput();
+    });
+
 
     // Alignment (per-paragraph)
     document.getElementById('quick-fmt-align-left').addEventListener('click', () => applyFormat('justifyLeft'));
@@ -3427,13 +3480,14 @@
 
     document.getElementById('btn-quick-save').addEventListener('click', async () => {
        saveCurrentEditorContent();
-       const slidesToSave = quickSlides.filter(s => (s.text || '').trim().length > 0).map((s, i) => ({
+       const slidesToSave = quickSlides.filter(s => (s.html || s.text || '').trim().length > 0).map((s, i) => ({
           type: 'verse',
           label: `Slide ${i + 1}`,
           order: i + 1,
-          en: s.text,
+          en: s.html || s.text,
           kn: '',
-          hi: ''
+          hi: '',
+          isHtml: true
        }));
        
        if (slidesToSave.length === 0) {
