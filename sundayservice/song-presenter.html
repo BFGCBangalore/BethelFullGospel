@@ -240,7 +240,6 @@
 
         /* ── Controls bar (hover) ── */
         .controls-bar {
-            display: none !important;
             position: fixed;
             bottom: 0;
             left: 0;
@@ -606,10 +605,10 @@
 
             waitingMessage.classList.remove('visible');
 
-            // Apply Quick Presenter Theme (White background, Black text)
+            // Apply Quick Presenter Theme (Dim white/grey background, Dark text)
             if (state.isQuickPresenter) {
-                document.documentElement.style.setProperty('--bg', '#ffffff');
-                document.documentElement.style.setProperty('--text', '#000000');
+                document.documentElement.style.setProperty('--bg', '#e2e8f0');
+                document.documentElement.style.setProperty('--text', '#1a202c');
                 document.documentElement.style.setProperty('--text-shadow-strong', 'none');
                 document.documentElement.style.setProperty('--text-shadow-weak', 'none');
             } else {
@@ -803,6 +802,7 @@
     let camShape = 'circle';
     let camWidth = 150;
     let camHeight = 150;
+    let camOffsetX = 50;
     
     let isDragging = false;
     let isResizing = false;
@@ -818,6 +818,7 @@
           camShape = s.shape || 'circle';
           camWidth = parseInt(s.w) || 150;
           camHeight = parseInt(s.h) || 150;
+          camOffsetX = s.offsetX ?? 50;
         } catch(e) { console.warn('Failed to parse droidcam_shape:', e); }
       }
 
@@ -836,6 +837,8 @@
         overlay.style.height = camHeight + 'px';
         applySavedPosition();
       }
+      
+      video.style.objectPosition = `${camOffsetX}% 50%`;
     }
 
     function applySavedPosition() {
@@ -958,7 +961,7 @@
       }
       if (isResizing) {
         isResizing = false;
-        localStorage.setItem('droidcam_shape', JSON.stringify({ w: camWidth, h: camHeight, shape: camShape }));
+        localStorage.setItem('droidcam_shape', JSON.stringify({ w: camWidth, h: camHeight, shape: camShape, offsetX: camOffsetX }));
       }
     });
 </script>
