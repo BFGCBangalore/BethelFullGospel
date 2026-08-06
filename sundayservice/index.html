@@ -532,16 +532,20 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.3); /* PowerPoint-like drop shadow */
       border: 1px solid #ccc;
       background: #ffffff; /* Classic White PowerPoint Slide */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
     }
     .ppt-canvas-editor {
       background: transparent; color: #000000; /* Black text on white slide */
       padding: 60px 80px; font-size: 96px; line-height: 1.55; font-weight: 600;
       font-family: inherit; outline: none; overflow-y: auto; overflow-x: hidden;
       white-space: pre-wrap; word-break: break-word; cursor: text;
-      width: 100%; height: 100%;
+      width: 100%; height: auto; max-height: 100%;
       box-sizing: border-box;
       border: none;
-      display: flex; flex-direction: column; align-items: stretch; justify-content: center; text-align: center;
+      display: block; text-align: center;
     }
     .ppt-canvas-editor:focus-within { 
       outline: none;
@@ -550,7 +554,10 @@
       content: attr(data-placeholder);
       color: #999; font-style: normal; pointer-events: none;
     }
-    .ppt-canvas-editor div { min-height: 1.7em; }
+    .ppt-canvas-editor p,
+    .ppt-canvas-editor div { margin: 0; padding: 0; min-height: 1.7em; }
+    .ppt-canvas-editor font,
+    .ppt-canvas-editor span { margin: 0; padding: 0; }
 
     /* Preview monitor — same fixed canvas but read-only */
     .ppt-canvas-preview {
@@ -1182,9 +1189,9 @@
                     <!-- Mini slides go here -->
                   </div>
                 </div>
-                <div id="content-live-camera" style="display:none; flex-direction:column; flex:1; overflow-y:auto; padding:15px; gap:15px;">
+                <div id="content-live-camera" style="display:none; flex-direction:column; flex:1; min-height:0; overflow-y:auto; padding:15px; gap:15px;">
                   <button id="btnToggleCamera-live" class="btn btn-primary" style="width:100%; display:flex; justify-content:center; gap:8px;"><i class="ti ti-video"></i> <span>Start Camera</span></button>
-                  <div style="background:#000; border-radius:8px; overflow:hidden; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center;">
+                  <div style="background:#000; border-radius:8px; overflow:hidden; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
                     <video id="localCamVideo-live" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
                   </div>
                   <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
@@ -1207,6 +1214,10 @@
                   <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
                     <label style="font-size:12px; color:var(--color-text-secondary); display:flex; justify-content:space-between;">Height <span id="camHeightLbl-live">150px</span></label>
                     <input type="range" id="camHeightSlider-live" min="50" max="800" value="150" style="width:100%;">
+                  </div>
+                  <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-size:12px; color:var(--color-text-secondary); display:flex; justify-content:space-between;">Pan View <span id="camOffsetLbl-live">Center</span></label>
+                    <input type="range" id="camOffsetSlider-live" min="0" max="100" value="50" style="width:100%;">
                   </div>
                   <button id="btnProjectCamera-live" class="btn btn-secondary" style="width:100%; display:flex; justify-content:center; gap:8px; margin-top:10px; background:#4CAF50; color:white; border:none; padding:10px; border-radius:6px; font-weight:600;"><i class="ti ti-broadcast"></i> <span>Project Camera</span></button>
                 </div>
@@ -1311,8 +1322,11 @@
                     <!-- Mini slides go here -->
                   </div>
                 </div>
-                <div id="content-quick-camera" style="display:none; flex-direction:column; flex:1; overflow-y:auto; padding:15px; gap:15px;">
+                <div id="content-quick-camera" style="display:none; flex-direction:column; flex:1; min-height:0; overflow-y:auto; padding:15px; gap:15px;">
                   <button id="btnToggleCamera-quick" class="btn btn-primary" style="width:100%; display:flex; justify-content:center; gap:8px;"><i class="ti ti-video"></i> <span>Start Camera</span></button>
+                  <div style="width:100%; aspect-ratio:16/9; background:#000; border-radius:6px; overflow:hidden; position:relative; margin-top:10px; flex-shrink:0;">
+                    <video id="localCamVideo-quick" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+                  </div>
                   <div class="form-group" style="display:flex; flex-direction:column; gap:6px; margin-top:10px;">
                     <label style="font-size:12px; color:var(--color-text-secondary);">Camera Device</label>
                     <select id="camDeviceSelect-quick" class="form-control" style="font-size:12px; padding:6px;"></select>
@@ -1333,6 +1347,10 @@
                   <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
                     <label style="font-size:12px; color:var(--color-text-secondary); display:flex; justify-content:space-between;">Height <span id="camHeightLbl-quick">150px</span></label>
                     <input type="range" id="camHeightSlider-quick" min="50" max="800" value="150" style="width:100%;">
+                  </div>
+                  <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
+                    <label style="font-size:12px; color:var(--color-text-secondary); display:flex; justify-content:space-between;">Pan View <span id="camOffsetLbl-quick">Center</span></label>
+                    <input type="range" id="camOffsetSlider-quick" min="0" max="100" value="50" style="width:100%;">
                   </div>
                   <button id="btnProjectCamera-quick" class="btn btn-secondary" style="width:100%; display:flex; justify-content:center; gap:8px; margin-top:10px; background:#4CAF50; color:white; border:none; padding:10px; border-radius:6px; font-weight:600;"><i class="ti ti-broadcast"></i> <span>Project Camera</span></button>
                 </div>
@@ -1356,6 +1374,7 @@
                     <div class="color-swatch" id="quick-color-swatch" style="background:#ffffff;" title="Click to pick color"></div>
                     <input type="color" id="quick-color-input" value="#ffffff">
                   </div>
+                  <button class="fmt-btn" id="quick-fmt-reset-color" title="Reset Color to Black"><i class="ti ti-eraser"></i></button>
                   <div class="fmt-separator"></div>
                   <div class="fmt-size-group">
                     <button class="fmt-btn" id="quick-fmt-size-dn" title="Decrease font size (selected text)">A-</button>
@@ -1403,7 +1422,7 @@
                     <button class="nav-btn btn-clear" id="quick-btn-black" style="padding: 6px 12px; font-size:13px;"><i class="ti ti-square"></i> Black Screen</button>
                   </div>
                   <div style="display:flex; gap: 12px;">
-                    <button class="nav-btn" id="btn-quick-save" style="padding: 6px 16px; font-size:13px;"><i class="ti ti-device-floppy"></i> Save as Song</button>
+                    <button class="nav-btn" id="btn-quick-save" style="padding: 6px 16px; font-size:13px;"><i class="ti ti-device-floppy"></i> Save</button>
                     <button class="nav-btn btn-popout" id="btn-quick-project" style="padding: 6px 20px; font-size:13px; box-shadow: 0 4px 12px rgba(83,74,183,0.3); background:var(--primary-color); color:#fff; border-color:var(--primary-color);"><i class="ti ti-broadcast"></i> Project Slide</button>
                   </div>
                 </div>
@@ -2171,8 +2190,9 @@
       }
     }
 
-    function quickPresentSong(song) {
+    async function quickPresentSong(song) {
       if (!song || !song.slides) return;
+      await autoSaveQuickPresenterIfNeeded();
       
       liveSong = song; // set liveSong so 'Save as Song' updates this exact song
 
@@ -2196,7 +2216,8 @@
       showToast('Sent to Quick Presenter!', 'success');
     }
 
-    function openLiveControl(song) {
+    async function openLiveControl(song) {
+      await autoSaveQuickPresenterIfNeeded();
       liveSong = song;
       liveSlideIndex = 0;
       isPaused = false;
@@ -2577,9 +2598,29 @@
       if (!liveSong?.slides?.[liveSlideIndex]) return;
 
       const slide = liveSong.slides[liveSlideIndex];
-      document.getElementById('live-edit-en').value = slide.en || '';
-      document.getElementById('live-edit-kn').value = slide.kn || '';
-      document.getElementById('live-edit-hi').value = slide.hi || '';
+      const enEl = document.getElementById('live-edit-en');
+      const knEl = document.getElementById('live-edit-kn');
+      const hiEl = document.getElementById('live-edit-hi');
+      const saveBtn = document.getElementById('btn-edit-save');
+      
+      if (slide.isHtml) {
+        enEl.value = "⚠️ This slide contains Rich Text formatting (colors, title box, etc).\n\nPlease use the 'Quick Presenter' to edit this slide safely without breaking its design.";
+        knEl.value = "";
+        hiEl.value = "";
+        enEl.disabled = true;
+        knEl.disabled = true;
+        hiEl.disabled = true;
+        saveBtn.disabled = true;
+      } else {
+        enEl.value = slide.en || '';
+        knEl.value = slide.kn || '';
+        hiEl.value = slide.hi || '';
+        enEl.disabled = false;
+        knEl.disabled = false;
+        hiEl.disabled = false;
+        saveBtn.disabled = false;
+      }
+      
       editPanel.classList.toggle('active');
     });
 
@@ -3018,6 +3059,130 @@
     let quickSlideCounter = 1;
     let quickCurrentColor = '#ffffff';
 
+    let quickHasUnsavedChanges = false;
+    function markQuickUnsaved() {
+      if (!quickHasUnsavedChanges) {
+        quickHasUnsavedChanges = true;
+        const btn = document.getElementById('btn-quick-save');
+        if (btn) {
+          btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save*';
+          btn.style.color = '#ff6b6b';
+          btn.style.fontWeight = 'bold';
+        }
+      }
+    }
+    function markQuickSaved() {
+      quickHasUnsavedChanges = false;
+      const btn = document.getElementById('btn-quick-save');
+      if (btn) {
+        btn.innerHTML = '<i class="ti ti-device-floppy"></i> Save as Song';
+        btn.style.color = '';
+        btn.style.fontWeight = '';
+      }
+    }
+
+    window.addEventListener('beforeunload', function (e) {
+      if (quickHasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    async function autoSaveQuickPresenterIfNeeded() {
+      if (quickHasUnsavedChanges && liveSong && liveSong.id) {
+         await saveQuickPresenterData(true);
+      }
+    }
+
+    async function saveQuickPresenterData(isAutoSave = false) {
+       saveCurrentEditorContent();
+       const slidesToSave = quickSlides.filter(s => (s.html || s.text || '').trim().length > 0).map((s, i) => ({
+          type: 'verse',
+          label: `Slide ${i + 1}`,
+          order: i + 1,
+          en: s.html || s.text,
+          kn: '',
+          hi: '',
+          isHtml: true
+       }));
+       
+       if (slidesToSave.length === 0 && !isAutoSave) {
+          showToast('No non-empty slides to save.', 'error');
+          return false;
+       }
+       if (slidesToSave.length === 0 && isAutoSave) return false;
+       
+       const btn = document.getElementById('btn-quick-save');
+       const originalHtml = btn.innerHTML;
+       
+       if (!isAutoSave) {
+           btn.innerHTML = '<i class="ti ti-loader-2 ti-spin"></i> Saving...';
+           btn.disabled = true;
+       }
+
+       if (liveSong && liveSong.id) {
+           try {
+               await updateDoc(doc(db, "songs", liveSong.id), {
+                   slides: slidesToSave,
+                   updatedAt: serverTimestamp()
+               });
+               
+               liveSong.slides = slidesToSave;
+               const idx = allSongs.findIndex(s => s.id === liveSong.id);
+               if (idx !== -1) allSongs[idx] = { ...liveSong };
+               
+               if (!isAutoSave) showToast('Song Updated!', 'success');
+               markQuickSaved();
+               if (!isAutoSave) renderSlideSidebar();
+               return true;
+           } catch(e) {
+               console.error(e);
+               if (!isAutoSave) showToast('Failed to update', 'error');
+               return false;
+           } finally {
+               if (!isAutoSave) {
+                   btn.innerHTML = originalHtml;
+                   btn.disabled = false;
+               }
+           }
+       } else {
+           if (isAutoSave) return false;
+           const titleStr = prompt("Enter a title to save this quick presentation:");
+           if (!titleStr) {
+               btn.innerHTML = originalHtml;
+               btn.disabled = false;
+               return false;
+           }
+           
+           const songData = {
+             title: { en: titleStr, kn: '', hi: '' },
+             author: 'Quick Presenter',
+             category: 'General',
+             tags: [],
+             searchIndex: [titleStr.toLowerCase()],
+             slides: slidesToSave,
+             createdAt: serverTimestamp(),
+             updatedAt: serverTimestamp()
+           };
+           
+           try {
+               const docRef = await addDoc(collection(db, "songs"), songData);
+               liveSong = { ...songData, id: docRef.id };
+               showToast('Saved to Song Library!', 'success');
+               markQuickSaved();
+               loadSongs();
+               return true;
+           } catch (e) {
+               console.error(e);
+               showToast('Failed to save', 'error');
+               return false;
+           } finally {
+               btn.innerHTML = originalHtml;
+               btn.disabled = false;
+           }
+       }
+    }
+
     function pushQuickToProjector() {
       const slide = quickSlides[quickActiveSlideIndex];
       const editorHtml = slide ? (slide.html || '') : '';
@@ -3131,6 +3296,7 @@
           
           const draggedSlide = quickSlides.splice(dragIndex, 1)[0];
           quickSlides.splice(i, 0, draggedSlide);
+          markQuickUnsaved();
           
           if (quickActiveSlideIndex === dragIndex) quickActiveSlideIndex = i;
           else if (quickActiveSlideIndex > dragIndex && quickActiveSlideIndex <= i) quickActiveSlideIndex--;
@@ -3163,21 +3329,33 @@
     function updateQuickEditor() {
       const editor = document.getElementById('quick-editor');
       const label = document.getElementById('quick-editor-label');
+      
+      // 1. Wipe out any inherited formatting from the browser's memory
+      editor.innerHTML = '';
+      editor.focus();
+      document.execCommand('foreColor', false, '#000000');
+      document.execCommand('removeFormat', false, null);
+      document.getElementById('quick-color-swatch').style.background = '#000000';
+      quickCurrentColor = '#000000';
+      
+      // 2. Inject the slide content
       if (quickSlides.length > 0 && quickSlides[quickActiveSlideIndex]) {
         const slide = quickSlides[quickActiveSlideIndex];
-        // Load HTML if available, otherwise convert text to HTML
         if (slide.html) {
           editor.innerHTML = slide.html;
         } else if (slide.text) {
           editor.innerHTML = escHtml(slide.text).replace(/\n/g, '<br>');
-        } else {
-          editor.innerHTML = '';
         }
         if (label) label.textContent = `Slide ${quickActiveSlideIndex + 1} of ${quickSlides.length}`;
       } else {
         editor.innerHTML = '';
         if (label) label.textContent = 'Slide 1 of 1';
       }
+      
+      // 3. Clean up
+      editor.blur();
+      syncToolbarState();
+      
       updateQuickPreview();
     }
 
@@ -3295,6 +3473,7 @@
     }
 
     function onEditorInput() {
+      markQuickUnsaved();
       const editor = document.getElementById('quick-editor');
       quickSlides[quickActiveSlideIndex].html = editor.innerHTML;
       quickSlides[quickActiveSlideIndex].text = editor.innerText || '';
@@ -3308,6 +3487,23 @@
     }
 
     // ── Editor Input & Selection Events ──
+    document.getElementById('editor-canvas').addEventListener('click', function(e) {
+      if (e.target === this || e.target === document.getElementById('editor-canvas-wrapper')) {
+        const editor = document.getElementById('quick-editor');
+        editor.focus();
+        if (typeof window.getSelection !== "undefined" && typeof document.createRange !== "undefined") {
+            try {
+              const range = document.createRange();
+              range.selectNodeContents(editor);
+              range.collapse(false);
+              const sel = window.getSelection();
+              sel.removeAllRanges();
+              sel.addRange(range);
+            } catch (err) {}
+        }
+      }
+    });
+
     document.getElementById('quick-editor').addEventListener('input', onEditorInput);
 
     document.addEventListener('selectionchange', () => {
@@ -3335,6 +3531,16 @@
     });
     document.getElementById('quick-color-swatch').addEventListener('click', () => {
       document.getElementById('quick-color-input').click();
+    });
+    
+    document.getElementById('quick-fmt-reset-color').addEventListener('click', () => {
+      const editor = document.getElementById('quick-editor');
+      editor.focus();
+      document.execCommand('foreColor', false, '#000000');
+      document.getElementById('quick-color-swatch').style.background = '#000000';
+      quickCurrentColor = '#000000';
+      onEditorInput();
+      syncToolbarState();
     });
     document.getElementById('quick-color-input').addEventListener('input', (e) => {
       quickCurrentColor = e.target.value;
@@ -3420,6 +3626,7 @@
       const newSlide = { id: quickSlideCounter, text: '', html: '' };
       
       quickSlides.splice(quickActiveSlideIndex + 1, 0, newSlide);
+      markQuickUnsaved();
       
       if (quickLiveSlideIndex !== null && quickLiveSlideIndex > quickActiveSlideIndex) {
           quickLiveSlideIndex++;
@@ -3428,7 +3635,9 @@
       quickActiveSlideIndex++;
       renderQuickSidebar();
       updateQuickEditor();
-      document.getElementById('quick-editor').focus();
+      
+      const editor = document.getElementById('quick-editor');
+      editor.focus();
     });
     
     document.getElementById('quick-search')?.addEventListener('input', (e) => {
@@ -3449,6 +3658,7 @@
     document.getElementById('btn-quick-delete-slide').addEventListener('click', () => {
       if (quickSlides.length > 1) {
         quickSlides.splice(quickActiveSlideIndex, 1);
+        markQuickUnsaved();
         
         if (quickLiveSlideIndex !== null) {
             if (quickLiveSlideIndex === quickActiveSlideIndex) {
@@ -3466,6 +3676,7 @@
       } else {
         quickSlides[0].text = '';
         quickSlides[0].html = '';
+        markQuickUnsaved();
         quickLiveSlideIndex = null;
         updateQuickEditor();
         renderQuickSidebar();
@@ -3479,80 +3690,7 @@
     });
 
     document.getElementById('btn-quick-save').addEventListener('click', async () => {
-       saveCurrentEditorContent();
-       const slidesToSave = quickSlides.filter(s => (s.html || s.text || '').trim().length > 0).map((s, i) => ({
-          type: 'verse',
-          label: `Slide ${i + 1}`,
-          order: i + 1,
-          en: s.html || s.text,
-          kn: '',
-          hi: '',
-          isHtml: true
-       }));
-       
-       if (slidesToSave.length === 0) {
-          showToast('No non-empty slides to save.', 'error');
-          return;
-       }
-       
-       const btn = document.getElementById('btn-quick-save');
-       const originalHtml = btn.innerHTML;
-       btn.innerHTML = '<i class="ti ti-loader-2 ti-spin"></i> Saving...';
-       btn.disabled = true;
-
-       if (liveSong && liveSong.id) {
-           try {
-               await updateDoc(doc(db, "songs", liveSong.id), {
-                   slides: slidesToSave,
-                   updatedAt: serverTimestamp()
-               });
-               
-               liveSong.slides = slidesToSave;
-               const idx = allSongs.findIndex(s => s.id === liveSong.id);
-               if (idx !== -1) allSongs[idx] = { ...liveSong };
-               
-               showToast('Song Updated!', 'success');
-               renderSlideSidebar();
-           } catch(e) {
-               console.error(e);
-               showToast('Failed to update', 'error');
-           } finally {
-               btn.innerHTML = originalHtml;
-               btn.disabled = false;
-           }
-       } else {
-           const titleStr = prompt("Enter a title to save this quick presentation:");
-           if (!titleStr) {
-               btn.innerHTML = originalHtml;
-               btn.disabled = false;
-               return;
-           }
-           
-           const songData = {
-             title: { en: titleStr, kn: '', hi: '' },
-             author: 'Quick Presenter',
-             category: 'General',
-             tags: [],
-             searchIndex: [titleStr.toLowerCase()],
-             slides: slidesToSave,
-             createdAt: serverTimestamp(),
-             updatedAt: serverTimestamp()
-           };
-           
-           addDoc(collection(db, "songs"), songData)
-             .then(() => {
-               showToast('Saved to Song Library!', 'success');
-               loadSongs();
-             })
-             .catch(e => {
-               console.error(e);
-               showToast('Failed to save', 'error');
-             })
-             .finally(() => {
-               btn.innerHTML = originalHtml;
-               btn.disabled = false;
-             });
-       }
+        await saveQuickPresenterData(false);
     });
 
     // ── Song Library Picker ──
@@ -3713,13 +3851,15 @@ function switchSidebarTab(view, tab) {
 }
 window.camActive = false;
 window.camProjected = false;
-window.camStream = null;
+window.currentShape = 'circle';
 window.camW = 150;
 window.camH = 150;
+window.camOffsetX = 50;
 window.currentShape = 'circle';
 window.editorDragStartX = 0;
 window.editorDragStartY = 0;
 window.isDraggingEditorCam = false;
+window.camStream = null;
 
 function syncCameraUI() {
   ['live', 'quick'].forEach(v => {
@@ -3749,6 +3889,14 @@ function syncCameraUI() {
       }
     }
     
+    // Ensure the stream is attached to the preview video if active
+    if (window.camActive && window.camStream) {
+      const vid = document.getElementById(`localCamVideo-${v}`);
+      if (vid && vid.srcObject !== window.camStream) {
+        vid.srcObject = window.camStream;
+      }
+    }
+    
     document.querySelectorAll(`.cam-shape-btn-${v}`).forEach(b => {
       b.classList.remove('active');
       if (b.dataset.shape === window.currentShape) b.classList.add('active');
@@ -3758,6 +3906,12 @@ function syncCameraUI() {
     document.getElementById(`camHeightSlider-${v}`).value = window.camH;
     document.getElementById(`camWidthLbl-${v}`).innerText = window.camW + 'px';
     document.getElementById(`camHeightLbl-${v}`).innerText = window.camH + 'px';
+    
+    if (document.getElementById(`camOffsetSlider-${v}`)) {
+      document.getElementById(`camOffsetSlider-${v}`).value = window.camOffsetX;
+      let posText = window.camOffsetX === 50 ? 'Center' : (window.camOffsetX < 50 ? 'Left' : 'Right');
+      document.getElementById(`camOffsetLbl-${v}`).innerText = posText;
+    }
   });
 }
 
@@ -3770,7 +3924,10 @@ function updateEditorOverlays() {
       if (window.currentShape === 'full') { w = 1920; h = 1080; br = '0'; ov.style.left = '0px'; ov.style.top = '0px'; }
       ov.style.width = w + 'px'; ov.style.height = h + 'px'; ov.style.borderRadius = br;
       const v = ov.querySelector('video');
-      if (v && v.srcObject !== window.camStream) v.srcObject = window.camStream;
+      if (v) {
+        if (v.srcObject !== window.camStream) v.srcObject = window.camStream;
+        v.style.objectPosition = `${window.camOffsetX}% 50%`;
+      }
     } else {
       ov.style.display = 'none';
       const v = ov.querySelector('video');
@@ -3793,8 +3950,10 @@ async function startLocalCam() {
   try {
     window.camStream = await navigator.mediaDevices.getUserMedia(constraints);
     window.camDeviceId = selectedDeviceId;
-    const mainVid = document.getElementById('localCamVideo-live');
-    if(mainVid) mainVid.srcObject = window.camStream;
+    ['live', 'quick'].forEach(v => {
+      const vid = document.getElementById(`localCamVideo-${v}`);
+      if(vid) vid.srcObject = window.camStream;
+    });
     
     document.querySelectorAll('.editor-cam-overlay video').forEach(v => {
       v.srcObject = window.camStream;
@@ -3814,8 +3973,10 @@ function stopLocalCam() {
     window.camStream.getTracks().forEach(t => t.stop());
     window.camStream = null;
   }
-  const mainVid = document.getElementById('localCamVideo-live');
-  if(mainVid) mainVid.srcObject = null;
+  ['live', 'quick'].forEach(v => {
+    const vid = document.getElementById(`localCamVideo-${v}`);
+    if(vid) vid.srcObject = null;
+  });
   document.querySelectorAll('.editor-cam-overlay video').forEach(v => {
     v.srcObject = null;
   });
@@ -3836,7 +3997,7 @@ function toggleProjectCamera() {
   
   if (window.camProjected) {
     // Force sync shape and position
-    localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape }));
+    localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape, offsetX: window.camOffsetX }));
     if (window.lastDroppedLeftPct !== undefined) {
       localStorage.setItem('droidcam_position', JSON.stringify({ leftPct: window.lastDroppedLeftPct, topPct: window.lastDroppedTopPct }));
     }
@@ -3905,7 +4066,7 @@ async function populateCameraList() {
     wSlider.addEventListener('input', (e) => {
       window.camW = parseInt(e.target.value);
       if (window.camProjected) {
-        localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape }));
+        localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape, offsetX: window.camOffsetX }));
       }
       syncCameraUI(); updateEditorOverlays();
     });
@@ -3915,7 +4076,17 @@ async function populateCameraList() {
     hSlider.addEventListener('input', (e) => {
       window.camH = parseInt(e.target.value);
       if (window.camProjected) {
-        localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape }));
+        localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape, offsetX: window.camOffsetX }));
+      }
+      syncCameraUI(); updateEditorOverlays();
+    });
+  }
+  const xSlider = document.getElementById(`camOffsetSlider-${v}`);
+  if(xSlider) {
+    xSlider.addEventListener('input', (e) => {
+      window.camOffsetX = parseInt(e.target.value);
+      if (window.camProjected) {
+        localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape, offsetX: window.camOffsetX }));
       }
       syncCameraUI(); updateEditorOverlays();
     });
@@ -3924,7 +4095,7 @@ async function populateCameraList() {
     btn.addEventListener('click', (e) => {
       window.currentShape = e.target.dataset.shape;
       if (window.camProjected) {
-        localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape }));
+        localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape, offsetX: window.camOffsetX }));
       }
       syncCameraUI(); updateEditorOverlays();
     });
@@ -3933,7 +4104,7 @@ async function populateCameraList() {
 
 try {
   const savedShape = localStorage.getItem('droidcam_shape');
-  if(savedShape) { const s = JSON.parse(savedShape); window.camW = s.w || 150; window.camH = s.h || 150; window.currentShape = s.shape || 'circle'; }
+  if(savedShape) { const s = JSON.parse(savedShape); window.camW = s.w || 150; window.camH = s.h || 150; window.currentShape = s.shape || 'circle'; window.camOffsetX = s.offsetX ?? 50; }
 } catch(e) { console.warn('Failed to parse droidcam_shape:', e); }
 syncCameraUI();
 localStorage.setItem('droidcam_status', JSON.stringify({ active: false, timestamp: Date.now() }));
