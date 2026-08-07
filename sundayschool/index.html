@@ -204,6 +204,224 @@
     }
     .otp-input:focus { border-color: var(--primary); background: #FFF; }
 
+    /* ==== NEUMORPHISM OVERRIDES FOR LOGIN PAGE ONLY ==== */
+    .login-wrapper .icon-box {
+      background: #E0E5EC;
+      box-shadow: 9px 9px 16px rgba(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.8);
+    }
+    .login-wrapper .phone-input-group {
+      background: #E0E5EC;
+      border: none;
+      box-shadow: inset 6px 6px 10px 0 rgba(163,177,198, 0.7), inset -6px -6px 10px 0 rgba(255,255,255, 0.8);
+    }
+    .login-wrapper .phone-input-group:focus-within {
+      background: #E0E5EC;
+      box-shadow: inset 8px 8px 12px 0 rgba(163,177,198, 0.8), inset -8px -8px 12px 0 rgba(255,255,255, 0.9);
+    }
+    .login-wrapper .country-code {
+      border-right: 1px solid rgba(163,177,198, 0.3);
+    }
+    .login-wrapper .btn-main {
+      background: #E0E5EC;
+      color: var(--primary);
+      box-shadow: 9px 9px 16px rgba(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.8);
+      border: none;
+    }
+    .login-wrapper .btn-main:active {
+      box-shadow: inset 6px 6px 10px 0 rgba(163,177,198, 0.7), inset -6px -6px 10px 0 rgba(255,255,255, 0.8);
+      transform: none;
+    }
+    .login-wrapper .otp-input {
+      background: #E0E5EC;
+      border: none;
+      box-shadow: inset 6px 6px 10px 0 rgba(163,177,198, 0.7), inset -6px -6px 10px 0 rgba(255,255,255, 0.8);
+    }
+    .login-wrapper .otp-input:focus {
+      background: #E0E5EC;
+      box-shadow: inset 8px 8px 12px 0 rgba(163,177,198, 0.8), inset -8px -8px 12px 0 rgba(255,255,255, 0.9);
+    }
+
+    /* ==== NEUMORPHIC DASHBOARDS (Refined) ==== */
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) {
+      background: #EAEFF5;
+    }
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .app-header {
+      background: #EAEFF5;
+      box-shadow: 0 4px 10px rgba(163,177,198,0.15);
+    }
+    
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .header-btn {
+      background: #EAEFF5;
+      box-shadow: 4px 4px 10px rgba(163,177,198,0.4), -4px -4px 10px rgba(255,255,255, 0.9);
+      border: none;
+    }
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .header-btn:active {
+      box-shadow: inset 4px 4px 8px rgba(163,177,198,0.5), inset -4px -4px 8px rgba(255,255,255, 0.9);
+      transform: none;
+    }
+
+    /* Cards */
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .card, 
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .stat-card,
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .list-item {
+      background: #EAEFF5;
+      box-shadow: 7px 7px 14px rgba(163,177,198,0.45), -7px -7px 14px rgba(255,255,255, 0.9);
+      border: none;
+    }
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .list-item:active {
+      box-shadow: inset 5px 5px 10px rgba(163,177,198,0.5), inset -5px -5px 10px rgba(255,255,255, 0.9);
+      transform: none;
+    }
+    
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .btn-main, 
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .gear-btn {
+      background: #EAEFF5;
+      color: var(--primary);
+      box-shadow: 7px 7px 14px rgba(163,177,198,0.45), -7px -7px 14px rgba(255,255,255, 0.9);
+      border: none;
+    }
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .btn-main:active,
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .gear-btn:active {
+      box-shadow: inset 5px 5px 10px rgba(163,177,198,0.5), inset -5px -5px 10px rgba(255,255,255, 0.9);
+      transform: none;
+    }
+    
+    /* Make delete buttons red */
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .gear-btn:has(.ti-trash) {
+      color: var(--danger) !important;
+    }
+
+    /* specific icons inside cards */
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) #adminSessionIcon,
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .stat-card .icon,
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .av {
+      background: #EAEFF5 !important;
+      box-shadow: inset 4px 4px 8px rgba(163,177,198,0.45), inset -4px -4px 8px rgba(255,255,255, 0.9);
+      border: none;
+    }
+
+    /* Switch */
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .slider {
+      background: #EAEFF5;
+      box-shadow: inset 4px 4px 8px rgba(163,177,198,0.45), inset -4px -4px 8px rgba(255,255,255, 0.9);
+    }
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .slider:before {
+      background: #EAEFF5;
+      box-shadow: -2px -2px 4px rgba(255,255,255,1), 2px 2px 4px rgba(163,177,198,0.4);
+    }
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) input:checked + .slider {
+      background: var(--success);
+      box-shadow: inset 2px 2px 5px rgba(0,0,0, 0.15);
+    }
+
+    /* Progress tracks */
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .card > div[style*="border-radius:5px"],
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) .card > div[style*="border-radius: 5px"] {
+       background: #EAEFF5 !important;
+       box-shadow: inset 4px 4px 8px rgba(163,177,198,0.45), inset -4px -4px 8px rgba(255,255,255, 0.9) !important;
+    }
+    :is([id^="sc-admin"], [id^="sc-teacher"], [id^="sc-parent"], [id^="sc-att"], [id^="sc-student"]) [id$="Bar"] {
+       box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+    }
+
+    /* ==== BOTTOM NAV (Neumorphic) ==== */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background: #EAEFF5;
+      box-shadow: 0 -4px 14px rgba(163,177,198,0.2);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-radius: 30px 30px 0 0;
+      padding: 0 10px;
+      z-index: 100;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-sub);
+      cursor: pointer;
+      width: 55px;
+      height: 55px;
+      border-radius: 12px;
+      transition: 0.3s;
+    }
+    .nav-item i { font-size: 22px; margin-bottom: 2px; }
+    .nav-item span { font-size: 10px; font-weight: 600; }
+    .nav-item.active { color: var(--primary); }
+    
+    .nav-fab-wrapper {
+      position: relative;
+      top: -20px;
+      width: 64px;
+      height: 64px;
+      background: #EAEFF5;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 7px 7px 14px rgba(163,177,198,0.45), -7px -7px 14px rgba(255,255,255, 0.9);
+      cursor: pointer;
+    }
+    .nav-fab-wrapper:active {
+      box-shadow: inset 4px 4px 8px rgba(163,177,198,0.5), inset -4px -4px 8px rgba(255,255,255, 0.9);
+    }
+    .nav-fab-wrapper i {
+      font-size: 28px;
+      color: var(--primary);
+    }
+    .fab-menu {
+      position: absolute;
+      bottom: 85px;
+      left: 50%;
+      transform: translateX(-50%) scale(0);
+      transform-origin: bottom center;
+      background: #EAEFF5;
+      border-radius: 20px;
+      padding: 12px;
+      box-shadow: 7px 7px 14px rgba(163,177,198,0.45), -7px -7px 14px rgba(255,255,255, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 101;
+    }
+    .fab-menu.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) scale(1);
+    }
+    .fab-action {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      background: #EAEFF5;
+      border-radius: 12px;
+      box-shadow: inset 3px 3px 6px rgba(163,177,198,0.2), inset -3px -3px 6px rgba(255,255,255, 0.5);
+      cursor: pointer;
+      white-space: nowrap;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .fab-action:active {
+      box-shadow: inset 4px 4px 8px rgba(163,177,198,0.5), inset -4px -4px 8px rgba(255,255,255, 0.9);
+    }
+    .fab-action i {
+      color: var(--primary);
+      font-size: 18px;
+    }
+
+
     /* ==== SHARED COMPONENTS ==== */
     .greeting-section { margin-bottom: 24px; }
     .greeting-section h2 { font-size: 24px; font-weight: 800; color: var(--text-main); }
@@ -338,7 +556,7 @@
     .modal-overlay {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
-      z-index: 100; display: flex; flex-direction: column; justify-content: flex-end;
+      z-index: 9999; display: flex; flex-direction: column; justify-content: flex-end;
       opacity: 0; pointer-events: none; transition: 0.3s;
     }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
@@ -361,7 +579,7 @@
     .drawer-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15,23,42,0.6); backdrop-filter: blur(4px);
-      z-index: 200; opacity: 0; pointer-events: none; transition: 0.3s;
+      z-index: 9999; opacity: 0; pointer-events: none; transition: 0.3s;
     }
     .drawer-overlay.active { opacity: 1; pointer-events: auto; }
     
@@ -639,6 +857,9 @@ select.customized {
       </div>
       
     </div>
+    
+    <!-- NEUMORPHIC BOTTOM NAVIGATION -->
+
   </div>
 
   <!-- ================= ADMIN TODAY'S ATTENDANCE DASHBOARD ================= -->
@@ -989,6 +1210,8 @@ select.customized {
       <div id="tch-absent-container"></div>
 
     </div>
+    <!-- NEUMORPHIC BOTTOM NAVIGATION (Teacher) -->
+
   </div>
 
   <!-- ================= ATTENDANCE MARKING ================= -->
@@ -1026,6 +1249,8 @@ select.customized {
     <div class="scroll-body" id="parentKidsList">
       <!-- JS Injected -->
     </div>
+    <!-- NEUMORPHIC BOTTOM NAVIGATION (Parent) -->
+
   </div>
 
   <!-- ================= PARENT CHILD DETAILS ================= -->
@@ -1527,6 +1752,86 @@ select.customized {
     </div>
   </div>
 
+  <!-- ================= GLOBAL BOTTOM NAVIGATIONS ================= -->
+  <!-- Admin Global Nav -->
+  <div class="bottom-nav global-bottom-nav" id="global-nav-admin" style="display: none; z-index: 1000;">
+    <div class="nav-item active" onclick="navTo('sc-admin')">
+      <i class="ti ti-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="nav-item" onclick="navTo('sc-admin-today')">
+      <i class="ti ti-calendar-check"></i>
+      <span>Today</span>
+    </div>
+    
+    <div class="nav-fab-wrapper" onclick="toggleFabMenu(event)">
+      <i class="ti ti-plus"></i>
+      
+      <div class="fab-menu" id="navFabMenu" onclick="event.stopPropagation()">
+        <div class="fab-action" onclick="toggleFabMenu(); openClassModal()">
+          <i class="ti ti-door"></i> Add Classroom
+        </div>
+        <div class="fab-action" onclick="toggleFabMenu(); globalAddTeacher()">
+          <i class="ti ti-chalkboard"></i> Add Teacher
+        </div>
+        <div class="fab-action" onclick="toggleFabMenu(); openStudentModal()">
+          <i class="ti ti-user-plus"></i> Add Student
+        </div>
+      </div>
+    </div>
+    
+    <div class="nav-item" onclick="viewAllClasses()">
+      <i class="ti ti-door"></i>
+      <span>Classes</span>
+    </div>
+    <div class="nav-item" onclick="viewAllFollowups()">
+      <i class="ti ti-phone"></i>
+      <span>Calls</span>
+    </div>
+  </div>
+
+  <!-- Teacher Global Nav -->
+  <div class="bottom-nav global-bottom-nav" id="global-nav-teacher" style="display: none; z-index: 1000;">
+    <div class="nav-item active" onclick="navTo('sc-teacher')">
+      <i class="ti ti-home"></i>
+      <span>Home</span>
+    </div>
+    <div class="nav-item" onclick="viewMyStudents()">
+      <i class="ti ti-users"></i>
+      <span>Students</span>
+    </div>
+    
+    <div class="nav-fab-wrapper" onclick="startTeacherAtt()">
+      <i class="ti ti-check"></i>
+    </div>
+    
+    <div class="nav-item" onclick="openStudentModal()">
+      <i class="ti ti-user-plus"></i>
+      <span>Add</span>
+    </div>
+    <div class="nav-item" onclick="openTeacherDrawer()">
+      <i class="ti ti-menu-2"></i>
+      <span>Menu</span>
+    </div>
+  </div>
+
+  <!-- Parent Global Nav -->
+  <div class="bottom-nav global-bottom-nav" id="global-nav-parent" style="display: none; z-index: 1000;">
+    <div class="nav-item active" onclick="navTo('sc-parent')">
+      <i class="ti ti-home"></i>
+      <span>Home</span>
+    </div>
+    
+    <div class="nav-fab-wrapper" onclick="openContactSupport()">
+      <i class="ti ti-messages"></i>
+    </div>
+    
+    <div class="nav-item" onclick="logout()">
+      <i class="ti ti-logout"></i>
+      <span>Logout</span>
+    </div>
+  </div>
+
   <!-- ================= TOAST CONTAINER ================= -->
   <div id="toast-container"></div>
   
@@ -1657,8 +1962,25 @@ function navTo(screenId, pushHistory = true) {
   document.getElementById(screenId).classList.add('active');
   
   if (pushHistory) {
-    // Prefix with view- to prevent native browser anchor jumping which breaks mobile flex layouts
-    history.pushState({ screen: screenId }, "", `#view-${screenId}`);
+    try {
+      history.pushState({ screen: screenId }, "", `#${screenId}`);
+    } catch (e) {
+      // Ignore SecurityError for local file:// testing
+    }
+  }
+  
+  // Toggle global bottom navs based on the active screen section
+  document.querySelectorAll('.global-bottom-nav').forEach(nav => nav.style.display = 'none');
+  
+  if (screenId.startsWith('sc-admin') && screenId !== 'sc-admin-login') {
+    const adminNav = document.getElementById('global-nav-admin');
+    if (adminNav) adminNav.style.display = 'flex';
+  } else if (screenId.startsWith('sc-teacher')) {
+    const teacherNav = document.getElementById('global-nav-teacher');
+    if (teacherNav) teacherNav.style.display = 'flex';
+  } else if (screenId.startsWith('sc-parent')) {
+    const parentNav = document.getElementById('global-nav-parent');
+    if (parentNav) parentNav.style.display = 'flex';
   }
   
   // Trigger graph rendering on relevant screens
@@ -5000,8 +5322,22 @@ document.addEventListener('DOMContentLoaded', () => {
   applyCustomSelects();
   selectObserver.observe(document.body, { childList: true, subtree: true });
 });
+
+function toggleFabMenu(e) {
+  if(e) e.stopPropagation();
+  const menu = document.getElementById('navFabMenu');
+  if(menu) menu.classList.toggle('active');
+}
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('navFabMenu');
+  if(menu && menu.classList.contains('active')) {
+    menu.classList.remove('active');
+  }
+});
 </script>
 
   <script src="import_data.js"></script>
+  <script src="ai_chat.js"></script>
 </body>
 </html>

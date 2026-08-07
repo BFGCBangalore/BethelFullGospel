@@ -605,15 +605,17 @@
 
             waitingMessage.classList.remove('visible');
 
-            // Apply Quick Presenter Theme (Dim white/grey background, Dark text)
-            if (state.isQuickPresenter) {
-                document.documentElement.style.setProperty('--bg', '#e2e8f0');
-                document.documentElement.style.setProperty('--text', '#1a202c');
+            // Apply Theme
+            const defaultBg = state.isQuickPresenter ? '#e2e8f0' : '#000000';
+            const defaultText = state.isQuickPresenter ? '#1a202c' : '#ffffff';
+            const t = state.theme || { bg: defaultBg, text: defaultText };
+            document.documentElement.style.setProperty('--bg', t.bg);
+            document.documentElement.style.setProperty('--text', t.text);
+            
+            if (state.isQuickPresenter && (!state.theme || state.theme.bg !== '#000000')) {
                 document.documentElement.style.setProperty('--text-shadow-strong', 'none');
                 document.documentElement.style.setProperty('--text-shadow-weak', 'none');
             } else {
-                document.documentElement.style.setProperty('--bg', '#000000');
-                document.documentElement.style.setProperty('--text', '#ffffff');
                 document.documentElement.style.setProperty('--text-shadow-strong', '0 2px 20px rgba(0,0,0,0.5), 0 0 60px rgba(108,92,255,0.08)');
                 document.documentElement.style.setProperty('--text-shadow-weak', '0 2px 16px rgba(0,0,0,0.4)');
             }
