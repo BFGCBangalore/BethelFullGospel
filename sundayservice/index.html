@@ -10,6 +10,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script>
+    (function() {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
   <style>
     :root {
       --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
@@ -31,6 +38,25 @@
       --success-light: #EAF3DE;
       --warning-color: #854F0B;
       --warning-light: #FAEEDA;
+    }
+
+    [data-theme="dark"] {
+      --color-background-primary: #121212;
+      --color-background-secondary: #1e1e1e;
+      --color-background-tertiary: #2d2d30;
+      --color-border-secondary: #333333;
+      --color-border-tertiary: #444444;
+      --color-text-primary: #e0e0e0;
+      --color-text-secondary: #a0a0a0;
+      --primary-color: #6C5CFF;
+      --primary-hover: #5648d0;
+      --primary-light: #2c2560;
+      --danger-color: #ff5252;
+      --danger-light: #4a1919;
+      --success-color: #69f0ae;
+      --success-light: #194a2b;
+      --warning-color: #ffb74d;
+      --warning-light: #4a3511;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1008,6 +1034,8 @@
         <div class="nav-section-label">Navigation</div>
         <a href="../bible.html" class="nav-item" style="text-decoration:none;"><i class="ti ti-book" aria-hidden="true"></i>Bible Reader</a>
         <a href="../index.html" class="nav-item" style="text-decoration:none;"><i class="ti ti-home" aria-hidden="true"></i>Main Website</a>
+        <div class="nav-section-label">Settings</div>
+        <button class="nav-item" id="btn-toggle-dark-mode"><i class="ti ti-moon" aria-hidden="true" id="icon-dark-mode"></i><span id="text-dark-mode">Dark Mode</span></button>
       </div>
       <div class="sb-bottom">
         <a href="https://wa.me/919591542901" target="_blank" class="developer-tag">
@@ -1389,6 +1417,8 @@
                   <button class="fmt-btn" id="quick-fmt-align-right" data-align="right" title="Align Right"><i class="ti ti-align-right"></i></button>
                   <div class="fmt-separator"></div>
                   <button class="fmt-btn" id="quick-fmt-clear" title="Clear Formatting"><i class="ti ti-clear-formatting"></i></button>
+                  <div class="fmt-separator"></div>
+                  <button class="fmt-btn" id="quick-fmt-bg-toggle" title="Toggle Slide Background (Dark/Light)"><i class="ti ti-moon"></i></button>
                 </div>
 
                 <!-- Editor (Fixed 1920×1080 canvas) -->
@@ -1468,6 +1498,33 @@
 
 
   <script type="module">
+    // --- Dark Mode Toggle ---
+    const btnDarkMode = document.getElementById('btn-toggle-dark-mode');
+    if (btnDarkMode) {
+      const iconDarkMode = document.getElementById('icon-dark-mode');
+      const textDarkMode = document.getElementById('text-dark-mode');
+      
+      const updateDarkModeUI = () => {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        iconDarkMode.className = isDark ? 'ti ti-sun' : 'ti ti-moon';
+        textDarkMode.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+      };
+      
+      updateDarkModeUI(); // Init UI
+      
+      btnDarkMode.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+          document.documentElement.removeAttribute('data-theme');
+          localStorage.removeItem('theme');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+        }
+        updateDarkModeUI();
+      });
+    }
+    // ------------------------
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
@@ -3186,10 +3243,12 @@
     function pushQuickToProjector() {
       const slide = quickSlides[quickActiveSlideIndex];
       const editorHtml = slide ? (slide.html || '') : '';
-      const stateObj = slide ? {
+      const t = window.quickTheme === 'dark' ? { bg: '#000000', text: '#ffffff' } : { bg: '#e2e8f0', text: '#1a202c' };
+      const stateObj = editorHtml.trim() ? {
         songTitle: 'Quick Presenter', slideLabel: '', slideType: 'verse',
         en: editorHtml, enIsHtml: true, isQuickPresenter: true,
-        kn: '', hi: '', lang: 'en', fontSize: 13, align: 'center'
+        kn: '', hi: '', lang: 'en', fontSize: 13, align: 'center',
+        theme: t
       } : null;
 
       if (stateObj) {
@@ -3333,10 +3392,11 @@
       // 1. Wipe out any inherited formatting from the browser's memory
       editor.innerHTML = '';
       editor.focus();
-      document.execCommand('foreColor', false, '#000000');
+      let defaultCol = window.quickTheme === 'dark' ? '#ffffff' : '#000000';
+      document.execCommand('foreColor', false, defaultCol);
       document.execCommand('removeFormat', false, null);
-      document.getElementById('quick-color-swatch').style.background = '#000000';
-      quickCurrentColor = '#000000';
+      document.getElementById('quick-color-swatch').style.background = defaultCol;
+      quickCurrentColor = defaultCol;
       
       // 2. Inject the slide content
       if (quickSlides.length > 0 && quickSlides[quickActiveSlideIndex]) {
@@ -3536,11 +3596,51 @@
     document.getElementById('quick-fmt-reset-color').addEventListener('click', () => {
       const editor = document.getElementById('quick-editor');
       editor.focus();
-      document.execCommand('foreColor', false, '#000000');
-      document.getElementById('quick-color-swatch').style.background = '#000000';
-      quickCurrentColor = '#000000';
+      let defaultCol = window.quickTheme === 'dark' ? '#ffffff' : '#000000';
+      document.execCommand('foreColor', false, defaultCol);
+      document.getElementById('quick-color-swatch').style.background = defaultCol;
+      quickCurrentColor = defaultCol;
       onEditorInput();
       syncToolbarState();
+    });
+
+    document.getElementById('quick-fmt-bg-toggle').addEventListener('click', () => {
+       window.quickTheme = window.quickTheme === 'light' ? 'dark' : 'light';
+       const ed = document.getElementById('quick-editor');
+       const canvas = document.getElementById('editor-canvas');
+       let defaultCol = window.quickTheme === 'dark' ? '#ffffff' : '#000000';
+       
+       if (window.quickTheme === 'dark') {
+          canvas.style.background = '#000000';
+          ed.style.color = '#ffffff';
+          document.getElementById('quick-fmt-bg-toggle').innerHTML = '<i class="ti ti-sun"></i>';
+       } else {
+          canvas.style.background = '#ffffff';
+          ed.style.color = '#000000';
+          document.getElementById('quick-fmt-bg-toggle').innerHTML = '<i class="ti ti-moon"></i>';
+       }
+       
+       // Carefully swap black and white without touching custom colors (like red)
+       let html = ed.innerHTML;
+       if (window.quickTheme === 'dark') {
+          html = html.replace(/color="#000000"/gi, 'color="#ffffff"');
+          html = html.replace(/color:\s*rgb\(0,\s*0,\s*0\)/gi, 'color: rgb(255, 255, 255)');
+          html = html.replace(/color:\s*#000000/gi, 'color: #ffffff');
+          html = html.replace(/color:\s*black/gi, 'color: white');
+       } else {
+          html = html.replace(/color="#ffffff"/gi, 'color="#000000"');
+          html = html.replace(/color:\s*rgb\(255,\s*255,\s*255\)/gi, 'color: rgb(0, 0, 0)');
+          html = html.replace(/color:\s*#ffffff/gi, 'color: #000000');
+          html = html.replace(/color:\s*white/gi, 'color: black');
+       }
+       ed.innerHTML = html;
+       
+       document.getElementById('quick-color-swatch').style.background = defaultCol;
+       quickCurrentColor = defaultCol;
+       
+       saveQuickPresenterData();
+       updateSongPresenterState();
+       document.getElementById('btn-quick-save').click();
     });
     document.getElementById('quick-color-input').addEventListener('input', (e) => {
       quickCurrentColor = e.target.value;
