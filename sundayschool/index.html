@@ -3430,23 +3430,26 @@ async function sendBroadcastNotification() {
     const settingsDoc = await getDoc(doc(db, 'ss_settings', 'onesignal'));
     
     let apiKey = '';
+    let scriptUrl = ''; // We will store the Google Apps Script URL here
     if (settingsDoc.exists()) {
       apiKey = settingsDoc.data().restApiKey;
+      scriptUrl = settingsDoc.data().scriptUrl;
     }
     
-    if (!apiKey) {
-      showToast("OneSignal API Key not found. Please add 'restApiKey' in ss_settings/onesignal doc in Firestore.");
+    if (!apiKey || !scriptUrl) {
+      showToast("Missing API Key or Script URL in ss_settings/onesignal.");
       btn.innerHTML = '<i class="ti ti-send"></i> Send Notification';
       btn.disabled = false;
       return;
     }
     
-    // We use corsproxy.io here to bypass the strict CORS block from OneSignal for browser requests.
-    const response = await fetch("https://corsproxy.io/?https://onesignal.com/api/v1/notifications", {
+    // We send the payload AND the API key to our secure Google Apps Script
+    payload.api_key = apiKey; 
+
+    const response = await fetch(scriptUrl, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Basic ${apiKey}`
+        "Content-Type": "text/plain;charset=utf-8", // text/plain prevents CORS preflight issues with Google Apps Script
       },
       body: JSON.stringify(payload)
     });
