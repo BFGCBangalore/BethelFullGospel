@@ -2215,10 +2215,13 @@ function resetLogin() {
 }
 
 function routeUser() {
-  if (window.OneSignal) {
-    OneSignal.login(currentUser.phone);
-    OneSignal.User.addTag("role", currentUser.role);
-  }
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(function(OneSignal) {
+    if (currentUser && currentUser.phone) {
+      OneSignal.login(currentUser.phone);
+      OneSignal.User.addTag("role", currentUser.role);
+    }
+  });
 
   if(currentUser.role === 'admin') {
     const isAlsoTeacher = DB.classes.some(c => c.teacherPhones && c.teacherPhones.includes(currentUser.phone));
@@ -2239,9 +2242,10 @@ function routeUser() {
 }
 
 function logout() {
-  if (window.OneSignal) {
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(function(OneSignal) {
     OneSignal.logout();
-  }
+  });
   currentUser = null;
   localStorage.removeItem('ss_session_phone');
   localStorage.removeItem('ss_session_time');
@@ -3472,18 +3476,16 @@ async function sendBroadcastNotification() {
 }
 
 function handleNotificationBell() {
-  if (typeof OneSignal === 'undefined') {
-    showToast("Push notifications are still loading. Please try again in a moment.");
-    return;
-  }
-  
-  if (OneSignal.User && OneSignal.User.PushSubscription && OneSignal.User.PushSubscription.optedIn) {
-    showToast("You are already subscribed to notifications!", "success");
-  } else if (Notification.permission === "denied") {
-    showToast("Notifications are blocked in your browser settings. Please allow them in your Android browser settings.");
-  } else {
-    OneSignal.Slidedown.promptPush({ force: true });
-  }
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(function(OneSignal) {
+    if (OneSignal.User && OneSignal.User.PushSubscription && OneSignal.User.PushSubscription.optedIn) {
+      showToast("You are already subscribed to notifications!", "success");
+    } else if (Notification.permission === "denied") {
+      showToast("Notifications are blocked in your browser settings. Please allow them in your Android browser settings.");
+    } else {
+      OneSignal.Slidedown.promptPush({ force: true });
+    }
+  });
 }
 
 function addAddTeacherField() { addDynamicTeacherField('add-dynamic-teachers', 'add'); }
