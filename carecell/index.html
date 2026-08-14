@@ -1864,6 +1864,35 @@ let followupState = {
   assignees: {}
 };
 
+function getPersonById(id) {
+  let p = DB.members.find(x => x.id === id);
+  if (!p) {
+    let u = DB.users.find(u => u.phone === id);
+    if (u) {
+      let cls = DB.classes.find(c => c.leaderPhones && c.leaderPhones.includes(u.phone));
+      p = { id: u.phone, name: u.name + ' (Leader)', phone: u.phone, classId: cls ? cls.id : null, atRisk: false, isLeader: true };
+    }
+  }
+  return p;
+}
+
+function getRosterForCarecell(cid) {
+  const members = DB.members.filter(s => s.classId === cid);
+  const cls = DB.classes.find(c => c.id === cid);
+  if (!cls) return members;
+  const leaders = DB.users.filter(u => cls.leaderPhones && cls.leaderPhones.includes(u.phone));
+  const mappedLeaders = leaders.map(l => ({
+    id: l.phone,
+    name: l.name + ' (Leader)',
+    phone: l.phone,
+    isLeader: true,
+    presentDays: l.presentDays || 0,
+    absentDays: l.absentDays || 0,
+    classId: cid
+  }));
+  return [...mappedLeaders, ...members];
+}
+
 let currentUser = null;
 let currentLeaderCarecell = null; 
 let backTarget = null; // for the attendance screen back button
@@ -1927,7 +1956,7 @@ function renderSchoolTrendGraph(containerId, limit) {
     let present = 0;
     let total = 0;
     Object.keys(record.records).forEach(sid => {
-      const s = DB.members.find(x => x.id === sid);
+      const s = getPersonById(sid);
       if (!s) return; // Skip deleted members
       if (historyFilterCarecellId && s.classId !== historyFilterCarecellId) return;
       
@@ -1943,7 +1972,7 @@ function renderSchoolTrendGraph(containerId, limit) {
   let todayPresent = 0;
   let todayTotal = 0;
   Object.keys(attendanceState).forEach(sid => {
-    const s = DB.members.find(x => x.id === sid);
+    const s = getPersonById(sid);
     if (!s) return; // Skip deleted members
     if (historyFilterCarecellId && s.classId !== historyFilterCarecellId) return;
     
@@ -2014,6 +2043,7 @@ function handleLogin() {
   let user = DB.users.find(u => u.phone === phone);
   
   // If not in users, check if they exist as a parent in members
+  /* 
   if (!user) {
     const memberWithParent = DB.members.find(s => s.phone === phone);
     if (memberWithParent) {
@@ -2034,8 +2064,9 @@ function handleLogin() {
       }).catch(err => console.error("Could not auto-register parent:", err));
     }
   }
+  */
 
-  if(user) {
+  if(user && user.role !== 'member') {
     currentUser = user;
     localStorage.setItem('ss_session_phone', phone);
     localStorage.setItem('ss_session_time', Date.now());
@@ -2243,7 +2274,7 @@ function checkIfLoaded() {
       if (sessionPhone && sessionTime) {
         if (Date.now() - parseInt(sessionTime) < 3600000) { // 1 hour
           const user = DB.users.find(u => u.phone === sessionPhone);
-          if (user) {
+          if (user && user.role !== 'member') {
             currentUser = user;
             localStorage.setItem('ss_session_time', Date.now()); // refresh session
             routeUser();
@@ -2306,7 +2337,7 @@ function renderAdmin() {
   let absentCount = 0;
   
   Object.keys(attendanceState).forEach(sid => {
-    if(!DB.members.find(s => s.id === sid)) return; // Filter out deleted members
+    if(!getPersonById(sid)) return; // Filter out deleted members
     const st = attendanceState[sid];
     totalMarked++;
     if(st === 'present') presentCount++;
@@ -2346,7 +2377,7 @@ function renderAdmin() {
     const prevVal = absFilter.value;
     absFilter.innerHTML = `<option value="all">All Carecells (${absentCount})</option>` + 
       DB.classes.map(c => {
-        const cAbs = DB.members.filter(s => s.classId === c.id && attendanceState[s.id] === 'absent').length;
+        const cAbs = getRosterForCarecell(c.id).filter(s => attendanceState[s.id] === 'absent').length;
         return `<option value="${c.id}">${c.name} (${cAbs})</option>`;
       }).join('');
     if (Array.from(absFilter.options).some(o => o.value === prevVal)) {
@@ -2425,7 +2456,7 @@ function renderAdmin() {
   
   DB.classes.forEach(c => {
     // Check class specific attendance for TODAY
-    const classMembers = DB.members.filter(s => s.classId === c.id);
+    const classMembers = getRosterForCarecell(c.id);
     const classMarked = classMembers.filter(s => attendanceState[s.id] !== undefined);
     const isMarkedToday = classMembers.length > 0 && classMarked.length > 0;
     const isPending = !isMarkedToday;
@@ -2479,7 +2510,7 @@ function renderCarecellWiseGraph() {
   
   let html = '';
   DB.classes.forEach(c => {
-    const classMembers = DB.members.filter(s => s.classId === c.id);
+    const classMembers = getRosterForCarecell(c.id);
     const total = classMembers.length;
     
     let present = 0;
@@ -2539,7 +2570,7 @@ function renderLeaderboard() {
   const val = lbFilter.value;
   
   const carecellStats = DB.classes.map(c => {
-    const cMembers = DB.members.filter(s => s.classId === c.id);
+    const cMembers = getRosterForCarecell(c.id);
     const cTotal = cMembers.length;
     let cPresent = 0;
     
@@ -2652,7 +2683,7 @@ function renderAtRiskList() {
   
   if (filterVal !== 'all') {
     atRisk = atRisk.filter(id => {
-      const s = DB.members.find(x => x.id === id);
+      const s = getPersonById(id);
       return s && s.classId === filterVal;
     });
   }
@@ -2669,7 +2700,7 @@ function renderAtRiskList() {
     <div style="font-size:13px; color:var(--text-sub); margin-bottom:16px; line-height:1.4;">These members have been absent for 2 or more consecutive weeks.</div>
     <div style="display:flex; flex-direction:column; gap:12px;">
   ` + atRisk.map(id => {
-    const s = DB.members.find(x => x.id === id);
+    const s = getPersonById(id);
     const cls = DB.classes.find(c => c.id === s.classId);
     const clsName = cls ? cls.name : 'Unassigned';
     const count = consecutiveAbsences[id];
@@ -2718,7 +2749,7 @@ function renderFollowups() {
   
   const atRiskIds = Object.keys(consecutiveAbsences).filter(id => consecutiveAbsences[id] >= 2);
   atRiskIds.forEach(id => {
-    const s = DB.members.find(x => x.id === id);
+    const s = getPersonById(id);
     if(s) {
       const existingAssignee = followupState.assignees['ar_'+id] || 'Unassigned';
       if(!followupState.deleted.includes('ar_'+id)) {
@@ -2918,7 +2949,7 @@ function renderHistoryList() {
     let filteredRecordsObj = {};
     if (historyFilterCarecellId) {
       Object.keys(recordsObj).forEach(sid => {
-        const s = DB.members.find(x => x.id === sid);
+        const s = getPersonById(sid);
         if (s && s.classId === historyFilterCarecellId) {
           filteredRecordsObj[sid] = recordsObj[sid];
         }
@@ -2961,7 +2992,7 @@ function viewHistoryDetail(index) {
   let filteredRecordsObj = {};
   if (historyFilterCarecellId) {
     Object.keys(recordsObj).forEach(sid => {
-      const s = DB.members.find(x => x.id === sid);
+      const s = getPersonById(sid);
       if (s && s.classId === historyFilterCarecellId) {
         filteredRecordsObj[sid] = recordsObj[sid];
       }
@@ -2991,7 +3022,7 @@ function viewHistoryDetail(index) {
     absList.innerHTML = '<div style="color:var(--text-sub); font-size:13px; text-align:center; padding:16px 0;">No absentees!</div>';
   } else {
     absents.forEach(sId => {
-      const s = DB.members.find(x => x.id === sId);
+      const s = getPersonById(sId);
       if(!s) return;
       const cls = DB.classes.find(c => c.id === s.classId);
       const init = s.name.split(' ').map(n=>n[0]).join('').substring(0,2);
@@ -3014,7 +3045,7 @@ function viewHistoryDetail(index) {
     presList.innerHTML = '<div style="color:var(--text-sub); font-size:13px; text-align:center; padding:16px 0;">No present members.</div>';
   } else {
     presents.forEach(sId => {
-      const s = DB.members.find(x => x.id === sId);
+      const s = getPersonById(sId);
       if(!s) return;
       const cls = DB.classes.find(c => c.id === s.classId);
       const init = s.name.split(' ').map(n=>n[0]).join('').substring(0,2);
@@ -3040,7 +3071,7 @@ let currentReportMemberId = null;
 
 function viewMemberReport(memberId) {
   currentReportMemberId = memberId;
-  const s = DB.members.find(x => x.id === memberId);
+  const s = getPersonById(memberId);
   if(!s) return;
   
   const cls = DB.classes.find(c => c.id === s.classId);
@@ -3230,7 +3261,7 @@ function renderAllCarecells() {
   }
   
   filtered.forEach(c => {
-    const count = DB.members.filter(s => s.classId === c.id).length;
+    const count = getRosterForCarecell(c.id).length;
     const tNames = (c.leaderPhones || []).map(phone => {
       const u = DB.users.find(x => x.phone === phone);
       return u ? u.name : null;
@@ -3584,7 +3615,7 @@ function renderGroupHistoryDates() {
   const cid = document.getElementById('historyCarecellFilter').value;
   const dSelect = document.getElementById('historyDateFilter');
   
-  const cMembers = DB.members.filter(s => s.classId === cid).map(s => s.id);
+  const cMembers = getRosterForCarecell(cid).map(s => s.id);
   
   const availableDates = pastAttendance.filter(a => {
     return Object.keys(a.records).some(sid => cMembers.includes(sid));
@@ -3612,7 +3643,7 @@ function renderGroupHistoryList() {
   const attData = pastAttendance.find(a => a.date === dateStr);
   if(!attData) return;
   
-  const cMembers = DB.members.filter(s => s.classId === cid);
+  const cMembers = getRosterForCarecell(cid);
   
   const presentMembers = cMembers.filter(s => attData.records[s.id] === 'present');
   const absentMembers = cMembers.filter(s => attData.records[s.id] === 'absent');
@@ -3733,7 +3764,7 @@ function openMemberModal(memberId = null) {
   
   if(memberId) {
     title.textContent = "Edit Member";
-    const s = DB.members.find(x => x.id === memberId);
+    const s = getPersonById(memberId);
     document.getElementById('mod-st-name').value = s.name;
     
     document.getElementById('mod-p-phone').value = s.phone;
@@ -3874,7 +3905,7 @@ function saveSelectMemberModal() {
   const checkboxes = document.querySelectorAll('.st-select-cb:checked');
   checkboxes.forEach(cb => {
     const sId = cb.value;
-    const s = DB.members.find(x => x.id === sId);
+    const s = getPersonById(sId);
     if(s) s.classId = editingCarecellId;
   });
   
@@ -3963,7 +3994,7 @@ function renderLeader() {
     return;
   }
   
-  const members = DB.members.filter(s => s.classId === currentLeaderCarecell.id);
+  const members = getRosterForCarecell(currentLeaderCarecell.id);
   
   document.getElementById('t-header').textContent = currentLeaderCarecell.name;
   document.getElementById('t-class-name').textContent = currentLeaderCarecell.name;
@@ -4077,7 +4108,7 @@ function renderLeader() {
 }
 
 function startLeaderAtt() {
-  const members = DB.members.filter(s => s.classId === currentLeaderCarecell.id);
+  const members = getRosterForCarecell(currentLeaderCarecell.id);
   document.getElementById('att-title-label').textContent = "Take Attendance";
   
   const today = new Date();
@@ -4115,15 +4146,7 @@ function backFromAtt() {
 
 function getCarecellRoster() {
   if (!currentLeaderCarecell) return [];
-  const members = DB.members.filter(s => s.classId === currentLeaderCarecell.id);
-  const leaders = DB.users.filter(u => currentLeaderCarecell.leaderPhones && currentLeaderCarecell.leaderPhones.includes(u.phone));
-  const mappedLeaders = leaders.map(l => ({
-    id: l.id,
-    name: l.name,
-    phone: l.phone,
-    isLeader: true
-  }));
-  return [...mappedLeaders, ...members];
+  return getRosterForCarecell(currentLeaderCarecell.id);
 }
 
 function changeAttDate() {
@@ -4252,15 +4275,23 @@ async function submitAttendance() {
     updateData.offerings[dateStr] = 0;
   }
   
-  members.forEach(s => {
+  fullRoster.forEach(s => {
     updateData.records[s.id] = { [dateStr]: attendanceState[s.id] };
     
     // Update member counters
     const state = attendanceState[s.id];
-    if (state === 'present') {
-      batch.update(doc(db, 'cc_members', s.id), { presentDays: (s.presentDays || 0) + 1 });
+    if (!s.isLeader) {
+      if (state === 'present') {
+        batch.update(doc(db, 'cc_members', s.id), { presentDays: (s.presentDays || 0) + 1 });
+      } else if (state === 'absent') {
+        batch.update(doc(db, 'cc_members', s.id), { absentDays: (s.absentDays || 0) + 1 });
+      }
     } else {
-      batch.update(doc(db, 'cc_members', s.id), { absentDays: (s.absentDays || 0) + 1 });
+      if (state === 'present') {
+        batch.update(doc(db, 'cc_users', s.id), { presentDays: (s.presentDays || 0) + 1 });
+      } else if (state === 'absent') {
+        batch.update(doc(db, 'cc_users', s.id), { absentDays: (s.absentDays || 0) + 1 });
+      }
     }
   });
   
@@ -4333,7 +4364,7 @@ function renderMemberList() {
 }
 
 function viewParentChild(kidId) {
-  const kid = DB.members.find(s => s.id === kidId);
+  const kid = getPersonById(kidId);
   const cls = DB.classes.find(c => c.id === kid.classId);
   
   let leaderName = 'No Leader Assigned';
@@ -4641,7 +4672,7 @@ function toggleSchedule(contentId) {
 
 function togglePastAtt(recordIndex, studentId, newStatus) {
   pastAttendance[recordIndex].records[studentId] = newStatus;
-  const s = DB.members.find(x => x.id === studentId);
+  const s = getPersonById(studentId);
   if(s) {
     if(newStatus === 'present') { s.presentDays++; s.absentDays--; }
     else { s.absentDays++; s.presentDays--; }
@@ -4950,7 +4981,7 @@ async function generateExcelReport() {
       let absent = 0;
 
       sids.forEach(sid => {
-        const mem = DB.members.find(m => m.id === sid);
+        const mem = getPersonById(sid);
         if (mem) {
           if (targetClassId === 'all' || mem.classId === targetClassId) {
             validClassIds.add(mem.classId);
@@ -4978,9 +5009,21 @@ async function generateExcelReport() {
     wsMembers.getRow(1).font = { bold: true };
     wsMembers.views = [{ state: 'frozen', ySplit: 1, xSplit: 2 }];
 
-    let filteredMembers = DB.members;
+    let allRoster = [...DB.members];
+    DB.users.filter(u => u.role === 'admin' || u.role === 'leader').forEach(u => {
+      const cls = DB.classes.find(c => c.leaderPhones && c.leaderPhones.includes(u.phone));
+      allRoster.push({
+        id: u.phone,
+        name: u.name + ' (Leader)',
+        phone: u.phone,
+        classId: cls ? cls.id : null,
+        atRisk: false
+      });
+    });
+
+    let filteredMembers = allRoster;
     if(targetClassId !== 'all') {
-      filteredMembers = DB.members.filter(s => s.classId === targetClassId);
+      filteredMembers = allRoster.filter(s => s.classId === targetClassId);
     }
 
     filteredMembers.forEach(m => {
@@ -5030,7 +5073,7 @@ async function generateExcelReport() {
         let total = 0;
         
         const cMembers = DB.members.filter(s => s.classId === c.id);
-        const cLeaders = DB.users.filter(u => c.leaderPhones && c.leaderPhones.includes(u.phone));
+        const cLeaders = DB.users.filter(u => c.leaderPhones && c.leaderPhones.includes(u.phone)).map(l => ({ ...l, id: l.phone, name: l.name + ' (Leader)' }));
         const allRoster = [...cMembers, ...cLeaders];
 
         let hasData = false;
@@ -5066,7 +5109,7 @@ async function generateExcelReport() {
 
       filteredCarecells.forEach(c => {
         const cMembers = DB.members.filter(s => s.classId === c.id);
-        const cLeaders = DB.users.filter(u => c.leaderPhones && c.leaderPhones.includes(u.phone));
+        const cLeaders = DB.users.filter(u => c.leaderPhones && c.leaderPhones.includes(u.phone)).map(l => ({ ...l, id: l.phone, name: l.name + ' (Leader)' }));
         const allRoster = [...cMembers, ...cLeaders];
 
         let presentList = [];
@@ -5147,7 +5190,7 @@ async function generateDirectoryExcel(targetClassId) {
       const cLeaders = DB.users.filter(u => c.leaderPhones && c.leaderPhones.includes(u.phone));
       const leaderNames = cLeaders.map(l => l.name).join(', ');
       const leaderPhones = cLeaders.map(l => l.phone).join(', ');
-      const mCount = DB.members.filter(m => m.classId === c.id).length;
+      const mCount = getRosterForCarecell(c.id).length;
       wsCarecells.addRow([c.name, leaderNames, leaderPhones, mCount]);
     });
 
