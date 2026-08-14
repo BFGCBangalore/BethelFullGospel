@@ -122,13 +122,14 @@
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       display: flex; flex-direction: column;
       background: var(--surface-bg);
-      opacity: 0; pointer-events: none;
+      opacity: 0; pointer-events: none; visibility: hidden;
       transform: translateX(20px);
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s 0.4s;
       z-index: 1;
     }
     .screen.active {
-      opacity: 1; pointer-events: auto; transform: translateX(0); z-index: 2;
+      opacity: 1; pointer-events: auto; visibility: visible; transform: translateX(0); z-index: 2;
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s;
     }
 
     /* Top Navigation */
@@ -5204,8 +5205,21 @@ async function generateExcelReport() {
       dates.push(dStr);
     }
   } else if (type === 'alltime') {
-    dates = Array.from(new Set(pastAttendance.map(r => r.id))).sort();
+    const t = new Date();
+    const todayStr = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    let allDates = pastAttendance.map(r => r.date);
+    if (Object.keys(attendanceState).length > 0) allDates.push(todayStr);
+    dates = Array.from(new Set(allDates)).sort();
     if(dates.length === 0) return showToast('No attendance history found');
+  }
+
+  const t = new Date();
+  const todayStr = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  const unifiedRecords = {};
+  pastAttendance.forEach(r => unifiedRecords[r.date] = r.records || {});
+  if (Object.keys(attendanceState).length > 0) {
+    if (!unifiedRecords[todayStr]) unifiedRecords[todayStr] = {};
+    Object.assign(unifiedRecords[todayStr], attendanceState);
   }
 
   const btn = document.getElementById('btnGenerateExcel');
@@ -5241,10 +5255,10 @@ async function generateExcelReport() {
       const isAtRisk = st.atRisk ? 'Yes' : 'No';
       let row = [st.name, cls ? cls.name : 'Unknown', st.parentName || '', st.parentPhone || '', isAtRisk];
       dates.forEach(d => {
-        const record = pastAttendance.find(r => r.id === d);
+        const dRecords = unifiedRecords[d];
         let status = 'Not Marked';
-        if(record && record.records && record.records[st.id]) {
-          status = record.records[st.id] === 'present' ? 'Present' : 'Absent';
+        if(dRecords && dRecords[st.id]) {
+          status = dRecords[st.id] === 'present' ? 'Present' : 'Absent';
         }
         row.push(status);
       });
@@ -5310,8 +5324,8 @@ async function generateExcelReport() {
     }
 
     dates.forEach(d => {
-      const record = pastAttendance.find(r => r.id === d);
-      if(!record) return;
+      const dRecords = unifiedRecords[d];
+      if(!dRecords) return;
 
       filteredClasses.forEach(c => {
         let present = 0;
@@ -5324,10 +5338,10 @@ async function generateExcelReport() {
 
         let hasData = false;
         allRoster.forEach(mem => {
-          if (record.records[mem.id] !== undefined) {
+          if (dRecords[mem.id] !== undefined) {
              hasData = true;
              total++;
-             if (record.records[mem.id] === 'present') present++;
+             if (dRecords[mem.id] === 'present') present++;
              else absent++;
           }
         });
@@ -5354,12 +5368,12 @@ async function generateExcelReport() {
       }
       
       let sPresent = 0, sTotal = 0;
-      const sRecord = pastAttendance.find(r => r.id === d);
-      if(sRecord && sRecord.records) {
-        Object.keys(sRecord.records).forEach(sid => {
+      const dRecords = unifiedRecords[d];
+      if(dRecords) {
+        Object.keys(dRecords).forEach(sid => {
           if (DB.students.find(x => x.id === sid)) {
             sTotal++;
-            if(sRecord.records[sid] === 'present') sPresent++;
+            if(dRecords[sid] === 'present') sPresent++;
           }
         });
       }
