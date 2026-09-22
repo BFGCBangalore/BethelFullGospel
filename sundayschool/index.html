@@ -689,6 +689,126 @@
 select.customized {
   display: none !important;
 }
+
+/* =========================================================
+   BIBLE VERSE RATING & LEADERBOARD STYLES
+   ========================================================= */
+.star-btn {
+  font-size: 28px;
+  cursor: pointer;
+  color: #E2E8F0;
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+  background: none;
+  border: none;
+  padding: 2px;
+  line-height: 1;
+}
+.star-btn.active { color: #F59E0B; }
+.star-btn.pop { transform: scale(1.45); }
+.star-row { display: flex; gap: 4px; align-items: center; }
+
+.vr-student-card {
+  background: var(--surface-card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow-soft);
+  border: 2px solid var(--border);
+  transition: border-color 0.3s;
+}
+.vr-student-card.rated { border-color: #F59E0B; }
+
+.vr-note-field {
+  width: 100%; margin-top: 12px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  color: var(--text-main);
+  background: var(--surface-bg);
+  outline: none; resize: none;
+  display: none; transition: border-color 0.2s;
+}
+.vr-note-field:focus { border-color: #F59E0B; }
+.vr-note-field.visible { display: block; }
+
+.lb-podium-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 20px; }
+.lb-podium-card {
+  flex: 1; border-radius: var(--radius-md);
+  padding: 14px 8px; text-align: center;
+  border: 2px solid transparent;
+}
+.lb-podium-card.rank1 {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border-color: #FDE68A; transform: translateY(-10px);
+  box-shadow: 0 8px 24px rgba(245,158,11,0.25);
+}
+.lb-podium-card.rank2 {
+  background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+  border-color: #CBD5E1; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.lb-podium-card.rank3 {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FCD34D 100%);
+  border-color: #FCD34D; box-shadow: 0 4px 12px rgba(217,119,6,0.2);
+}
+.lb-avatar-sm {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255,255,255,0.7);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 15px; margin: 0 auto 6px;
+  color: #5C3A21;
+}
+.lb-name-sm { font-size: 11px; font-weight: 700; color: #5C3A21; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-score-sm { font-size: 12px; font-weight: 800; color: #5C3A21; margin-top: 2px; }
+
+.lb-list-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface-card);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-soft);
+  animation: lbFadeIn 0.4s ease forwards; opacity: 0;
+}
+.lb-list-item.me { border: 2px solid var(--primary); background: var(--primary-light); }
+@keyframes lbFadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.lb-rank-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface-bg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: var(--text-sub); flex-shrink: 0;
+}
+
+.tab-bar { display: flex; background: var(--surface-bg); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 20px; }
+.tab-btn {
+  flex: 1; padding: 8px 6px; border: none;
+  background: transparent;
+  border-radius: calc(var(--radius-sm) - 4px);
+  font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600;
+  color: var(--text-muted); cursor: pointer; transition: 0.2s;
+}
+.tab-btn.active { background: var(--surface-card); color: var(--primary); font-weight: 700; box-shadow: var(--shadow-soft); }
+
+.verse-prompt-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5); z-index: 500;
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.verse-prompt-overlay.active { opacity: 1; pointer-events: auto; }
+.verse-prompt-sheet {
+  background: var(--surface-card);
+  border-radius: 28px 28px 0 0; padding: 28px 24px 44px;
+  width: 100%; max-width: 430px;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  text-align: center;
+}
+.verse-prompt-overlay.active .verse-prompt-sheet { transform: translateY(0); }
+
     
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -867,6 +987,17 @@ select.customized {
         <div style="margin-top:8px; font-size:13px; color:var(--text-sub);">
           Track calls for absent & at-risk students/teachers.
         </div>
+      </div>
+
+      <!-- Leaderboard Teaser -->
+      <div class="section-title"><i class="ti ti-trophy" style="color:#D97706;"></i> Verse Leaderboard</div>
+      <div class="card" style="margin-bottom:24px; padding:16px; cursor:pointer; border:2px solid #FDE68A; background:linear-gradient(135deg,#FFFBEB,#FEF3C7);" onclick="openLeaderboard()">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-weight:700; font-size:14px; color:#92400E;">Top Students This Week</div>
+          <div style="color:#D97706; font-size:12px; font-weight:700;" id="admin-lb-teaser-count"></div>
+        </div>
+        <div id="admin-lb-teaser" style="font-size:13px; color:#B45309;">Loading...</div>
+        <div style="margin-top:8px; font-size:13px; color:#D97706; font-weight:700; text-align:right;">View Full Leaderboard →</div>
       </div>
       
     </div>
@@ -1222,6 +1353,21 @@ select.customized {
       </div>
       
       <div id="tch-absent-container"></div>
+
+      <!-- Verse Rating Card (shown after attendance is submitted) -->
+      <div id="tch-verse-card" style="display:none;">
+        <div class="section-title"><i class="ti ti-star" style="color:#F59E0B;"></i> Bible Verse Rating</div>
+        <div class="card" style="margin-bottom:24px; padding:20px; border:2px solid #FDE68A; background:linear-gradient(135deg,#FFFBEB,#FEF3C7); cursor:pointer;" onclick="openVerseRatingForTeacher()">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:52px; height:52px; background:rgba(245,158,11,0.15); border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0;">⭐</div>
+            <div style="flex:1;">
+              <div style="font-weight:800; font-size:15px; color:#92400E;">Rate Today's Bible Verse</div>
+              <div style="font-size:13px; color:#B45309; margin-top:4px;" id="tch-verse-status">Tap to rate present students</div>
+            </div>
+            <i class="ti ti-chevron-right" style="color:#D97706; font-size:20px;"></i>
+          </div>
+        </div>
+      </div>
 
     </div>
     <!-- NEUMORPHIC BOTTOM NAVIGATION (Teacher) -->
@@ -1717,6 +1863,9 @@ select.customized {
       <div class="drawer-item" onclick="openExportScreen(); closeDrawer()">
         <i class="ti ti-file-export"></i> Export Reports
       </div>
+      <div class="drawer-item" onclick="openLeaderboard(); closeDrawer()" style="color:#92400E; font-weight:600;">
+        <i class="ti ti-trophy" style="color:#D97706;"></i> Leaderboard
+      </div>
       <div class="drawer-item" id="admin-switch-teacher-btn" style="display:none; color:var(--primary); font-weight:600;" onclick="navTo('sc-teacher'); closeDrawer()">
         <i class="ti ti-exchange" style="color:var(--primary)"></i> Switch to Teacher View
       </div>
@@ -1754,6 +1903,9 @@ select.customized {
       </div>
       <div class="drawer-item" onclick="viewAcademicCalendar(); closeTeacherDrawer()">
         <i class="ti ti-calendar-event"></i> Academic Calendar
+      </div>
+      <div class="drawer-item" onclick="openLeaderboard(); closeTeacherDrawer()" style="color:#92400E; font-weight:600;">
+        <i class="ti ti-trophy" style="color:#D97706;"></i> Leaderboard
       </div>
       <div class="drawer-item" id="teacher-switch-admin-btn" style="display:none; color:var(--success); font-weight:600;" onclick="navTo('sc-admin'); closeTeacherDrawer()">
         <i class="ti ti-exchange" style="color:var(--success)"></i> Switch to Admin View
@@ -1822,6 +1974,93 @@ select.customized {
     </div>
   </div>
 
+  <!-- ================= VERSE RATING SCREEN ================= -->
+  <div class="screen" id="sc-verse-rating">
+    <div class="app-header" style="background: var(--surface-card);">
+      <button class="header-btn" onclick="closeVerseRating()"><i class="ti ti-arrow-left"></i></button>
+      <div class="header-title">📖 Rate Bible Verse</div>
+      <div class="badge b-gray" id="vr-counter" style="background:#FEF3C7; color:#92400E; border-radius:20px; padding:4px 10px; font-size:12px; font-weight:700;">0 / 0</div>
+    </div>
+
+    <div style="padding: 12px 20px; background: var(--surface-card); border-bottom: 1px solid var(--border);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <i class="ti ti-book" style="color:#F59E0B; font-size:18px;"></i>
+        <input type="text" id="vr-verse-ref" placeholder="Today's verse (e.g. John 3:16)"
+          style="flex:1; border:none; background:transparent; font-family:'Outfit'; font-size:14px; font-weight:600; color:var(--text-main); outline:none;"
+        >
+      </div>
+    </div>
+
+    <div class="scroll-body" id="vrStudentList" style="padding-bottom: 120px;">
+      <!-- JS Injected -->
+    </div>
+
+    <div class="fab-container">
+      <button class="btn-main" onclick="saveVerseRatings()" id="btn-save-ratings" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
+        Save Ratings <i class="ti ti-star" style="font-size:18px;"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= LEADERBOARD SCREEN ================= -->
+  <div class="screen" id="sc-leaderboard">
+    <div class="app-header" style="background: var(--surface-card);">
+      <button class="header-btn" onclick="closeLeaderboard()"><i class="ti ti-arrow-left"></i></button>
+      <div class="header-title">🏆 Leaderboard</div>
+      <div style="width:40px;"></div>
+    </div>
+
+    <div class="scroll-body" style="padding-top:16px; padding-bottom:40px;">
+      <!-- Class Filter -->
+      <div style="margin-bottom:16px;">
+        <select id="lb-class-filter" style="width:100%; padding:12px 16px; border:1.5px solid var(--border); border-radius:var(--radius-md); font-family:'Outfit'; font-size:14px; font-weight:600; color:var(--text-main); background:var(--surface-bg); outline:none;" onchange="renderLeaderboard()">
+          <option value="all">🏫 All Classes</option>
+        </select>
+      </div>
+
+      <!-- Time Filter Tabs -->
+      <div class="tab-bar">
+        <button class="tab-btn active" id="lb-tab-all" onclick="switchLbTab('all')">All Time</button>
+        <button class="tab-btn" id="lb-tab-month" onclick="switchLbTab('month')">This Month</button>
+        <button class="tab-btn" id="lb-tab-week" onclick="switchLbTab('week')">This Week</button>
+      </div>
+
+      <!-- Podium (top 3) -->
+      <div class="lb-podium-row" id="lb-podium">
+        <!-- JS Injected -->
+      </div>
+
+      <!-- Full Rankings List -->
+      <div class="section-title" style="margin-bottom:12px;"><i class="ti ti-list-numbers"></i> Full Rankings</div>
+      <div id="lb-list">
+        <!-- JS Injected -->
+      </div>
+
+      <!-- Class Toppers -->
+      <div id="lb-class-toppers-section" style="margin-top:24px;">
+        <div class="section-title" style="margin-bottom:12px;"><i class="ti ti-door"></i> Class Toppers</div>
+        <div id="lb-class-toppers"><!-- JS Injected --></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VERSE RATING PROMPT MODAL ================= -->
+  <div class="verse-prompt-overlay" id="versePromptOverlay">
+    <div class="verse-prompt-sheet">
+      <div style="font-size:48px; margin-bottom:12px;">📖</div>
+      <div style="font-size:20px; font-weight:800; color:var(--text-main); margin-bottom:8px;">Rate Bible Verse?</div>
+      <div style="font-size:14px; color:var(--text-sub); margin-bottom:28px; line-height:1.5;">Would you like to rate how well each present student recited today's Bible verse?</div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <button class="btn-main" onclick="openVerseRatingFromPrompt()" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); margin:0;">
+          <i class="ti ti-star"></i> Rate Now
+        </button>
+        <button onclick="closeVersePrompt()" style="border:none; background:none; color:var(--text-sub); font-size:15px; font-weight:600; font-family:'Outfit'; cursor:pointer; padding:8px;">
+          Skip for Later
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= GLOBAL BOTTOM NAVIGATIONS ================= -->
   <!-- Admin Global Nav -->
   <div class="bottom-nav global-bottom-nav" id="global-nav-admin" style="display: none; z-index: 1000;">
@@ -1849,6 +2088,9 @@ select.customized {
         </div>
         <div class="fab-action" onclick="toggleFabMenu(); openBroadcastModal()">
           <i class="ti ti-broadcast"></i> Broadcast
+        </div>
+        <div class="fab-action" onclick="toggleFabMenu(); openLeaderboard()" style="color:#92400E; background:linear-gradient(135deg,#FEF3C7,#FDE68A);">
+          <i class="ti ti-trophy" style="color:#D97706;"></i> Leaderboard
         </div>
       </div>
     </div>
@@ -1878,9 +2120,9 @@ select.customized {
       <i class="ti ti-check"></i>
     </div>
     
-    <div class="nav-item" onclick="openStudentModal()">
-      <i class="ti ti-user-plus"></i>
-      <span>Add</span>
+    <div class="nav-item" onclick="openLeaderboard()">
+      <i class="ti ti-trophy" style="color:#D97706;"></i>
+      <span>Leaderboard</span>
     </div>
     <div class="nav-item" onclick="openTeacherDrawer()">
       <i class="ti ti-menu-2"></i>
@@ -2054,12 +2296,27 @@ function navTo(screenId, pushHistory = true) {
   } else if (screenId.startsWith('sc-parent')) {
     const parentNav = document.getElementById('global-nav-parent');
     if (parentNav) parentNav.style.display = 'flex';
+  } else if (screenId === 'sc-leaderboard' || screenId === 'sc-verse-rating') {
+    // Show appropriate nav based on user role
+    if (currentUser) {
+      if (currentUser.role === 'admin') {
+        const adminNav = document.getElementById('global-nav-admin');
+        if (adminNav) adminNav.style.display = 'flex';
+      } else if (currentUser.role === 'teacher') {
+        const teacherNav = document.getElementById('global-nav-teacher');
+        if (teacherNav) teacherNav.style.display = 'flex';
+      } else if (currentUser.role === 'parent') {
+        const parentNav = document.getElementById('global-nav-parent');
+        if (parentNav) parentNav.style.display = 'flex';
+      }
+    }
   }
   
   // Trigger graph rendering on relevant screens
   if(screenId === 'sc-admin') {
      renderAdmin();
      renderSchoolTrendGraph('dash-trend-graph', 4);
+     renderAdminLbTeaser();
   } else if(screenId === 'sc-teacher') {
      renderTeacher();
   } else if(screenId === 'sc-admin-history') {
@@ -4299,6 +4556,27 @@ function renderTeacher() {
       </button>
     `;
     
+    // Show verse rating card
+    const verseCard = document.getElementById('tch-verse-card');
+    if (verseCard) {
+      verseCard.style.display = 'block';
+      // Update status text based on today's rating
+      const today2 = new Date();
+      const mm2 = (today2.getMonth()+1).toString().padStart(2,'0');
+      const dd2 = today2.getDate().toString().padStart(2,'0');
+      const dateStr2 = `${today2.getFullYear()}-${mm2}-${dd2}`;
+      const vrDocId = `${currentTeacherClass.id}_${dateStr2}`;
+      const statusEl = document.getElementById('tch-verse-status');
+      if (statusEl) {
+        // Check if already rated today
+        if (window._vrRatedDates && window._vrRatedDates.has(vrDocId)) {
+          statusEl.textContent = '✓ Rated today — tap to update';
+        } else {
+          statusEl.textContent = `${present} present · Tap to rate their verse`;
+        }
+      }
+    }
+    
     // Render Absentees List
     const absContainer = document.getElementById('tch-absent-container');
     const absentees = students.filter(s => attendanceState[s.id] === 'absent');
@@ -4328,6 +4606,9 @@ function renderTeacher() {
     
   } else {
     document.getElementById('tch-absent-container').style.display = 'none';
+    // Hide verse card when attendance not yet taken
+    const verseCard = document.getElementById('tch-verse-card');
+    if (verseCard) verseCard.style.display = 'none';
     attCard.innerHTML = `
         <div style="width:64px; height:64px; background:var(--primary-light); color:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px;">
           <i class="ti ti-clipboard-list"></i>
@@ -4476,14 +4757,30 @@ async function submitAttendance() {
   btn.innerHTML = '<i class="ti ti-check"></i> Saved successfully';
   btn.style.background = 'var(--success)';
   
+  // Collect present student IDs for verse rating
+  const presentStudentIds = students
+    .filter(s => attendanceState[s.id] === 'present')
+    .map(s => s.id);
+  
   setTimeout(() => {
-    if(currentUser.role === 'admin') {
-      navTo(backTarget);
-    } else {
-      navTo('sc-teacher');
-    }
     btn.innerHTML = 'Submit <i class="ti ti-check"></i>';
     btn.style.background = 'var(--primary-grad)';
+    
+    if (presentStudentIds.length > 0) {
+      // Store context for verse rating
+      window._vrClassId = currentTeacherClass.id;
+      window._vrDateStr = dateStr;
+      window._vrPresentIds = presentStudentIds;
+      window._vrBackTarget = (currentUser.role === 'admin') ? backTarget : 'sc-teacher';
+      // Show verse prompt
+      showVersePrompt();
+    } else {
+      if(currentUser.role === 'admin') {
+        navTo(backTarget);
+      } else {
+        navTo('sc-teacher');
+      }
+    }
   }, 1000);
 }
 
@@ -4709,8 +5006,21 @@ function viewParentChild(kidId) {
   
   html += historyHtml;
   
+  // Append Verse Score section placeholder
+  html += `
+    <div class="section-title" style="margin-top:24px;"><i class="ti ti-star" style="color:#F59E0B;"></i> Verse Score</div>
+    <div class="card" style="margin-bottom:24px; border:2px solid #FDE68A; background:linear-gradient(135deg,#FFFBEB,#FEF3C7);">
+      <div id="parent-verse-score-container">
+        <div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Loading...</div>
+      </div>
+    </div>
+  `;
+  
   details.innerHTML = html;
   navTo('sc-parent-child');
+  
+  // Load verse score asynchronously
+  renderParentVerseScore(kidId);
 }
 
 let activeParentFilter = null;
@@ -5619,7 +5929,647 @@ document.addEventListener('click', (e) => {
     menu.classList.remove('active');
   }
 });
+
+/* =========================================================
+   BIBLE VERSE RATING — PROMPT
+   ========================================================= */
+function showVersePrompt() {
+  const overlay = document.getElementById('versePromptOverlay');
+  if (overlay) overlay.classList.add('active');
+}
+
+function closeVersePrompt() {
+  const overlay = document.getElementById('versePromptOverlay');
+  if (overlay) overlay.classList.remove('active');
+  // Navigate to original back target
+  const bt = window._vrBackTarget || 'sc-teacher';
+  navTo(bt);
+}
+
+function openVerseRatingFromPrompt() {
+  closeVersePrompt();
+  openVerseRating(window._vrPresentIds, window._vrClassId, window._vrDateStr, window._vrBackTarget);
+}
+
+/* =========================================================
+   BIBLE VERSE RATING — TEACHER DIRECT OPEN
+   ========================================================= */
+function openVerseRatingForTeacher() {
+  if (!currentTeacherClass) return showToast('No class assigned.', 'error');
+  const students = DB.students.filter(s => s.classId === currentTeacherClass.id);
+  const presentIds = students.filter(s => attendanceState[s.id] === 'present').map(s => s.id);
+  
+  if (presentIds.length === 0) {
+    return showToast('No present students to rate.', 'error');
+  }
+  
+  const today = new Date();
+  const mm = (today.getMonth()+1).toString().padStart(2,'0');
+  const dd = today.getDate().toString().padStart(2,'0');
+  const dateStr = `${today.getFullYear()}-${mm}-${dd}`;
+  
+  window._vrClassId = currentTeacherClass.id;
+  window._vrDateStr = dateStr;
+  window._vrPresentIds = presentIds;
+  window._vrBackTarget = (currentUser && currentUser.role === 'admin') ? 'sc-admin' : 'sc-teacher';
+  
+  openVerseRating(presentIds, currentTeacherClass.id, dateStr, window._vrBackTarget);
+}
+
+/* =========================================================
+   BIBLE VERSE RATING — RATING SCREEN
+   ========================================================= */
+let verseRatings = {};  // { studentId: { stars: 0, note: '' } }
+
+async function openVerseRating(presentIds, classId, dateStr, backTarget) {
+  verseRatings = {};
+  
+  // Pre-populate existing ratings if any
+  const docId = `${classId}_${dateStr}`;
+  try {
+    const { db, doc, getDoc } = window.firebase;
+    const snap = await getDoc(doc(db, 'ss_verse_ratings', docId));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (data.ratings) {
+        Object.entries(data.ratings).forEach(([sid, r]) => {
+          verseRatings[sid] = { stars: r.stars || 0, note: r.note || '' };
+        });
+      }
+      // Pre-fill verse ref
+      const vrEl = document.getElementById('vr-verse-ref');
+      if (vrEl && data.verseRef) vrEl.value = data.verseRef;
+    }
+  } catch(e) {
+    console.warn('Could not load existing ratings:', e);
+  }
+  
+  window._vrCurrentBack = backTarget;
+  renderVerseRatingScreen(presentIds);
+  navTo('sc-verse-rating');
+}
+
+function renderVerseRatingScreen(presentIds) {
+  const list = document.getElementById('vrStudentList');
+  const counter = document.getElementById('vr-counter');
+  
+  if (!presentIds || presentIds.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-sub);">No present students to rate.</div>';
+    return;
+  }
+  
+  counter.textContent = `0 / ${presentIds.length}`;
+  
+  list.innerHTML = presentIds.map(sid => {
+    const s = DB.students.find(x => x.id === sid);
+    if (!s) return '';
+    const init = s.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    const existing = verseRatings[sid] || { stars: 0, note: '' };
+    
+    return `
+      <div class="vr-student-card ${existing.stars > 0 ? 'rated' : ''}" id="vrc-${sid}">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div style="width:48px;height:48px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex-shrink:0;">${init}</div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:700;font-size:15px;color:var(--text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.name}</div>
+            <div class="star-row" style="margin-top:8px;" id="stars-${sid}">
+              ${[1,2,3,4,5].map(i => `
+                <button class="star-btn ${existing.stars >= i ? 'active' : ''}" 
+                  data-sid="${sid}" data-val="${i}"
+                  onclick="setStarRating('${sid}', ${i})" 
+                  aria-label="${i} star">★</button>
+              `).join('')}
+            </div>
+          </div>
+          <button onclick="toggleVrNote('${sid}')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:20px;padding:4px;flex-shrink:0;" title="Add note">
+            <i class="ti ti-message-circle"></i>
+          </button>
+        </div>
+        <textarea class="vr-note-field ${existing.note ? 'visible' : ''}" 
+          id="vr-note-${sid}" 
+          placeholder="Optional note (e.g. Excellent recitation!)"
+          rows="2"
+        >${existing.note || ''}</textarea>
+      </div>
+    `;
+  }).join('');
+  
+  updateVrCounter(presentIds);
+}
+
+function setStarRating(sid, stars) {
+  verseRatings[sid] = verseRatings[sid] || { stars: 0, note: '' };
+  verseRatings[sid].stars = stars;
+  
+  // Update star buttons
+  const starsRow = document.getElementById(`stars-${sid}`);
+  if (starsRow) {
+    starsRow.querySelectorAll('.star-btn').forEach(btn => {
+      const val = parseInt(btn.dataset.val);
+      btn.classList.toggle('active', val <= stars);
+    });
+    // Pop animation on selected star
+    const selectedBtn = starsRow.querySelector(`[data-val="${stars}"]`);
+    if (selectedBtn) {
+      selectedBtn.classList.add('pop');
+      setTimeout(() => selectedBtn.classList.remove('pop'), 200);
+    }
+  }
+  
+  // Update card border
+  const card = document.getElementById(`vrc-${sid}`);
+  if (card) card.classList.add('rated');
+  
+  // Update counter
+  const presentIds = window._vrPresentIds || [];
+  updateVrCounter(presentIds);
+}
+
+function toggleVrNote(sid) {
+  const noteEl = document.getElementById(`vr-note-${sid}`);
+  if (noteEl) noteEl.classList.toggle('visible');
+}
+
+function updateVrCounter(presentIds) {
+  const counter = document.getElementById('vr-counter');
+  if (!counter) return;
+  const rated = presentIds.filter(sid => verseRatings[sid] && verseRatings[sid].stars > 0).length;
+  counter.textContent = `${rated} / ${presentIds.length}`;
+}
+
+function closeVerseRating() {
+  const bt = window._vrCurrentBack || window._vrBackTarget || 'sc-teacher';
+  navTo(bt);
+}
+
+async function saveVerseRatings() {
+  const presentIds = window._vrPresentIds || [];
+  if (presentIds.length === 0) return closeVerseRating();
+  
+  const classId = window._vrClassId;
+  const dateStr = window._vrDateStr;
+  
+  // Collect notes from textareas
+  presentIds.forEach(sid => {
+    const noteEl = document.getElementById(`vr-note-${sid}`);
+    if (noteEl) {
+      verseRatings[sid] = verseRatings[sid] || { stars: 0, note: '' };
+      verseRatings[sid].note = noteEl.value.trim();
+    }
+  });
+  
+  const verseRef = (document.getElementById('vr-verse-ref') || {}).value || '';
+  
+  const btn = document.getElementById('btn-save-ratings');
+  if (btn) {
+    btn.innerHTML = '<i class="ti ti-check"></i> Saving...';
+    btn.disabled = true;
+  }
+  
+  try {
+    const { db, doc, setDoc, updateDoc, writeBatch } = window.firebase;
+    const docId = `${classId}_${dateStr}`;
+    
+    // Build ratings object
+    const ratingsData = {};
+    presentIds.forEach(sid => {
+      const r = verseRatings[sid] || { stars: 0, note: '' };
+      if (r.stars > 0) {
+        ratingsData[sid] = { stars: r.stars, note: r.note || '' };
+      }
+    });
+    
+    // Save to ss_verse_ratings
+    await setDoc(doc(db, 'ss_verse_ratings', docId), {
+      classId,
+      date: dateStr,
+      dateLabel: new Date().toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }),
+      verseRef,
+      ratings: ratingsData
+    }, { merge: true });
+    
+    // Update student cumulative totals using a batch
+    const batch = writeBatch(db);
+    const ratedStudentIds = Object.keys(ratingsData);
+    
+    // We need to recalculate from scratch to avoid double-counting.
+    // Strategy: store per-session data in the rating doc itself.
+    // For simplicity, just update using set-with-merge on the doc and
+    // we'll compute averages from the collection when rendering leaderboard.
+    // No update to ss_students needed (we query the collection directly).
+    
+    await batch.commit().catch(() => {}); // empty batch is fine
+    
+    // Track rated docs locally
+    window._vrRatedDates = window._vrRatedDates || new Set();
+    window._vrRatedDates.add(docId);
+    
+    showToast('Ratings saved! 🌟', 'success');
+    
+    setTimeout(() => {
+      if (btn) {
+        btn.innerHTML = 'Save Ratings <i class="ti ti-star" style="font-size:18px;"></i>';
+        btn.disabled = false;
+      }
+      const bt = window._vrCurrentBack || window._vrBackTarget || 'sc-teacher';
+      navTo(bt);
+    }, 800);
+    
+  } catch(e) {
+    console.error('Error saving verse ratings:', e);
+    showToast('Error saving ratings. Please try again.', 'error');
+    if (btn) {
+      btn.innerHTML = 'Save Ratings <i class="ti ti-star" style="font-size:18px;"></i>';
+      btn.disabled = false;
+    }
+  }
+}
+
+/* =========================================================
+   LEADERBOARD — STATE
+   ========================================================= */
+let lbCurrentTab = 'all';
+let lbRatingDocs = [];
+let lbBackTarget = 'sc-admin';
+
+/* =========================================================
+   LEADERBOARD — OPEN
+   ========================================================= */
+async function openLeaderboard() {
+  lbBackTarget = (currentUser && currentUser.role === 'teacher') ? 'sc-teacher' :
+                 (currentUser && currentUser.role === 'parent') ? 'sc-parent' : 'sc-admin';
+  
+  lbCurrentTab = 'all';
+  // Reset tab UI
+  ['all','month','week'].forEach(t => {
+    const el = document.getElementById(`lb-tab-${t}`);
+    if (el) el.classList.toggle('active', t === 'all');
+  });
+  
+  // Populate class filter
+  const sel = document.getElementById('lb-class-filter');
+  if (sel) {
+    sel.innerHTML = '<option value="all">🏫 All Classes</option>';
+    DB.classes.forEach(cls => {
+      sel.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
+    });
+  }
+  
+  navTo('sc-leaderboard');
+  await loadAndRenderLeaderboard();
+}
+
+function closeLeaderboard() {
+  navTo(lbBackTarget);
+}
+
+function switchLbTab(tab) {
+  lbCurrentTab = tab;
+  ['all','month','week'].forEach(t => {
+    const el = document.getElementById(`lb-tab-${t}`);
+    if (el) el.classList.toggle('active', t === tab);
+  });
+  renderLeaderboard();
+}
+
+async function loadAndRenderLeaderboard() {
+  const podium = document.getElementById('lb-podium');
+  const list = document.getElementById('lb-list');
+  const toppers = document.getElementById('lb-class-toppers');
+  if (podium) podium.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;width:100%;">Loading...</div>';
+  if (list) list.innerHTML = '';
+  if (toppers) toppers.innerHTML = '';
+  
+  try {
+    const { db, collection, getDocs } = window.firebase;
+    const snap = await getDocs(collection(db, 'ss_verse_ratings'));
+    lbRatingDocs = [];
+    snap.forEach(d => lbRatingDocs.push({ id: d.id, ...d.data() }));
+  } catch(e) {
+    console.error('Error loading leaderboard:', e);
+    if (podium) podium.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);">Could not load data.</div>';
+    return;
+  }
+  
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const classFilter = (document.getElementById('lb-class-filter') || {}).value || 'all';
+  
+  // Date filter
+  const now = new Date();
+  let cutoffDate = null;
+  if (lbCurrentTab === 'month') {
+    cutoffDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (lbCurrentTab === 'week') {
+    const d = new Date(now);
+    d.setDate(d.getDate() - 7);
+    cutoffDate = d;
+  }
+  
+  // Aggregate per student
+  const studentScores = {}; // { sid: { totalStars, count } }
+  
+  lbRatingDocs.forEach(doc => {
+    // Date filter
+    if (cutoffDate) {
+      const parts = (doc.date || '').split('-');
+      if (parts.length === 3) {
+        const docDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+        if (docDate < cutoffDate) return;
+      }
+    }
+    
+    if (!doc.ratings) return;
+    
+    Object.entries(doc.ratings).forEach(([sid, r]) => {
+      if (!r || !r.stars || r.stars < 1) return;
+      
+      // Class filter
+      const student = DB.students.find(s => s.id === sid);
+      if (!student) return;
+      if (classFilter !== 'all' && student.classId !== classFilter) return;
+      
+      studentScores[sid] = studentScores[sid] || { totalStars: 0, count: 0 };
+      studentScores[sid].totalStars += r.stars;
+      studentScores[sid].count++;
+    });
+  });
+  
+  // Build sorted array
+  const ranked = Object.entries(studentScores).map(([sid, sc]) => {
+    const s = DB.students.find(x => x.id === sid);
+    if (!s) return null;
+    const avg = sc.count > 0 ? (sc.totalStars / sc.count) : 0;
+    return { sid, student: s, avg: Math.round(avg * 10) / 10, count: sc.count };
+  }).filter(Boolean).sort((a, b) => b.avg - a.avg || b.count - a.count);
+  
+  renderLbPodium(ranked);
+  renderLbList(ranked);
+  renderLbClassToppers(cutoffDate, classFilter);
+}
+
+function renderLbPodium(ranked) {
+  const podium = document.getElementById('lb-podium');
+  if (!podium) return;
+  
+  if (ranked.length === 0) {
+    podium.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-sub);font-size:14px;width:100%;"><i class="ti ti-trophy" style="font-size:32px;color:#E2E8F0;display:block;margin-bottom:8px;"></i>No ratings yet.<br>Rate Bible verse recitation after attendance!</div>';
+    return;
+  }
+  
+  const medals = ['🥇','🥈','🥉'];
+  const rankClasses = ['rank1','rank2','rank3'];
+  
+  // Order: 2nd, 1st, 3rd for classic podium look
+  const podiumOrder = [1, 0, 2];
+  
+  podium.innerHTML = podiumOrder.map(idx => {
+    const item = ranked[idx];
+    if (!item) return '<div style="flex:1;"></div>';
+    const init = item.student.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    return `
+      <div class="lb-podium-card ${rankClasses[idx]}">
+        <div style="font-size:20px; margin-bottom:6px;">${medals[idx]}</div>
+        <div class="lb-avatar-sm">${init}</div>
+        <div class="lb-name-sm">${item.student.name.split(' ')[0]}</div>
+        <div class="lb-score-sm">⭐ ${item.avg.toFixed(1)}</div>
+        <div style="font-size:10px; color:#8C5E35; margin-top:2px;">${item.count} session${item.count !== 1 ? 's' : ''}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLbList(ranked) {
+  const list = document.getElementById('lb-list');
+  if (!list) return;
+  
+  if (ranked.length === 0) {
+    list.innerHTML = '';
+    return;
+  }
+  
+  const myKidIds = (currentUser && currentUser.role === 'parent') 
+    ? DB.students.filter(s => s.parentPhone === currentUser.phone).map(s => s.id)
+    : [];
+  
+  list.innerHTML = ranked.map((item, i) => {
+    const init = item.student.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    const cls = DB.classes.find(c => c.id === item.student.classId);
+    const isMe = myKidIds.includes(item.sid);
+    const delay = Math.min(i * 60, 600);
+    const starsFull = Math.floor(item.avg);
+    const starsDisplay = '★'.repeat(starsFull) + (item.avg - starsFull >= 0.5 ? '½' : '') + '☆'.repeat(5 - Math.ceil(item.avg));
+    
+    return `
+      <div class="lb-list-item ${isMe ? 'me' : ''}" style="animation-delay:${delay}ms;">
+        <div class="lb-rank-num">${i + 1}</div>
+        <div style="width:40px;height:40px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;">${init}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:14px;color:var(--text-main);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.student.name}${isMe ? ' <span style="color:var(--primary);font-size:12px;">(Your child)</span>' : ''}</div>
+          <div style="font-size:12px;color:var(--text-sub);">${cls ? cls.name : ''} · ${item.count} session${item.count !== 1 ? 's' : ''}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-weight:800;font-size:15px;color:#D97706;">⭐ ${item.avg.toFixed(1)}</div>
+          <div style="font-size:10px;color:#F59E0B;letter-spacing:1px;">${starsDisplay.slice(0,5)}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLbClassToppers(cutoffDate, classFilter) {
+  const toppersEl = document.getElementById('lb-class-toppers');
+  const section = document.getElementById('lb-class-toppers-section');
+  if (!toppersEl) return;
+  
+  // Only show class toppers when viewing 'All Classes'
+  if (classFilter !== 'all') {
+    if (section) section.style.display = 'none';
+    return;
+  }
+  if (section) section.style.display = 'block';
+  
+  // Per-class aggregation
+  const classScores = {}; // { classId: { sid: { totalStars, count } } }
+  
+  lbRatingDocs.forEach(doc => {
+    if (cutoffDate) {
+      const parts = (doc.date || '').split('-');
+      if (parts.length === 3) {
+        const docDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+        if (docDate < cutoffDate) return;
+      }
+    }
+    if (!doc.ratings) return;
+    
+    Object.entries(doc.ratings).forEach(([sid, r]) => {
+      if (!r || !r.stars || r.stars < 1) return;
+      const student = DB.students.find(s => s.id === sid);
+      if (!student) return;
+      const cid = student.classId;
+      classScores[cid] = classScores[cid] || {};
+      classScores[cid][sid] = classScores[cid][sid] || { totalStars: 0, count: 0 };
+      classScores[cid][sid].totalStars += r.stars;
+      classScores[cid][sid].count++;
+    });
+  });
+  
+  if (Object.keys(classScores).length === 0) {
+    toppersEl.innerHTML = '<div style="color:var(--text-sub);font-size:13px;text-align:center;padding:12px;">No data yet.</div>';
+    return;
+  }
+  
+  toppersEl.innerHTML = DB.classes.map(cls => {
+    const scores = classScores[cls.id];
+    if (!scores || Object.keys(scores).length === 0) return '';
+    
+    const topEntry = Object.entries(scores)
+      .map(([sid, sc]) => ({ sid, avg: sc.count > 0 ? sc.totalStars / sc.count : 0 }))
+      .sort((a, b) => b.avg - a.avg)[0];
+    
+    if (!topEntry) return '';
+    const topStudent = DB.students.find(s => s.id === topEntry.sid);
+    if (!topStudent) return '';
+    
+    return `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface-card);border-radius:var(--radius-sm);margin-bottom:8px;box-shadow:var(--shadow-soft);">
+        <div style="font-size:18px;">🏆</div>
+        <div style="flex:1;font-weight:700;font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">${cls.name}</div>
+        <div style="font-weight:700;font-size:14px;color:var(--text-main);">${topStudent.name.split(' ')[0]}</div>
+        <div style="font-weight:800;font-size:14px;color:#D97706;">⭐ ${topEntry.avg.toFixed(1)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* =========================================================
+   ADMIN DASHBOARD — LEADERBOARD TEASER
+   ========================================================= */
+async function renderAdminLbTeaser() {
+  const teaserEl = document.getElementById('admin-lb-teaser');
+  const countEl = document.getElementById('admin-lb-teaser-count');
+  if (!teaserEl) return;
+  
+  try {
+    const { db, collection, getDocs } = window.firebase;
+    const snap = await getDocs(collection(db, 'ss_verse_ratings'));
+    const docs = [];
+    snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+    
+    // Last 7 days
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 7);
+    
+    const studentScores = {};
+    docs.forEach(doc => {
+      const parts = (doc.date || '').split('-');
+      if (parts.length === 3) {
+        const docDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+        if (docDate < cutoff) return;
+      }
+      if (!doc.ratings) return;
+      Object.entries(doc.ratings).forEach(([sid, r]) => {
+        if (!r || !r.stars) return;
+        studentScores[sid] = studentScores[sid] || { totalStars: 0, count: 0 };
+        studentScores[sid].totalStars += r.stars;
+        studentScores[sid].count++;
+      });
+    });
+    
+    const ranked = Object.entries(studentScores).map(([sid, sc]) => {
+      const s = DB.students.find(x => x.id === sid);
+      if (!s) return null;
+      return { student: s, avg: sc.count > 0 ? sc.totalStars / sc.count : 0 };
+    }).filter(Boolean).sort((a, b) => b.avg - a.avg).slice(0, 3);
+    
+    if (ranked.length === 0) {
+      teaserEl.textContent = 'No verse ratings yet this week.';
+      if (countEl) countEl.textContent = '';
+      return;
+    }
+    
+    if (countEl) countEl.textContent = `${ranked.length} rated`;
+    teaserEl.innerHTML = ranked.map((item, i) => 
+      `<span style="font-weight:700;">${'🥇🥈🥉'[i]} ${item.student.name.split(' ')[0]}</span> ⭐${item.avg.toFixed(1)}   `
+    ).join('');
+    
+  } catch(e) {
+    teaserEl.textContent = 'No verse data yet.';
+  }
+}
+
+/* =========================================================
+   PARENT CHILD VIEW — VERSE SCORE CARD
+   ========================================================= */
+async function renderParentVerseScore(kidId) {
+  const container = document.getElementById('parent-verse-score-container');
+  if (!container) return;
+  
+  container.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:8px 0;">Loading verse scores...</div>';
+  
+  try {
+    const { db, collection, getDocs, query, where } = window.firebase;
+    const snap = await getDocs(collection(db, 'ss_verse_ratings'));
+    
+    let totalStars = 0;
+    let count = 0;
+    let sessions = [];
+    
+    snap.forEach(d => {
+      const data = d.data();
+      if (data.ratings && data.ratings[kidId] && data.ratings[kidId].stars > 0) {
+        totalStars += data.ratings[kidId].stars;
+        count++;
+        sessions.push({ date: data.date, stars: data.ratings[kidId].stars, note: data.ratings[kidId].note || '' });
+      }
+    });
+    
+    if (count === 0) {
+      container.innerHTML = '<div style="color:var(--text-sub);font-size:13px;text-align:center;padding:16px;">No verse ratings recorded yet.</div>';
+      return;
+    }
+    
+    const avg = (totalStars / count).toFixed(1);
+    sessions.sort((a, b) => (b.date || '').localeCompare(a.date || '')).splice(5); // last 5
+    
+    const starsHtml = [1,2,3,4,5].map(i => `<span style="color:${i <= Math.round(avg) ? '#F59E0B' : '#E2E8F0'};font-size:20px;">★</span>`).join('');
+    const badge = parseFloat(avg) >= 4.0 ? '<span style="background:#FEF3C7;color:#92400E;font-size:11px;font-weight:700;padding:3px 8px;border-radius:12px;margin-left:8px;">🏅 Consistent Memorizer</span>' : '';
+    
+    container.innerHTML = `
+      <div style="text-align:center;padding:16px 0 8px;">
+        <div style="font-size:36px;font-weight:800;color:#D97706;">${avg}</div>
+        <div>${starsHtml}</div>
+        <div style="font-size:12px;color:var(--text-sub);margin-top:4px;">${count} session${count !== 1 ? 's' : ''} rated${badge}</div>
+      </div>
+      <div style="margin-top:12px;">
+        ${sessions.map(s => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+            <div style="font-size:13px;color:var(--text-sub);">${s.date || ''}</div>
+            <div style="font-size:14px;color:#F59E0B;font-weight:700;">${'★'.repeat(s.stars)}${'☆'.repeat(5-s.stars)}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch(e) {
+    container.innerHTML = '<div style="color:var(--text-sub);font-size:13px;">Could not load verse data.</div>';
+  }
+}
+
+
 </script>
+
+  <!-- Service Worker Registration (PWA installability) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sundayschool/sw.js', { scope: '/sundayschool/' })
+          .then(reg => console.log('[SW] Registered, scope:', reg.scope))
+          .catch(err => console.warn('[SW] Registration failed (non-fatal):', err));
+      });
+    }
+  </script>
 
 </body>
 </html>
