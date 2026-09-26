@@ -748,7 +748,147 @@ select.customized {
 }
 .lb-podium-card.rank2 {
   background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
-  border-color: #CBD5E1; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  border-color: #E2E8F0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.lb-podium-card.rank3 {
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+  border-color: #FFEDD5;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* ================= CRASH SCREEN ================= */
+#sc-crash {
+  background-color: #030014;
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  z-index: 9999;
+}
+#sc-crash .background {
+  position: absolute; inset: 0; z-index: 0;
+  background: radial-gradient(circle at 15% 50%, rgba(112, 0, 255, 0.15), transparent 40%),
+              radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.15), transparent 40%),
+              radial-gradient(circle at 50% 80%, rgba(255, 0, 85, 0.15), transparent 40%);
+  filter: blur(60px);
+  animation: breathe 10s ease-in-out infinite alternate;
+}
+@keyframes breathe {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.1); }
+}
+#sc-crash .grid {
+  position: absolute; inset: 0; z-index: 2;
+  background-size: 50px 50px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black, transparent);
+  mask-image: linear-gradient(to bottom, transparent, black, transparent);
+}
+#sc-crash #matrix-canvas {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 1; opacity: 0.15; pointer-events: none;
+}
+#sc-crash .card {
+  position: relative; z-index: 10;
+  background: rgba(15, 15, 25, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 40px; padding: 4rem 5rem;
+  display: flex; flex-direction: column; align-items: center;
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: slideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideUp {
+  0% { transform: translateY(50px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+#sc-crash .profile-container {
+  position: relative; width: 280px; height: 280px; margin-bottom: 2.5rem;
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+#sc-crash .halo {
+  position: absolute; inset: -5px; border-radius: 50%;
+  background: conic-gradient(from 0deg, #00f0ff, #7000ff, #ff0055, #00f0ff);
+  animation: spin 4s linear infinite; filter: blur(15px); opacity: 0.85; z-index: -1;
+}
+#sc-crash .halo::after {
+  content: ""; position: absolute; inset: -15px; border-radius: 50%;
+  background: conic-gradient(from 0deg, #00f0ff, #7000ff, #ff0055, #00f0ff);
+  animation: spin 4s linear infinite reverse; filter: blur(35px); opacity: 0.5; z-index: -2;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+#sc-crash .profile-pic {
+  width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+  border: 4px solid rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+  position: relative; z-index: 10;
+}
+#sc-crash h1 {
+  font-size: 4.5rem; font-weight: 900; margin: 0 0 0.5rem 0; text-align: center;
+  letter-spacing: -1.5px; background: linear-gradient(135deg, #ffffff 0%, #a5a5a5 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; position: relative;
+}
+#sc-crash h2 {
+  font-size: 1.8rem; font-weight: 500; color: #ffffff; margin: 0 0 3rem 0;
+  padding: 10px 25px; background: rgba(255, 0, 85, 0.1); border: 1px solid rgba(255, 0, 85, 0.3);
+  border-radius: 100px; letter-spacing: 2px; display: inline-block; box-shadow: 0 0 30px rgba(255, 0, 85, 0.2);
+}
+#sc-crash .highlight { color: #ff0055; font-weight: 700; text-shadow: 0 0 15px rgba(255, 0, 85, 0.6); }
+#sc-crash .terminal {
+  width: 100%; max-width: 600px; background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 16px; padding: 1.5rem;
+  font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; color: #00f0ff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 240, 255, 0.05);
+  position: relative; overflow: hidden; display: flex; align-items: center;
+}
+#sc-crash .terminal::before {
+  content: "ERROR LOG"; position: absolute; top: 0; left: 0; right: 0;
+  background: rgba(0, 240, 255, 0.1); padding: 4px 15px; font-size: 0.75rem;
+  color: rgba(0, 240, 255, 0.8); letter-spacing: 2px; border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+}
+#sc-crash .prompt { color: #888; margin-right: 15px; margin-top: 15px; }
+#sc-crash .typing-container { margin-top: 15px; position: relative; }
+#sc-crash .cursor {
+  display: inline-block; width: 12px; height: 1.1em; background-color: #00f0ff;
+  vertical-align: middle; animation: blink 1s step-end infinite; margin-left: 5px;
+  box-shadow: 0 0 15px #00f0ff;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+#sc-crash .glitch-wrapper { position: relative; }
+#sc-crash .glitch-wrapper::before, #sc-crash .glitch-wrapper::after {
+  content: "SYSTEM CRASHED"; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: #030014; -webkit-text-fill-color: white;
+}
+#sc-crash .glitch-wrapper::before {
+  left: 2px; text-shadow: -2px 0 #ff0055; clip: rect(44px, 450px, 56px, 0);
+  animation: glitch-anim 5s infinite linear alternate-reverse; z-index: -1;
+}
+#sc-crash .glitch-wrapper::after {
+  left: -2px; text-shadow: -2px 0 #00f0ff; clip: rect(44px, 450px, 56px, 0);
+  animation: glitch-anim2 5s infinite linear alternate-reverse; z-index: -2;
+}
+@keyframes glitch-anim { 0% { clip: rect(10px, 9999px, 83px, 0); } 20% { clip: rect(32px, 9999px, 14px, 0); } 40% { clip: rect(54px, 9999px, 98px, 0); } 60% { clip: rect(89px, 9999px, 11px, 0); } 80% { clip: rect(21px, 9999px, 63px, 0); } 100% { clip: rect(5px, 9999px, 45px, 0); } }
+@keyframes glitch-anim2 { 0% { clip: rect(15px, 9999px, 94px, 0); } 20% { clip: rect(62px, 9999px, 34px, 0); } 40% { clip: rect(24px, 9999px, 78px, 0); } 60% { clip: rect(49px, 9999px, 51px, 0); } 80% { clip: rect(91px, 9999px, 23px, 0); } 100% { clip: rect(35px, 9999px, 65px, 0); } }
+
+@media (max-width: 768px) {
+  #sc-crash .card { padding: 1.5rem 1rem; width: 92%; max-width: 100%; box-sizing: border-box; border-radius: 20px; }
+  #sc-crash .profile-container { width: 110px; height: 110px; margin-bottom: 1rem; }
+  #sc-crash h1 { font-size: 1.7rem; letter-spacing: -0.5px; margin-bottom: 0.2rem; }
+  #sc-crash h2 { font-size: 0.9rem; padding: 6px 12px; margin: 0 0 1.2rem 0; }
+  #sc-crash .terminal { font-size: 0.8rem; padding: 0.8rem; width: 100%; box-sizing: border-box; margin-bottom: 0; }
+}
+@media (max-height: 700px) {
+  #sc-crash .card { padding: 1rem 1rem; }
+  #sc-crash .profile-container { width: 90px; height: 90px; margin-bottom: 0.8rem; }
+  #sc-crash h1 { font-size: 1.5rem; }
+  #sc-crash h2 { font-size: 0.8rem; margin: 0 0 1rem 0; }
+  #sc-crash .terminal { font-size: 0.75rem; padding: 0.6rem; }
 }
 .lb-podium-card.rank3 {
   background: linear-gradient(135deg, #FFFBEB 0%, #FCD34D 100%);
@@ -828,6 +968,26 @@ select.customized {
 <div class="app-frame">
 
   <!-- ================= LOGIN ================= -->
+  <div class="screen" id="sc-crash">
+    <div class="background"></div>
+    <canvas id="matrix-canvas"></canvas>
+    <div class="grid"></div>
+    <div class="card">
+        <div class="profile-container">
+            <div class="halo"></div>
+            <img src="../images/developer/rahulpic.jpeg" alt="Developer Rahul" class="profile-pic">
+        </div>
+        <h1 class="glitch-wrapper">SYSTEM CRASHED</h1>
+        <h2>Call the Developer: <span class="highlight">9591542901</span></h2>
+        <div class="terminal">
+            <span class="prompt">root@bfgc:~$</span>
+            <div class="typing-container">
+                <span id="typed-text"></span><span class="cursor"></span>
+            </div>
+        </div>
+    </div>
+  </div>
+
   <div class="screen active" id="sc-login">
     <div class="login-wrapper">
       <div class="login-hero">
@@ -1392,7 +1552,7 @@ select.customized {
       <!-- JS Injected -->
     </div>
 
-    <div class="fab-container">
+    <div class="fab-container" style="bottom: env(safe-area-inset-bottom);">
       <button class="btn-main" onclick="submitAttendance()" id="btn-submit-att">
         Submit <i class="ti ti-check" style="font-size:20px;"></i>
       </button>
@@ -1995,7 +2155,7 @@ select.customized {
       <!-- JS Injected -->
     </div>
 
-    <div class="fab-container">
+    <div class="fab-container" style="bottom: env(safe-area-inset-bottom);">
       <button class="btn-main" onclick="saveVerseRatings()" id="btn-save-ratings" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">
         Save Ratings <i class="ti ti-star" style="font-size:18px;"></i>
       </button>
@@ -2296,7 +2456,7 @@ function navTo(screenId, pushHistory = true) {
   } else if (screenId.startsWith('sc-parent')) {
     const parentNav = document.getElementById('global-nav-parent');
     if (parentNav) parentNav.style.display = 'flex';
-  } else if (screenId === 'sc-leaderboard' || screenId === 'sc-verse-rating') {
+  } else if (screenId === 'sc-leaderboard') {
     // Show appropriate nav based on user role
     if (currentUser) {
       if (currentUser.role === 'admin') {
@@ -2458,6 +2618,11 @@ function handleLogin() {
   }
 
   if(user) {
+    if (DB.settings.system && DB.settings.system.is_crashed) {
+      navTo('sc-crash');
+      startCrashAnimation();
+      return;
+    }
     currentUser = user;
     localStorage.setItem('ss_session_phone', phone);
     localStorage.setItem('ss_session_time', Date.now());
@@ -2615,6 +2780,25 @@ window.addEventListener('firebase-ready', async () => {
     snap.docs.forEach(doc => {
       DB.settings[doc.id] = doc.data();
     });
+    
+    // Check Developer Kill Switch for Sunday School
+    if (DB.settings.system && DB.settings.system.is_crashed) {
+      if ((typeof currentUser !== 'undefined' && currentUser) || localStorage.getItem('ss_session_phone')) {
+        navTo('sc-crash');
+        startCrashAnimation();
+        return;
+      }
+    } else {
+      if (document.getElementById('sc-crash').classList.contains('active')) {
+        stopCrashAnimation();
+        if (typeof currentUser !== 'undefined' && currentUser) {
+          routeUser();
+        } else {
+          navTo('sc-login');
+        }
+      }
+    }
+
     _setLoaded = true; checkIfLoaded();
     if (dbLoaded && typeof currentUser !== 'undefined' && currentUser) {
       if (currentUser.role === 'admin' && document.getElementById('sc-admin-today').classList.contains('active')) renderAdminToday();
@@ -6562,8 +6746,102 @@ async function renderParentVerseScore(kidId) {
     container.innerHTML = '<div style="color:var(--text-sub);font-size:13px;">Could not load verse data.</div>';
   }
 }
+// ================= CRASH SCREEN LOGIC =================
+let matrixInterval;
+let typingTimeout;
+let isCrashAnimating = false;
 
+function startCrashAnimation() {
+  if(isCrashAnimating) return;
+  isCrashAnimating = true;
+  
+  // Matrix Background
+  const canvas = document.getElementById('matrix-canvas');
+  if(canvas) {
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
+    const errorSnippets = [
+        "ERR_CONNECTION_TIMED_OUT", "0x00000000", "0x00000001", "FATAL_EXCEPTION", 
+        "NULL_POINTER_EXCEPTION", "SEGMENTATION_FAULT", "Uncaught TypeError", 
+        "NetworkError", "101010", "010101", "CORE_DUMPED", "MEMORY_LEAK", 
+        "STACK_OVERFLOW", "NaN", "undefined is not a function"
+    ];
+    const fontSize = 14;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = [];
+    for (let x = 0; x < columns; x++) drops[x] = 1;
+
+    function drawMatrix() {
+        ctx.fillStyle = 'rgba(3, 0, 20, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = fontSize + 'px "JetBrains Mono", monospace';
+        for (let i = 0; i < drops.length; i++) {
+            const text = errorSnippets[Math.floor(Math.random() * errorSnippets.length)];
+            ctx.fillStyle = Math.random() > 0.5 ? '#ff0055' : '#00f0ff';
+            ctx.fillText(text, i * fontSize * 10, drops[i] * fontSize);
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i] += 1.5;
+        }
+    }
+    matrixInterval = setInterval(drawMatrix, 50);
+  }
+
+  // Typing logic
+  const messages = [
+      "Analyzing fatal exception...",
+      "Stack trace: NullPointer at deployment_module",
+      "Emergency protocols engaged.",
+      "Paging Rahul immediately...",
+      "Attempting to restart services...",
+      "Wait, who pushed straight to main?",
+      "Rebooting flux capacitors..."
+  ];
+  let messageIndex = 0;
+  let charIndex = 0;
+  let isDeleting = false;
+  let textElement = document.getElementById('typed-text');
+  
+  function type() {
+      if(!isCrashAnimating) return;
+      const currentMessage = messages[messageIndex];
+      if (isDeleting) {
+          textElement.textContent = currentMessage.substring(0, charIndex - 1);
+          charIndex--;
+      } else {
+          textElement.textContent = currentMessage.substring(0, charIndex + 1);
+          charIndex++;
+      }
+      let typeSpeed = isDeleting ? 20 : 50;
+      if (!isDeleting && charIndex === currentMessage.length) {
+          typeSpeed = 2500;
+          isDeleting = true;
+      } else if (isDeleting && charIndex === 0) {
+          isDeleting = false;
+          messageIndex = (messageIndex + 1) % messages.length;
+          typeSpeed = 500;
+      }
+      if (!isDeleting) typeSpeed += Math.random() * 40;
+      typingTimeout = setTimeout(type, typeSpeed);
+  }
+  typingTimeout = setTimeout(type, 1500);
+}
+
+function stopCrashAnimation() {
+  isCrashAnimating = false;
+  if(matrixInterval) clearInterval(matrixInterval);
+  if(typingTimeout) clearTimeout(typingTimeout);
+}
+
+// Window resize for matrix
+window.addEventListener('resize', () => {
+    const canvas = document.getElementById('matrix-canvas');
+    if(canvas && isCrashAnimating) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+});
 </script>
 
   <!-- Service Worker Registration (PWA installability) -->
