@@ -32,6 +32,7 @@
             font-size: 2.5rem;
             background: linear-gradient(135deg, #fff, #a0a0a0);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         p {
@@ -98,19 +99,32 @@
 <body>
     <div class="panel">
         <h1>Developer Controls</h1>
-        <p>Presenter Kill Switch (Affects ALL Presenter Screens)</p>
-        <label class="switch">
-            <input type="checkbox" id="crashToggle">
-            <span class="slider"></span>
-        </label>
-        <div class="status" id="statusText">Connecting...</div>
+        
+        <div style="margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <p>Presenter Kill Switch (Affects ALL Presenter Screens)</p>
+            <label class="switch">
+                <input type="checkbox" id="crashToggle">
+                <span class="slider"></span>
+            </label>
+            <div class="status" id="statusText">Connecting...</div>
+        </div>
+
+        <div>
+            <p>Sunday School Kill Switch (Blocks Login Access)</p>
+            <label class="switch">
+                <input type="checkbox" id="ssCrashToggle">
+                <span class="slider"></span>
+            </label>
+            <div class="status" id="ssStatusText">Connecting...</div>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-        const firebaseConfig = {
+        // APP 1: CARECELL (Presenter)
+        const firebaseConfigCarecell = {
           apiKey: "AIzaSyBd_8BSq9RnIQNMJCEI9QUr2OOvjcuUe-Y",
           authDomain: "bfgc-carecell.firebaseapp.com",
           projectId: "bfgc-carecell",
@@ -118,16 +132,14 @@
           messagingSenderId: "367487491092",
           appId: "1:367487491092:web:754ecadcaa6527c6995b01"
         };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        const appCarecell = initializeApp(firebaseConfigCarecell, "carecell");
+        const dbCarecell = getFirestore(appCarecell);
         
         const toggle = document.getElementById('crashToggle');
         const statusText = document.getElementById('statusText');
-        const docRef = doc(db, "config", "status");
+        const docRefCarecell = doc(dbCarecell, "config", "status");
 
-        // Listen to current state from Firebase
-        onSnapshot(docRef, (docSnap) => {
+        onSnapshot(docRefCarecell, (docSnap) => {
             if (docSnap.exists()) {
                 const isCrashed = docSnap.data().is_crashed;
                 toggle.checked = isCrashed;
@@ -146,7 +158,45 @@
         toggle.addEventListener('change', async (e) => {
             const isCrashed = e.target.checked;
             statusText.textContent = "Updating...";
-            await setDoc(docRef, { is_crashed: isCrashed }, { merge: true });
+            await setDoc(docRefCarecell, { is_crashed: isCrashed }, { merge: true });
+        });
+
+        // APP 2: WEBSITE (Sunday School)
+        const firebaseConfigWebsite = {
+          apiKey: "AIzaSyBwlAFcnTEMB6BR7ggxYE6zW-50DbWUhP8",
+          authDomain: "bfgc-website.firebaseapp.com",
+          projectId: "bfgc-website",
+          storageBucket: "bfgc-website.firebasestorage.app",
+          messagingSenderId: "547547229174",
+          appId: "1:547547229174:web:c5685fc38d342f97e3f5d7"
+        };
+        const appWebsite = initializeApp(firebaseConfigWebsite, "website");
+        const dbWebsite = getFirestore(appWebsite);
+
+        const ssToggle = document.getElementById('ssCrashToggle');
+        const ssStatusText = document.getElementById('ssStatusText');
+        const docRefWebsite = doc(dbWebsite, "ss_settings", "system");
+
+        onSnapshot(docRefWebsite, (docSnap) => {
+            if (docSnap.exists()) {
+                const isCrashed = docSnap.data().is_crashed;
+                ssToggle.checked = isCrashed;
+                if (isCrashed) {
+                    ssStatusText.textContent = "Sunday School is CRASHED";
+                    ssStatusText.classList.add('crashed');
+                } else {
+                    ssStatusText.textContent = "Sunday School is Online";
+                    ssStatusText.classList.remove('crashed');
+                }
+            } else {
+                ssStatusText.textContent = "Sunday School is Online";
+            }
+        });
+
+        ssToggle.addEventListener('change', async (e) => {
+            const isCrashed = e.target.checked;
+            ssStatusText.textContent = "Updating...";
+            await setDoc(docRefWebsite, { is_crashed: isCrashed }, { merge: true });
         });
     </script>
 </body>
