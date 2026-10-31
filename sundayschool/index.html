@@ -948,8 +948,6 @@ select.customized {
   text-align: center;
 }
 .verse-prompt-overlay.active .verse-prompt-sheet { transform: translateY(0); }
-
-    
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- OneSignal SDK -->
@@ -1055,6 +1053,7 @@ select.customized {
       <button class="header-btn" onclick="openContactSupport()"><i class="ti ti-headset"></i></button>
     </div>
     <div class="scroll-body">
+      <div id="adminDisclaimerSlot"></div>
       <div id="adminHolidayBanner"></div>
       <div class="greeting-section">
         <h2>Overview</h2>
@@ -1480,6 +1479,7 @@ select.customized {
       <button class="header-btn" onclick="openContactSupport()"><i class="ti ti-headset"></i></button>
     </div>
     <div class="scroll-body">
+      <div id="teacherDisclaimerSlot"></div>
       <div id="teacherHolidayBanner"></div>
       
       <div class="kid-card" style="background: var(--success); margin-bottom: 24px;">
@@ -1542,11 +1542,15 @@ select.customized {
       <div class="badge b-gray" id="att-counter">0 / 0</div>
     </div>
     
-    <div style="padding: 12px 20px; display:flex; gap:12px; background:var(--surface-card); border-bottom:1px solid var(--border);">
-      <button style="flex:1; padding:10px; border-radius:12px; border:none; background:var(--success-bg); color:var(--success); font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer;" onclick="markAllAtt('present')" id="btn-mark-all">
+    <div style="padding: 10px 20px; display:flex; gap:10px; background:var(--surface-card); border-bottom:1px solid var(--border);">
+      <button style="flex:1; padding:10px 8px; border-radius:12px; border:none; background:var(--success-bg); color:var(--success); font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; font-size:13px;" onclick="markAllAtt('present')" id="btn-mark-all">
         <i class="ti ti-check"></i> Mark All Present
       </button>
+      <button style="flex:1; padding:10px 8px; border-radius:12px; border:none; background:var(--danger-bg); color:var(--danger); font-weight:700; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; font-size:13px;" onclick="markRestAbsent()" id="btn-mark-rest-absent">
+        <i class="ti ti-user-x"></i> Mark Rest Absent
+      </button>
     </div>
+    <div id="attDisclaimerSlot" style="padding: 10px 20px 0 20px;"></div>
 
     <div class="scroll-body" id="attList" style="padding-bottom:120px;">
       <!-- JS Injected -->
@@ -1567,6 +1571,7 @@ select.customized {
       <button class="header-btn" onclick="openContactSupport()"><i class="ti ti-headset"></i></button>
       <button class="header-btn" onclick="logout()"><i class="ti ti-logout"></i></button>
     </div>
+    <div id="parentDisclaimerSlot" style="padding: 10px 20px 0 20px;"></div>
     <div class="scroll-body" id="parentKidsList">
       <!-- JS Injected -->
     </div>
@@ -2344,6 +2349,71 @@ select.customized {
 
 <script>
 /* =========================================================
+   IN-APP DISCLAIMER BANNER (Imported from disclaimer.html)
+   ========================================================= */
+let cachedDisclaimerHTML = null;
+
+async function getDisclaimerHTML() {
+  if (cachedDisclaimerHTML !== null) return cachedDisclaimerHTML;
+  try {
+    const res = await fetch('disclaimer.html');
+    if (res.ok) {
+      cachedDisclaimerHTML = await res.text();
+      return cachedDisclaimerHTML;
+    }
+  } catch (err) {
+    console.warn("Could not fetch disclaimer.html:", err);
+  }
+  return null;
+}
+
+async function renderInAppDisclaimerBanners() {
+  const isDismissed = sessionStorage.getItem('ss_disclaimer_dismissed') === 'true';
+  const slots = ['teacherDisclaimerSlot', 'attDisclaimerSlot', 'adminDisclaimerSlot', 'parentDisclaimerSlot'];
+  
+  if (isDismissed) {
+    slots.forEach(slotId => {
+      const el = document.getElementById(slotId);
+      if (el) {
+        el.innerHTML = '';
+        el.style.display = 'none';
+      }
+    });
+    return;
+  }
+  
+  const html = await getDisclaimerHTML();
+  if (!html) return;
+  
+  slots.forEach(slotId => {
+    const el = document.getElementById(slotId);
+    if (!el) return;
+    el.style.display = 'block';
+    el.innerHTML = html;
+  });
+}
+
+function dismissDisclaimerBanner() {
+  sessionStorage.setItem('ss_disclaimer_dismissed', 'true');
+  document.querySelectorAll('.inapp-disclaimer-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      const parent = el.parentElement;
+      if (parent) {
+        parent.innerHTML = '';
+        parent.style.display = 'none';
+      }
+    }, 200);
+  });
+}
+
+window.addEventListener('load', renderInAppDisclaimerBanners);
+document.addEventListener('DOMContentLoaded', renderInAppDisclaimerBanners);
+setTimeout(renderInAppDisclaimerBanners, 50);
+setTimeout(renderInAppDisclaimerBanners, 300);
+
+/* =========================================================
    CUSTOM ALERTS & CONFIRMS
    ========================================================= */
 function showToast(msg, type = 'error') {
@@ -2435,6 +2505,7 @@ let editingClassId = null; // for admin manager
 function navTo(screenId, pushHistory = true) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
+  if (typeof renderInAppDisclaimerBanners === 'function') renderInAppDisclaimerBanners();
   
   if (pushHistory) {
     try {
@@ -2708,7 +2779,7 @@ window.addEventListener('firebase-ready', async () => {
   
   onSnapshot(collection(db, 'ss_classes'), snap => {
     DB.classes = snap.docs.map(doc => {
-      let d = doc.data();
+      let d = { id: doc.id, ...doc.data() };
       if (!d.teacherPhones) d.teacherPhones = [];
       if (d.teacherPhone && !d.teacherPhones.includes(d.teacherPhone)) d.teacherPhones.push(d.teacherPhone);
       if (d.secondaryTeacherPhone && !d.teacherPhones.includes(d.secondaryTeacherPhone)) d.teacherPhones.push(d.secondaryTeacherPhone);
@@ -2718,12 +2789,12 @@ window.addEventListener('firebase-ready', async () => {
   });
   
   onSnapshot(collection(db, 'ss_students'), snap => {
-    DB.students = snap.docs.map(doc => doc.data());
+    DB.students = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     _sLoaded = true; checkIfLoaded();
   });
   
   onSnapshot(collection(db, 'ss_schedules'), snap => {
-    DB.schedules = snap.docs.map(doc => doc.data());
+    DB.schedules = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     DB.schedules.sort((a, b) => b.date.localeCompare(a.date));
     _schLoaded = true; checkIfLoaded();
   });
@@ -2750,6 +2821,18 @@ window.addEventListener('firebase-ready', async () => {
     const todayStr = `${today.getFullYear()}-${mm}-${dd}`;
     const newPastAtt = [];
     
+    // Preserve local unsaved marks for currently active class on sc-att
+    const isAttActive = document.getElementById('sc-att') && document.getElementById('sc-att').classList.contains('active');
+    const unsavedClassMarks = {};
+    if (isAttActive && currentTeacherClass) {
+      const activeStudents = DB.students.filter(s => String(s.classId) === String(currentTeacherClass.id));
+      activeStudents.forEach(s => {
+        if (attendanceState[s.id] !== undefined) {
+          unsavedClassMarks[s.id] = attendanceState[s.id];
+        }
+      });
+    }
+
     // Clear today's state
     for(let key in attendanceState) delete attendanceState[key];
     
@@ -2768,6 +2851,15 @@ window.addEventListener('firebase-ready', async () => {
         }
       }
     });
+
+    // Re-apply in-progress marks so another teacher submitting doesn't wipe them out
+    if (isAttActive && currentTeacherClass) {
+      Object.assign(attendanceState, unsavedClassMarks);
+      if (typeof updateAttCounter === 'function') {
+        const total = DB.students.filter(s => String(s.classId) === String(currentTeacherClass.id)).length;
+        updateAttCounter(total);
+      }
+    }
     
     pastAttendance.length = 0;
     pastAttendance.push(...newPastAtt);
@@ -2860,6 +2952,7 @@ function checkIfLoaded() {
    ADMIN LOGIC (Overview)
    ========================================================= */
 function renderAdmin() {
+  if (typeof renderInAppDisclaimerBanners === 'function') renderInAppDisclaimerBanners();
   const adminHolidayContainer = document.getElementById('adminHolidayBanner');
   if (adminHolidayContainer) {
     adminHolidayContainer.innerHTML = getUpcomingHolidayBanner();
@@ -3005,7 +3098,7 @@ function renderAdmin() {
   
   DB.classes.forEach(c => {
     // Check class specific attendance for TODAY
-    const classStudents = DB.students.filter(s => s.classId === c.id);
+    const classStudents = DB.students.filter(s => String(s.classId) === String(c.id));
     const classMarked = classStudents.filter(s => attendanceState[s.id] !== undefined);
     const isMarkedToday = classStudents.length > 0 && classMarked.length > 0;
     const isPending = !isMarkedToday;
@@ -3059,7 +3152,7 @@ function renderClassWiseGraph() {
   
   let html = '';
   DB.classes.forEach(c => {
-    const classStudents = DB.students.filter(s => s.classId === c.id);
+    const classStudents = DB.students.filter(s => String(s.classId) === String(c.id));
     const total = classStudents.length;
     
     let present = 0;
@@ -4208,8 +4301,9 @@ function adminActionViewAttendance() {
   const classId = document.getElementById('adminClassActionId').value;
   document.getElementById('adminClassActionModal').classList.remove('active');
   
-  currentTeacherClass = DB.classes.find(c => c.id === classId);
-  const students = DB.students.filter(s => s.classId === currentTeacherClass.id);
+  currentTeacherClass = DB.classes.find(c => String(c.id) === String(classId));
+  if (!currentTeacherClass) return showToast("Class not found", "error");
+  const students = DB.students.filter(s => String(s.classId) === String(currentTeacherClass.id));
   
   document.getElementById('att-title-label').textContent = `Edit: ${currentTeacherClass.name}`;
   
@@ -4642,6 +4736,7 @@ function isSessionOpen() {
 }
 
 function renderTeacher() {
+  if (typeof renderInAppDisclaimerBanners === 'function') renderInAppDisclaimerBanners();
   const isAlsoAdmin = (currentUser.role === 'admin');
   const swBtn = document.getElementById('teacher-switch-admin-btn');
   if (swBtn) swBtn.style.display = isAlsoAdmin ? 'flex' : 'none';
@@ -4655,7 +4750,7 @@ function renderTeacher() {
     return;
   }
   
-  const students = DB.students.filter(s => s.classId === currentTeacherClass.id);
+  const students = DB.students.filter(s => String(s.classId) === String(currentTeacherClass.id));
   
   document.getElementById('t-header').textContent = currentTeacherClass.name;
   document.getElementById('t-class-name').textContent = currentTeacherClass.name;
@@ -4813,12 +4908,19 @@ function renderTeacher() {
 }
 
 function startTeacherAtt() {
-  if (!isSessionOpen()) {
+  if (!currentTeacherClass && currentUser) {
+    currentTeacherClass = DB.classes.find(c => (c.teacherPhones || []).includes(currentUser.phone));
+  }
+  if (!currentTeacherClass) {
+    showToast("No class assigned to your account.", "error");
+    return;
+  }
+  if (currentUser && currentUser.role === 'teacher' && !isSessionOpen()) {
     showToast("Session is currently closed.", "error");
     renderTeacher();
     return;
   }
-  const students = DB.students.filter(s => s.classId === currentTeacherClass.id);
+  const students = DB.students.filter(s => String(s.classId) === String(currentTeacherClass.id));
   document.getElementById('att-title-label').textContent = "Take Attendance";
   backTarget = 'sc-teacher';
   renderAttendanceList(students);
@@ -4826,12 +4928,19 @@ function startTeacherAtt() {
 }
 
 function backFromAtt() {
-  navTo(backTarget);
+  navTo(backTarget || (currentUser && currentUser.role === 'admin' ? 'sc-admin-today' : 'sc-teacher'));
 }
 
 function renderAttendanceList(students) {
   const list = document.getElementById('attList');
+  if (!list) return;
   list.innerHTML = '';
+  
+  if (!students || students.length === 0) {
+    list.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-sub);">No students assigned to this class.</div>';
+    updateAttCounter(0);
+    return;
+  }
   
   students.forEach(s => {
     const state = attendanceState[s.id];
@@ -4839,14 +4948,14 @@ function renderAttendanceList(students) {
     if(state === 'present') rowClass = 'st-present';
     if(state === 'absent') rowClass = 'st-absent';
     
-    const init = s.name.split(' ').map(n=>n[0]).join('').substring(0,2);
+    const init = (s.name || 'S').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
     
     list.innerHTML += `
       <div class="att-row ${rowClass}" id="row-${s.id}" onclick="toggleAtt('${s.id}')">
         <div class="av" style="background:var(--primary-light); color:var(--primary)">${init}</div>
         <div class="li-body">
           <div class="li-title">${s.name}</div>
-          <div class="li-sub">${s.parentName} (${s.parentPhone})</div>
+          <div class="li-sub">${s.parentName || 'Parent'} (${s.parentPhone || ''})</div>
         </div>
         <div class="att-toggle">
           <button class="tg-btn p" onclick="event.stopPropagation(); setAtt('${s.id}', 'present')"><i class="ti ti-check"></i></button>
@@ -4861,8 +4970,11 @@ function renderAttendanceList(students) {
 function setAtt(id, val) {
   attendanceState[id] = val;
   const row = document.getElementById('row-'+id);
-  row.className = 'att-row ' + (val === 'present' ? 'st-present' : 'st-absent');
-  updateAttCounter(DB.students.filter(s => s.classId === currentTeacherClass.id).length);
+  if (row) {
+    row.className = 'att-row ' + (val === 'present' ? 'st-present' : 'st-absent');
+  }
+  const total = currentTeacherClass ? DB.students.filter(s => String(s.classId) === String(currentTeacherClass.id)).length : 0;
+  updateAttCounter(total);
 }
 
 function toggleAtt(id) {
@@ -4871,107 +4983,213 @@ function toggleAtt(id) {
 }
 
 function markAllAtt(val) {
-  const students = DB.students.filter(s => s.classId === currentTeacherClass.id);
-  students.forEach(s => setAtt(s.id, val));
+  if (!currentTeacherClass) return;
+  const students = DB.students.filter(s => String(s.classId) === String(currentTeacherClass.id));
+  students.forEach(s => {
+    attendanceState[s.id] = val;
+    const row = document.getElementById('row-'+s.id);
+    if (row) {
+      row.className = 'att-row ' + (val === 'present' ? 'st-present' : 'st-absent');
+    }
+  });
+  updateAttCounter(students.length);
+}
+
+function markRestAbsent() {
+  if (!currentTeacherClass) return;
+  const students = DB.students.filter(s => String(s.classId) === String(currentTeacherClass.id));
+  students.forEach(s => {
+    if (attendanceState[s.id] === undefined) {
+      attendanceState[s.id] = 'absent';
+      const row = document.getElementById('row-' + s.id);
+      if (row) {
+        row.className = 'att-row st-absent';
+      }
+    }
+  });
+  updateAttCounter(students.length);
+  showToast("Remaining students marked as absent", "success");
 }
 
 function updateAttCounter(total) {
-  const classStudents = DB.students.filter(s => s.classId === currentTeacherClass.id);
-  const done = classStudents.filter(s => attendanceState[s.id] !== undefined).length;
-  document.getElementById('att-counter').textContent = `${done} / ${total}`;
+  if (!currentTeacherClass) return;
+  const classStudents = DB.students.filter(s => String(s.classId) === String(currentTeacherClass.id));
+  const totalCount = (total !== undefined) ? total : classStudents.length;
+  
+  let presentCount = 0;
+  let absentCount = 0;
+  classStudents.forEach(s => {
+    if (attendanceState[s.id] === 'present') presentCount++;
+    if (attendanceState[s.id] === 'absent') absentCount++;
+  });
+  const done = presentCount + absentCount;
+  
+  const counterEl = document.getElementById('att-counter');
+  if (counterEl) {
+    if (totalCount === 0) {
+      counterEl.textContent = `0 / 0`;
+      counterEl.className = 'badge b-gray';
+    } else if (done === totalCount) {
+      counterEl.textContent = `✓ ${presentCount} · ✗ ${absentCount}`;
+      counterEl.className = 'badge b-green';
+    } else {
+      counterEl.textContent = `${done} / ${totalCount} Marked (✓${presentCount} · ✗${absentCount})`;
+      counterEl.className = 'badge b-gray';
+    }
+  }
   
   const isSessionClosed = typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'teacher' && !isSessionOpen();
-  const notAllMarked = total === 0 || done < total;
   
   const submitBtn = document.getElementById('btn-submit-att');
   if (submitBtn) {
-    submitBtn.disabled = isSessionClosed || notAllMarked;
+    submitBtn.disabled = isSessionClosed || totalCount === 0 || done < totalCount;
   }
   const markAllBtn = document.getElementById('btn-mark-all');
   if (markAllBtn) {
-    markAllBtn.disabled = isSessionClosed || total === 0;
+    markAllBtn.disabled = isSessionClosed || totalCount === 0;
+  }
+  const markRestBtn = document.getElementById('btn-mark-rest-absent');
+  if (markRestBtn) {
+    markRestBtn.disabled = isSessionClosed || totalCount === 0;
   }
 }
 
 async function submitAttendance() {
-  if (!isSessionOpen()) {
+  if (currentUser && currentUser.role === 'teacher' && !isSessionOpen()) {
     showToast("Session is closed. Attendance cannot be submitted.", "error");
     return;
   }
   
-  const students = DB.students.filter(s => s.classId === currentTeacherClass.id);
-  const markedStudents = students.filter(s => attendanceState[s.id] !== undefined);
+  if (!currentTeacherClass) {
+    if (currentUser && currentUser.role === 'teacher') {
+      currentTeacherClass = DB.classes.find(c => (c.teacherPhones || []).includes(currentUser.phone));
+    }
+    if (!currentTeacherClass) {
+      return showToast("No class assigned or selected.", "error");
+    }
+  }
   
-  if(markedStudents.length < students.length) {
+  const classId = currentTeacherClass.id;
+  const students = DB.students.filter(s => String(s.classId) === String(classId));
+  if (students.length === 0) {
+    return showToast("No students assigned to this class.", "error");
+  }
+  
+  // Require all students to be explicitly marked before submitting
+  const markedStudents = students.filter(s => attendanceState[s.id] !== undefined);
+  if (markedStudents.length < students.length) {
     return showToast("Please mark attendance for all students before submitting.");
   }
   
   const btn = document.getElementById('btn-submit-att');
-  btn.innerHTML = '<i class="ti ti-check"></i> Saving...';
-  
-  const { db, doc, writeBatch } = window.firebase;
-  const batch = writeBatch(db);
-  
-  const today = new Date();
-  const mm = (today.getMonth()+1).toString().padStart(2, '0');
-  const dd = today.getDate().toString().padStart(2, '0');
-  const yearMonth = `${today.getFullYear()}-${mm}`;
-  const dateStr = `${today.getFullYear()}-${mm}-${dd}`;
-  
-  const recordDocId = `${currentTeacherClass.id}_${yearMonth}`;
-  const recordRef = doc(db, 'ss_attendance_records', recordDocId);
-  
-  const updateData = { classId: currentTeacherClass.id, yearMonth: yearMonth, records: {} };
-  students.forEach(s => {
-    updateData.records[s.id] = { [dateStr]: attendanceState[s.id] };
-    
-    // Update student counters
-    const state = attendanceState[s.id];
-    if (state === 'present') {
-      batch.update(doc(db, 'ss_students', s.id), { presentDays: (s.presentDays || 0) + 1 });
-    } else {
-      batch.update(doc(db, 'ss_students', s.id), { absentDays: (s.absentDays || 0) + 1 });
-    }
-  });
-  
-  batch.set(recordRef, updateData, { merge: true });
-  
-  try {
-    await batch.commit();
-  } catch(e) {
-    console.error(e);
-    btn.innerHTML = 'Submit <i class="ti ti-check"></i>';
-    return showToast("Error saving attendance.");
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader" style="animation: spin 1s linear infinite;"></i> Saving...';
   }
   
-  btn.innerHTML = '<i class="ti ti-check"></i> Saved successfully';
-  btn.style.background = 'var(--success)';
-  
-  // Collect present student IDs for verse rating
-  const presentStudentIds = students
-    .filter(s => attendanceState[s.id] === 'present')
-    .map(s => s.id);
-  
-  setTimeout(() => {
-    btn.innerHTML = 'Submit <i class="ti ti-check"></i>';
-    btn.style.background = 'var(--primary-grad)';
+  try {
+    const { db, doc, getDoc, writeBatch } = window.firebase;
+    const batch = writeBatch(db);
     
-    if (presentStudentIds.length > 0) {
-      // Store context for verse rating
-      window._vrClassId = currentTeacherClass.id;
-      window._vrDateStr = dateStr;
-      window._vrPresentIds = presentStudentIds;
-      window._vrBackTarget = (currentUser.role === 'admin') ? backTarget : 'sc-teacher';
-      // Show verse prompt
-      showVersePrompt();
-    } else {
-      if(currentUser.role === 'admin') {
-        navTo(backTarget);
-      } else {
-        navTo('sc-teacher');
+    const today = new Date();
+    const mm = (today.getMonth()+1).toString().padStart(2, '0');
+    const dd = today.getDate().toString().padStart(2, '0');
+    const yearMonth = `${today.getFullYear()}-${mm}`;
+    const dateStr = `${today.getFullYear()}-${mm}-${dd}`;
+    
+    const recordDocId = `${classId}_${yearMonth}`;
+    const recordRef = doc(db, 'ss_attendance_records', recordDocId);
+    
+    // Read existing doc to preserve all past dates in this month
+    const existingDoc = await getDoc(recordRef);
+    const existingData = existingDoc.exists() ? existingDoc.data() : { classId: classId, yearMonth: yearMonth, records: {} };
+    const monthRecords = existingData.records || {};
+    
+    students.forEach(s => {
+      const state = attendanceState[s.id];
+      if (!monthRecords[s.id]) monthRecords[s.id] = {};
+      
+      const previousState = monthRecords[s.id][dateStr];
+      monthRecords[s.id][dateStr] = state;
+      
+      // Update student counters idempotently
+      let curPres = s.presentDays || 0;
+      let curAbs = s.absentDays || 0;
+      
+      if (!previousState) {
+        if (state === 'present') curPres++;
+        else curAbs++;
+      } else if (previousState !== state) {
+        if (state === 'present') {
+          curPres++;
+          curAbs = Math.max(0, curAbs - 1);
+        } else {
+          curAbs++;
+          curPres = Math.max(0, curPres - 1);
+        }
       }
+      
+      s.presentDays = curPres;
+      s.absentDays = curAbs;
+      
+      // Using set with merge avoids crashing if doc was missing
+      batch.set(doc(db, 'ss_students', s.id), {
+        presentDays: curPres,
+        absentDays: curAbs
+      }, { merge: true });
+    });
+    
+    batch.set(recordRef, {
+      classId: classId,
+      yearMonth: yearMonth,
+      records: monthRecords
+    }, { merge: true });
+    
+    await batch.commit();
+    
+    if (btn) {
+      btn.innerHTML = '<i class="ti ti-check"></i> Saved successfully';
+      btn.style.background = 'var(--success)';
     }
-  }, 1000);
+    
+    // Collect present student IDs for verse rating
+    const presentStudentIds = students
+      .filter(s => attendanceState[s.id] === 'present')
+      .map(s => s.id);
+    
+    setTimeout(() => {
+      if (btn) {
+        btn.innerHTML = 'Submit <i class="ti ti-check"></i>';
+        btn.style.background = 'var(--primary-grad)';
+        btn.disabled = false;
+      }
+      
+      if (presentStudentIds.length > 0) {
+        // Store context for verse rating
+        window._vrClassId = classId;
+        window._vrDateStr = dateStr;
+        window._vrPresentIds = presentStudentIds;
+        window._vrBackTarget = (currentUser && currentUser.role === 'admin') ? (backTarget || 'sc-admin-today') : 'sc-teacher';
+        // Show verse prompt
+        showVersePrompt();
+      } else {
+        if(currentUser && currentUser.role === 'admin') {
+          navTo(backTarget || 'sc-admin-today');
+        } else {
+          navTo('sc-teacher');
+        }
+      }
+    }, 1000);
+    
+  } catch(e) {
+    console.error("Attendance submission error:", e);
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = 'Submit <i class="ti ti-check"></i>';
+      btn.style.background = 'var(--primary-grad)';
+    }
+    showToast("Error saving attendance: " + (e.message || "Please check connection"), "error");
+  }
 }
 
 /* =========================================================
