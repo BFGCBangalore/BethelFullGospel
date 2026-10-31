@@ -1,0 +1,117 @@
+<style>
+  .inapp-disclaimer-card {
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+    border: 1.5px solid #FCD34D;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 12px rgba(217, 119, 6, 0.08);
+    position: relative;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.25s ease;
+  }
+  .inapp-disclaimer-card .idc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .inapp-disclaimer-card .idc-badge-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .inapp-disclaimer-card .idc-badge {
+    background: #D97706;
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .inapp-disclaimer-card .idc-close-btn {
+    background: rgba(217, 119, 6, 0.12);
+    border: none;
+    color: #92400E;
+    font-size: 16px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .inapp-disclaimer-card .idc-close-btn:hover {
+    background: rgba(217, 119, 6, 0.2);
+  }
+  .inapp-disclaimer-card .idc-close-btn:active {
+    transform: scale(0.9);
+  }
+  .inapp-disclaimer-card .idc-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #78350F;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .inapp-disclaimer-card .idc-text strong {
+    color: #92400E;
+    font-weight: 700;
+  }
+  .inapp-disclaimer-card .idc-text a {
+    color: #B45309;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .inapp-disclaimer-card .idc-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .inapp-disclaimer-card .idc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid rgba(217, 119, 6, 0.25);
+    background: #FFFFFF;
+    color: #92400E;
+    cursor: pointer;
+    transition: 0.15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .inapp-disclaimer-card .idc-btn:active {
+    background: #FEF3C7;
+    transform: scale(0.97);
+  }
+</style>
+
+<div class="inapp-disclaimer-card" id="disclaimer-banner-card">
+  <div class="idc-header">
+    <div class="idc-badge-wrap">
+      <span class="idc-badge"><i class="ti ti-alert-triangle-filled"></i> Disclaimer</span>
+    </div>
+    <button class="idc-close-btn" onclick="dismissDisclaimerBanner()" title="Close Disclaimer" aria-label="Close">
+      <i class="ti ti-x"></i>
+    </button>
+  </div>
+  <div class="idc-text">
+    If you face any issues please report to <strong>Developer Rahul</strong> immediately, especially while taking attendance, or contact using the <a href="javascript:void(0)" onclick="openContactSupport()">Contact Us</a> option.
+  </div>
+  <div class="idc-actions">
+    <a href="tel:+919591542901" class="idc-btn"><i class="ti ti-phone"></i> Call Rahul (9591542901)</a>
+    <button type="button" onclick="openContactSupport()" class="idc-btn"><i class="ti ti-headset"></i> Contact Us</button>
+  </div>
+</div>
