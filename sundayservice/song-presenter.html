@@ -452,6 +452,9 @@
     <div class="canvas-wrapper" id="canvasWrapper">
         <!-- Fixed 1920×1080 Slide Canvas -->
         <div class="slide-canvas" id="slideCanvas">
+            <!-- Background video (Local / Temporary) -->
+            <video id="presenterBgVideo" autoplay loop muted playsinline style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; pointer-events:none;"></video>
+
             <!-- Background gradient -->
             <div class="bg-gradient"></div>
 
@@ -612,13 +615,15 @@
             document.documentElement.style.setProperty('--bg', t.bg);
             document.documentElement.style.setProperty('--text', t.text);
             
-            if (state.isQuickPresenter && (!state.theme || state.theme.bg !== '#000000')) {
+            if (state.isQuickPresenter && (!state.theme || state.theme.bg !== '#000000') && !state.hasBgVideo) {
                 document.documentElement.style.setProperty('--text-shadow-strong', 'none');
                 document.documentElement.style.setProperty('--text-shadow-weak', 'none');
             } else {
                 document.documentElement.style.setProperty('--text-shadow-strong', '0 2px 20px rgba(0,0,0,0.5), 0 0 60px rgba(108,92,255,0.08)');
                 document.documentElement.style.setProperty('--text-shadow-weak', '0 2px 16px rgba(0,0,0,0.4)');
             }
+
+            checkBgVideoStatus();
 
             const scaleFactor = (state.fontSize || 13) / 13;
 
@@ -883,6 +888,39 @@
 
     checkCameraStatus();
 
+    function checkBgVideoStatus() {
+      const bgVid = document.getElementById('presenterBgVideo');
+      if (!bgVid) return;
+      let active = false;
+      let videoUrl = '';
+      const statusStr = localStorage.getItem('local_bg_video_status');
+      if (statusStr) {
+        try {
+          const parsed = JSON.parse(statusStr);
+          active = !!parsed.active;
+          videoUrl = parsed.url || '';
+        } catch(e) {}
+      }
+      if (!videoUrl && window.opener && window.opener.localBgVideoUrl) {
+        active = true;
+        videoUrl = window.opener.localBgVideoUrl;
+      }
+      if (active && videoUrl) {
+        if (bgVid.src !== videoUrl) {
+          bgVid.src = videoUrl;
+        }
+        bgVid.style.display = 'block';
+        bgVid.play().catch(e => console.log('Bg video playback notice:', e));
+      } else {
+        bgVid.pause();
+        bgVid.removeAttribute('src');
+        bgVid.load();
+        bgVid.style.display = 'none';
+      }
+    }
+
+    checkBgVideoStatus();
+
     window.addEventListener('storage', (e) => {
       if (e.key === 'droidcam_status') {
         checkCameraStatus();
@@ -892,6 +930,9 @@
       }
       if (e.key === 'droidcam_position') {
         applySavedPosition();
+      }
+      if (e.key === 'local_bg_video_status') {
+        checkBgVideoStatus();
       }
     });
 
