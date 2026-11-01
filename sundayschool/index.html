@@ -1266,6 +1266,7 @@ select.customized {
           <label style="display:flex; align-items:center; gap:6px;"><i class="ti ti-calendar-time" style="color:var(--primary)"></i> Time Range</label>
           <select id="exportType" class="inp" onchange="toggleExportInputs()">
             <option value="single">Single Date</option>
+            <option value="week">Current Week</option>
             <option value="range">Date Range</option>
             <option value="month">Entire Month</option>
             <option value="alltime">All Time (Entire History)</option>
@@ -1278,7 +1279,7 @@ select.customized {
           <input type="date" id="exportSingleDate" class="inp">
         </div>
         
-        <div id="exportRangeGroup" style="display:none; gap:12px; margin-bottom:16px;">
+        <div id="exportRangeGroup" style="display:none; gap:12px; margin-bottom:10px;">
           <div class="form-group" style="flex:1;">
             <label>Start Date</label>
             <input type="date" id="exportStartDate" class="inp">
@@ -1287,6 +1288,13 @@ select.customized {
             <label>End Date</label>
             <input type="date" id="exportEndDate" class="inp">
           </div>
+        </div>
+        
+        <div id="exportRangePresets" style="display:none; gap:6px; margin-bottom:16px; flex-wrap:wrap;">
+          <button type="button" class="btn-sub" style="padding:4px 10px; font-size:12px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border);" onclick="setExportRangePreset('this_week')">This Week</button>
+          <button type="button" class="btn-sub" style="padding:4px 10px; font-size:12px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border);" onclick="setExportRangePreset('last_week')">Last Week</button>
+          <button type="button" class="btn-sub" style="padding:4px 10px; font-size:12px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border);" onclick="setExportRangePreset('this_month')">This Month</button>
+          <button type="button" class="btn-sub" style="padding:4px 10px; font-size:12px; border-radius:12px; background:var(--bg-card); border:1px solid var(--border);" onclick="setExportRangePreset('last_month')">Last Month</button>
         </div>
         
         <div id="exportMonthGroup" class="form-group" style="display:none; margin-bottom:16px;">
@@ -5693,7 +5701,41 @@ function toggleExportInputs() {
   const type = document.getElementById('exportType').value;
   document.getElementById('exportSingleGroup').style.display = type === 'single' ? 'block' : 'none';
   document.getElementById('exportRangeGroup').style.display = type === 'range' ? 'flex' : 'none';
+  const rangePresets = document.getElementById('exportRangePresets');
+  if (rangePresets) rangePresets.style.display = type === 'range' ? 'flex' : 'none';
   document.getElementById('exportMonthGroup').style.display = type === 'month' ? 'block' : 'none';
+}
+
+function setExportRangePreset(preset) {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const fmt = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+  if (preset === 'this_week') {
+    const day = now.getDay();
+    const diffToMonday = (day === 0 ? -6 : 1) - day;
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 12, 0, 0);
+    const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6, 12, 0, 0);
+    document.getElementById('exportStartDate').value = fmt(monday);
+    document.getElementById('exportEndDate').value = fmt(sunday);
+  } else if (preset === 'last_week') {
+    const day = now.getDay();
+    const diffToMonday = (day === 0 ? -6 : 1) - day - 7;
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 12, 0, 0);
+    const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6, 12, 0, 0);
+    document.getElementById('exportStartDate').value = fmt(monday);
+    document.getElementById('exportEndDate').value = fmt(sunday);
+  } else if (preset === 'this_month') {
+    const first = new Date(now.getFullYear(), now.getMonth(), 1, 12, 0, 0);
+    const last = new Date(now.getFullYear(), now.getMonth() + 1, 0, 12, 0, 0);
+    document.getElementById('exportStartDate').value = fmt(first);
+    document.getElementById('exportEndDate').value = fmt(last);
+  } else if (preset === 'last_month') {
+    const first = new Date(now.getFullYear(), now.getMonth() - 1, 1, 12, 0, 0);
+    const last = new Date(now.getFullYear(), now.getMonth(), 0, 12, 0, 0);
+    document.getElementById('exportStartDate').value = fmt(first);
+    document.getElementById('exportEndDate').value = fmt(last);
+  }
 }
 
 async function generateExcelReport() {
@@ -5715,39 +5757,6 @@ async function generateExcelReport() {
     return;
   }
 
-  if (type === 'single') {
-    const val = document.getElementById('exportSingleDate').value;
-    if(!val) return showToast('Please select a date');
-    dates.push(val);
-  } else if (type === 'range') {
-    const start = document.getElementById('exportStartDate').value;
-    const end = document.getElementById('exportEndDate').value;
-    if(!start || !end) return showToast('Please select start and end dates');
-    let curr = new Date(start);
-    const endDate = new Date(end);
-    if(curr > endDate) return showToast('Start date must be before end date');
-    while(curr <= endDate) {
-      dates.push(curr.toISOString().split('T')[0]);
-      curr.setDate(curr.getDate() + 1);
-    }
-  } else if (type === 'month') {
-    const val = document.getElementById('exportMonth').value; // YYYY-MM
-    if(!val) return showToast('Please select a month');
-    const [year, month] = val.split('-');
-    const daysInMonth = new Date(year, month, 0).getDate();
-    for(let i=1; i<=daysInMonth; i++) {
-      const dStr = `${year}-${month}-${i.toString().padStart(2, '0')}`;
-      dates.push(dStr);
-    }
-  } else if (type === 'alltime') {
-    const t = new Date();
-    const todayStr = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
-    let allDates = pastAttendance.map(r => r.date);
-    if (Object.keys(attendanceState).length > 0) allDates.push(todayStr);
-    dates = Array.from(new Set(allDates)).sort();
-    if(dates.length === 0) return showToast('No attendance history found');
-  }
-
   const t = new Date();
   const todayStr = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
   const unifiedRecords = {};
@@ -5755,6 +5764,77 @@ async function generateExcelReport() {
   if (Object.keys(attendanceState).length > 0) {
     if (!unifiedRecords[todayStr]) unifiedRecords[todayStr] = {};
     Object.assign(unifiedRecords[todayStr], attendanceState);
+  }
+
+  // Helper: Include date only if it is a Sunday (marked/unmarked) OR has marked attendance
+  function shouldIncludeDate(dStr) {
+    const [y, m, d] = dStr.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d, 12, 0, 0);
+    const isSunday = dateObj.getDay() === 0;
+    const dRecords = unifiedRecords[dStr];
+    const hasAttendance = !!(dRecords && Object.keys(dRecords).length > 0);
+    return isSunday || hasAttendance;
+  }
+
+  if (type === 'single') {
+    const val = document.getElementById('exportSingleDate').value;
+    if(!val) return showToast('Please select a date');
+    dates.push(val);
+  } else if (type === 'week') {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const diffToMonday = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMonday, 12, 0, 0);
+    const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6, 12, 0, 0);
+    let curr = new Date(monday);
+    while (curr <= sunday) {
+      const y = curr.getFullYear();
+      const m = String(curr.getMonth() + 1).padStart(2, '0');
+      const d = String(curr.getDate()).padStart(2, '0');
+      const dStr = `${y}-${m}-${d}`;
+      if (shouldIncludeDate(dStr)) {
+        dates.push(dStr);
+      }
+      curr.setDate(curr.getDate() + 1);
+    }
+    if (dates.length === 0) return showToast('No Sundays or marked attendance found for this week');
+  } else if (type === 'range') {
+    const start = document.getElementById('exportStartDate').value;
+    const end = document.getElementById('exportEndDate').value;
+    if(!start || !end) return showToast('Please select start and end dates');
+    const [sY, sM, sD] = start.split('-').map(Number);
+    const [eY, eM, eD] = end.split('-').map(Number);
+    let curr = new Date(sY, sM - 1, sD, 12, 0, 0);
+    const endDate = new Date(eY, eM - 1, eD, 12, 0, 0);
+    if(curr > endDate) return showToast('Start date must be before end date');
+    while(curr <= endDate) {
+      const y = curr.getFullYear();
+      const m = String(curr.getMonth() + 1).padStart(2, '0');
+      const d = String(curr.getDate()).padStart(2, '0');
+      const dStr = `${y}-${m}-${d}`;
+      if (shouldIncludeDate(dStr)) {
+        dates.push(dStr);
+      }
+      curr.setDate(curr.getDate() + 1);
+    }
+    if (dates.length === 0) return showToast('No Sundays or marked attendance found in selected range');
+  } else if (type === 'month') {
+    const val = document.getElementById('exportMonth').value; // YYYY-MM
+    if(!val) return showToast('Please select a month');
+    const [year, month] = val.split('-').map(Number);
+    const daysInMonth = new Date(year, month, 0).getDate();
+    for(let i = 1; i <= daysInMonth; i++) {
+      const dStr = `${year}-${String(month).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      if (shouldIncludeDate(dStr)) {
+        dates.push(dStr);
+      }
+    }
+    if (dates.length === 0) return showToast('No Sundays or marked attendance found in selected month');
+  } else if (type === 'alltime') {
+    let allDates = pastAttendance.map(r => r.date);
+    if (Object.keys(attendanceState).length > 0) allDates.push(todayStr);
+    dates = Array.from(new Set(allDates)).sort();
+    if(dates.length === 0) return showToast('No attendance history found');
   }
 
   const btn = document.getElementById('btnGenerateExcel');
@@ -5940,6 +6020,7 @@ async function generateExcelReport() {
     link.href = URL.createObjectURL(blob);
     let fName = 'Report';
     if(type === 'single') fName = `Report_${dates[0]}`;
+    if(type === 'week') fName = `Report_Week_${dates[0]}_to_${dates[dates.length-1]}`;
     if(type === 'range') fName = `Report_${dates[0]}_to_${dates[dates.length-1]}`;
     if(type === 'month') fName = `Report_${document.getElementById('exportMonth').value}`;
     if(type === 'alltime') fName = `Report_AllTime`;
