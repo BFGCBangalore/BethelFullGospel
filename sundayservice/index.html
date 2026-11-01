@@ -1419,6 +1419,10 @@
                   <button class="fmt-btn" id="quick-fmt-clear" title="Clear Formatting"><i class="ti ti-clear-formatting"></i></button>
                   <div class="fmt-separator"></div>
                   <button class="fmt-btn" id="quick-fmt-bg-toggle" title="Toggle Slide Background (Dark/Light)"><i class="ti ti-moon"></i></button>
+                  <div class="fmt-separator"></div>
+                  <button class="fmt-btn" id="quick-fmt-bg-video" title="Set Local Background Video (Temporary)"><i class="ti ti-video"></i></button>
+                  <button class="fmt-btn" id="quick-fmt-bg-video-clear" title="Remove Video (Change Back to Solid Background)" style="display:none; color:var(--danger-color, #ef4444);"><i class="ti ti-video-off"></i></button>
+                  <input type="file" id="quick-bg-video-input" accept="video/mp4,video/webm,video/ogg,video/*" style="display:none">
                 </div>
 
                 <!-- Editor (Fixed 1920×1080 canvas) -->
@@ -1430,13 +1434,14 @@
                       <span class="ratio-badge">16:9 · 1920×1080</span>
                     </div>
                     <div class="ppt-canvas-wrapper" id="editor-canvas-wrapper" style="width: 100%; flex: 1;">
-                      <div class="ppt-canvas" id="editor-canvas">
+                      <div class="ppt-canvas" id="editor-canvas" style="overflow:hidden;">
+                        <video id="editor-bg-video" autoplay loop muted playsinline style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; pointer-events:none;"></video>
 
 <div class="droidcam-overlay circle editor-cam-overlay" style="display:none; width:150px; height:150px; bottom:40px; right:40px; ">
   <video autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
 </div>
 
-                        <div id="quick-editor" class="ppt-canvas-editor" contenteditable="true" data-placeholder="Click here to type your lyrics..." spellcheck="false"></div>
+                        <div id="quick-editor" class="ppt-canvas-editor" style="position:relative; z-index:1;" contenteditable="true" data-placeholder="Click here to type your lyrics..." spellcheck="false"></div>
                       </div>
                     </div>
                   </div>
@@ -3248,7 +3253,8 @@
         songTitle: 'Quick Presenter', slideLabel: '', slideType: 'verse',
         en: editorHtml, enIsHtml: true, isQuickPresenter: true,
         kn: '', hi: '', lang: 'en', fontSize: 13, align: 'center',
-        theme: t
+        theme: t,
+        hasBgVideo: !!window.localBgVideoUrl
       } : null;
 
       if (stateObj) {
@@ -3605,6 +3611,9 @@
     });
 
     document.getElementById('quick-fmt-bg-toggle').addEventListener('click', () => {
+       if (window.localBgVideoUrl) {
+          clearQuickBgVideo(false);
+       }
        window.quickTheme = window.quickTheme === 'light' ? 'dark' : 'light';
        const ed = document.getElementById('quick-editor');
        const canvas = document.getElementById('editor-canvas');
@@ -3642,6 +3651,80 @@
        updateSongPresenterState();
        document.getElementById('btn-quick-save').click();
     });
+
+    // ── Local Background Video (Temporary, in-memory) ──
+    window.localBgVideoUrl = null;
+
+    function clearQuickBgVideo(notify = true) {
+      if (window.localBgVideoUrl) {
+        try { URL.revokeObjectURL(window.localBgVideoUrl); } catch(e) {}
+        window.localBgVideoUrl = null;
+      }
+      const vid = document.getElementById('editor-bg-video');
+      if (vid) {
+        vid.pause();
+        vid.removeAttribute('src');
+        vid.load();
+        vid.style.display = 'none';
+      }
+      const clearBtn = document.getElementById('quick-fmt-bg-video-clear');
+      if (clearBtn) clearBtn.style.display = 'none';
+      const videoBtn = document.getElementById('quick-fmt-bg-video');
+      if (videoBtn) videoBtn.classList.remove('active');
+      const input = document.getElementById('quick-bg-video-input');
+      if (input) input.value = '';
+
+      localStorage.setItem('local_bg_video_status', JSON.stringify({ active: false, timestamp: Date.now() }));
+      pushQuickToProjector();
+      if (notify) showToast('Video removed. Switched back to solid background.', 'info');
+    }
+
+    const quickBgVideoBtn = document.getElementById('quick-fmt-bg-video');
+    const quickBgVideoClearBtn = document.getElementById('quick-fmt-bg-video-clear');
+    const quickBgVideoInput = document.getElementById('quick-bg-video-input');
+
+    if (quickBgVideoBtn && quickBgVideoInput) {
+      quickBgVideoBtn.addEventListener('click', () => {
+        quickBgVideoInput.click();
+      });
+
+      quickBgVideoInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        if (window.localBgVideoUrl) {
+          try { URL.revokeObjectURL(window.localBgVideoUrl); } catch(err) {}
+        }
+
+        const videoUrl = URL.createObjectURL(file);
+        window.localBgVideoUrl = videoUrl;
+
+        const vid = document.getElementById('editor-bg-video');
+        if (vid) {
+          vid.src = videoUrl;
+          vid.style.display = 'block';
+          vid.play().catch(err => console.log('Video preview playback notice:', err));
+        }
+
+        if (quickBgVideoClearBtn) quickBgVideoClearBtn.style.display = 'inline-flex';
+        quickBgVideoBtn.classList.add('active');
+
+        localStorage.setItem('local_bg_video_status', JSON.stringify({ active: true, url: videoUrl, timestamp: Date.now() }));
+        pushQuickToProjector();
+        showToast('Local background video applied (temporary)', 'success');
+      });
+    }
+
+    if (quickBgVideoClearBtn) {
+      quickBgVideoClearBtn.addEventListener('click', () => {
+        clearQuickBgVideo(true);
+      });
+    }
+
+    window.addEventListener('beforeunload', () => {
+      localStorage.removeItem('local_bg_video_status');
+    });
+    localStorage.removeItem('local_bg_video_status');
     document.getElementById('quick-color-input').addEventListener('input', (e) => {
       quickCurrentColor = e.target.value;
       document.getElementById('quick-color-swatch').style.background = quickCurrentColor;
