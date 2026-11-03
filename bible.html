@@ -14,6 +14,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
 </head>
 <body>
   <!-- Aurora background -->
@@ -143,10 +145,61 @@
       <!-- Live camera preview inside mini monitor (draggable) -->
       <div class="lm-cam-preview circle" id="lmCamPreview" style="display:none;">
         <video id="lmCamVideo" autoplay muted playsinline></video>
+        <canvas id="lmCamCanvas" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none;"></canvas>
       </div>
     </div>
     <!-- DroidCam Controls -->
     <div class="lm-cam-controls" id="lmCamControls">
+      <!-- AI Background Removal Panel -->
+      <div class="bible-ai-bg-panel" style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:8px 10px; margin-bottom:8px; display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-wand-magic-sparkles" style="color:#6c5cff; font-size:12px;"></i>
+            <span style="font-size:0.75rem; font-weight:600; color:var(--text);">AI Background</span>
+          </div>
+          <label class="switch-toggle" style="position:relative; display:inline-block; width:34px; height:18px; margin:0;">
+            <input type="checkbox" id="aiBgToggle-bible" style="opacity:0; width:0; height:0;">
+            <span class="switch-slider" style="position:absolute; cursor:pointer; inset:0; background:#555; border-radius:18px; transition:0.2s;"></span>
+          </label>
+        </div>
+        <div id="aiBgStatus-bible" style="font-size:0.7rem; color:var(--muted); display:none; align-items:center; gap:4px;">
+          <i class="fa-solid fa-spinner fa-spin"></i> <span>Loading AI Model...</span>
+        </div>
+        <div id="aiBgOptions-bible" style="display:none; flex-direction:column; gap:6px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+            <button type="button" class="lm-cam-btn ai-mode-btn-bible active" data-mode="transparent" style="font-size:0.7rem; padding:4px 6px; justify-content:center; display:flex; align-items:center; gap:4px;"><i class="fa-solid fa-sparkles"></i> Cutout</button>
+            <button type="button" class="lm-cam-btn ai-mode-btn-bible" data-mode="blur" style="font-size:0.7rem; padding:4px 6px; justify-content:center; display:flex; align-items:center; gap:4px;"><i class="fa-solid fa-water"></i> Blur</button>
+            <button type="button" class="lm-cam-btn ai-mode-btn-bible" data-mode="color" style="font-size:0.7rem; padding:4px 6px; justify-content:center; display:flex; align-items:center; gap:4px;"><i class="fa-solid fa-palette"></i> Color</button>
+            <button type="button" class="lm-cam-btn ai-mode-btn-bible" data-mode="image" style="font-size:0.7rem; padding:4px 6px; justify-content:center; display:flex; align-items:center; gap:4px;"><i class="fa-solid fa-image"></i> Image</button>
+          </div>
+          <div id="aiBgBlurWrap-bible" style="display:none; align-items:center; gap:6px;">
+            <span class="lm-cam-label">Blur:</span>
+            <input type="range" class="lm-cam-size-slider" id="aiBgBlurSlider-bible" min="4" max="30" value="12" step="1">
+            <span class="lm-cam-size-val" id="aiBgBlurLbl-bible">12px</span>
+          </div>
+          <div id="aiBgColorWrap-bible" style="display:none; align-items:center; gap:6px;">
+            <span class="lm-cam-label">Color:</span>
+            <input type="color" id="aiBgColorInput-bible" value="#00ff00" style="width:28px; height:22px; padding:0; border:1px solid rgba(255,255,255,0.2); border-radius:4px; cursor:pointer; background:none;">
+            <div style="display:flex; gap:3px;">
+              <button type="button" class="ai-quick-color-bible" data-color="#00ff00" style="width:18px; height:18px; border-radius:3px; background:#00ff00; border:1px solid #ddd; cursor:pointer;" title="Green Screen"></button>
+              <button type="button" class="ai-quick-color-bible" data-color="#0000ff" style="width:18px; height:18px; border-radius:3px; background:#0000ff; border:1px solid #ddd; cursor:pointer;" title="Blue Screen"></button>
+              <button type="button" class="ai-quick-color-bible" data-color="#000000" style="width:18px; height:18px; border-radius:3px; background:#000000; border:1px solid #666; cursor:pointer;" title="Black"></button>
+              <button type="button" class="ai-quick-color-bible" data-color="#ffffff" style="width:18px; height:18px; border-radius:3px; background:#ffffff; border:1px solid #ddd; cursor:pointer;" title="White"></button>
+            </div>
+          </div>
+          <div id="aiBgImageWrap-bible" style="display:none; flex-direction:column; gap:4px;">
+            <div style="display:flex; gap:4px; align-items:center;">
+              <button type="button" class="lm-cam-btn" id="aiBgImageBtn-bible" style="flex:1; font-size:0.7rem; padding:4px 6px; justify-content:center;"><i class="fa-solid fa-upload"></i> Upload Image</button>
+              <button type="button" class="lm-cam-btn" id="aiBgImageClearBtn-bible" style="display:none; font-size:0.7rem; padding:4px 6px; color:#ef4444;"><i class="fa-solid fa-trash"></i></button>
+              <input type="file" id="aiBgImageInput-bible" accept="image/*" style="display:none;">
+            </div>
+            <div id="aiBgImagePreviewWrap-bible" style="display:none; border-radius:4px; overflow:hidden; max-height:45px; border:1px solid rgba(255,255,255,0.15);">
+              <img id="aiBgImagePreview-bible" style="width:100%; height:45px; object-fit:cover;">
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Camera selector -->
       <div style="display:flex;align-items:center;gap:6px;width:100%;margin-bottom:6px;">
         <span class="lm-cam-label"><i class="fa-solid fa-camera" style="margin-right:3px;"></i>Cam:</span>
@@ -162,17 +215,18 @@
         <button class="lm-cam-btn" id="camShapeRect" data-shape="rect">▬ Rect</button>
         <button class="lm-cam-btn" id="camShapeFull" data-shape="full">🔲 Full</button>
       </div>
-      <!-- Width -->
-      <div style="display:flex;align-items:center;gap:6px;width:100%;margin-top:6px;">
-        <span class="lm-cam-label">W:</span>
-        <input type="range" class="lm-cam-size-slider" id="camWidthSlider" min="80" max="500" value="150" step="5">
-        <span class="lm-cam-size-val" id="camWidthLabel">150</span>
-      </div>
-      <!-- Height -->
-      <div style="display:flex;align-items:center;gap:6px;width:100%;">
-        <span class="lm-cam-label">H:</span>
-        <input type="range" class="lm-cam-size-slider" id="camHeightSlider" min="80" max="500" value="150" step="5">
-        <span class="lm-cam-size-val" id="camHeightLabel">150</span>
+      <!-- Width & Height in a single row -->
+      <div style="display:flex;align-items:center;gap:12px;width:100%;margin-top:6px;">
+        <div style="display:flex;align-items:center;gap:6px;flex:1;">
+          <span class="lm-cam-label">W:</span>
+          <input type="range" class="lm-cam-size-slider" id="camWidthSlider" min="80" max="500" value="150" step="5" style="flex:1;width:auto;">
+          <span class="lm-cam-size-val" id="camWidthLabel">150</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex:1;">
+          <span class="lm-cam-label">H:</span>
+          <input type="range" class="lm-cam-size-slider" id="camHeightSlider" min="80" max="500" value="150" step="5" style="flex:1;width:auto;">
+          <span class="lm-cam-size-val" id="camHeightLabel">150</span>
+        </div>
       </div>
     </div>
   </div>

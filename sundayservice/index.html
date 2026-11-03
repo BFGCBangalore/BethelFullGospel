@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
   <script>
     (function() {
       if (localStorage.getItem('theme') === 'dark') {
@@ -448,6 +450,87 @@
       font-size: 11px; color: var(--color-text-secondary); line-height: 1.4;
       display: -webkit-box; display: box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; box-orient: vertical; overflow: hidden; word-break: break-word; max-height: 2.8em;
     }
+
+    /* Song start card indicator */
+    .slide-mini.song-start {
+      border-top: 2.5px solid #eab308 !important;
+      position: relative;
+    }
+    .slide-mini-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+      gap: 6px;
+    }
+    .slide-mini-left-labels {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+    .slide-mini-num {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--primary-color);
+    }
+    .song-start-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #fef08a;
+      color: #854d0e;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+      border: 1px solid rgba(234, 179, 8, 0.4);
+      white-space: nowrap;
+    }
+    body.dark-mode .song-start-badge {
+      background: rgba(234, 179, 8, 0.2);
+      color: #fde047;
+      border: 1px solid rgba(234, 179, 8, 0.45);
+    }
+    .slide-mini-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .slide-star-btn {
+      background: transparent;
+      border: none;
+      padding: 2px;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1;
+      color: var(--color-text-secondary);
+      opacity: 0.35;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+    .slide-mini:hover .slide-star-btn {
+      opacity: 0.75;
+    }
+    .slide-star-btn:hover {
+      opacity: 1 !important;
+      transform: scale(1.15);
+      color: #eab308 !important;
+      background: rgba(234, 179, 8, 0.1);
+    }
+    .slide-star-btn.marked {
+      color: #eab308 !important;
+      opacity: 1 !important;
+    }
+
     .live-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
     /* Pause badge */
@@ -641,6 +724,30 @@
       background: var(--color-background-secondary); color: var(--color-text-primary);
     }
     .quick-library-modal .qlm-search input:focus { border-color: var(--primary-color); }
+    .quick-library-modal .qlm-filter-bar {
+      display: flex; align-items: center; gap: 8px; padding: 8px 20px 10px 20px;
+      border-bottom: 1px solid var(--color-border-tertiary);
+      background: var(--color-background-primary);
+    }
+    .quick-library-modal .qlm-filter-pill {
+      padding: 5px 12px; border-radius: 20px; border: 1px solid var(--color-border-tertiary);
+      background: var(--color-background-secondary); color: var(--color-text-secondary);
+      font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 6px; transition: all 0.15s ease; font-family: inherit;
+    }
+    .quick-library-modal .qlm-filter-pill:hover {
+      border-color: var(--primary-color); color: var(--primary-color);
+    }
+    .quick-library-modal .qlm-filter-pill.active {
+      background: var(--primary-color); color: #ffffff; border-color: var(--primary-color);
+    }
+    .quick-library-modal .qlm-filter-pill .qlm-pill-count {
+      font-size: 10px; font-weight: 700; opacity: 0.85;
+      background: rgba(255,255,255,0.25); padding: 1px 6px; border-radius: 10px;
+    }
+    .quick-library-modal .qlm-filter-pill:not(.active) .qlm-pill-count {
+      background: var(--color-border-tertiary); color: var(--color-text-secondary);
+    }
     .quick-library-modal .qlm-list {
       flex: 1; overflow-y: auto; padding: 8px;
     }
@@ -654,6 +761,22 @@
       width: 36px; height: 36px; border-radius: 8px; background: var(--primary-light);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       color: var(--primary-color); font-size: 16px;
+    }
+    .quick-library-modal .qlm-item-icon.folder {
+      background: #fef08a; color: #854d0e;
+    }
+    [data-theme="dark"] .quick-library-modal .qlm-item-icon.folder,
+    body.dark-mode .quick-library-modal .qlm-item-icon.folder {
+      background: rgba(234, 179, 8, 0.22); color: #fde047;
+    }
+    .quick-library-modal .qlm-folder-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: #fef08a; color: #854d0e; font-size: 9px; font-weight: 800;
+      padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(234, 179, 8, 0.4);
+    }
+    [data-theme="dark"] .quick-library-modal .qlm-folder-badge,
+    body.dark-mode .quick-library-modal .qlm-folder-badge {
+      background: rgba(234, 179, 8, 0.2); color: #fde047; border: 1px solid rgba(234, 179, 8, 0.45);
     }
     .quick-library-modal .qlm-item-info { flex: 1; min-width: 0; }
     .quick-library-modal .qlm-item-title {
@@ -977,6 +1100,50 @@
   display: block;
   pointer-events: none;
 }
+.droidcam-overlay canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+.droidcam-overlay.ai-cutout {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+.cam-preview-box.ai-transparent-bg {
+  background: repeating-conic-gradient(#2a2a2a 0% 25%, #1a1a1a 0% 50%) 50% / 16px 16px !important;
+}
+.switch-toggle input:checked + .switch-slider {
+  background-color: var(--primary-color) !important;
+}
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+.switch-toggle input:checked + .switch-slider:before {
+  transform: translateX(18px);
+}
+.ai-mode-btn.active {
+  background: var(--primary-color) !important;
+  color: #fff !important;
+  border-color: var(--primary-color) !important;
+}
+.ai-quick-color {
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.ai-quick-color:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
 
 </style>
 </head>
@@ -1219,9 +1386,71 @@
                 </div>
                 <div id="content-live-camera" style="display:none; flex-direction:column; flex:1; min-height:0; overflow-y:auto; padding:15px; gap:15px;">
                   <button id="btnToggleCamera-live" class="btn btn-primary" style="width:100%; display:flex; justify-content:center; gap:8px;"><i class="ti ti-video"></i> <span>Start Camera</span></button>
-                  <div style="background:#000; border-radius:8px; overflow:hidden; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                  <div class="cam-preview-box" id="localCamBox-live" style="background:#000; border-radius:8px; overflow:hidden; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative;">
                     <video id="localCamVideo-live" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+                    <canvas id="localCamCanvas-live" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none;"></canvas>
                   </div>
+
+                  <!-- AI Background Removal Panel -->
+                  <div class="ai-bg-panel" style="background:var(--color-background-tertiary); border:1px solid var(--color-border-tertiary); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:10px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                      <div style="display:flex; align-items:center; gap:6px;">
+                        <i class="ti ti-wand" style="color:var(--primary-color); font-size:16px;"></i>
+                        <span style="font-size:12px; font-weight:600; color:var(--color-text-primary);">AI Background</span>
+                      </div>
+                      <label class="switch-toggle" style="position:relative; display:inline-block; width:38px; height:20px; margin:0;">
+                        <input type="checkbox" id="aiBgToggle-live" style="opacity:0; width:0; height:0;">
+                        <span class="switch-slider" style="position:absolute; cursor:pointer; inset:0; background:#ccc; border-radius:20px; transition:0.2s;"></span>
+                      </label>
+                    </div>
+                    <div id="aiBgStatus-live" style="font-size:11px; color:var(--color-text-secondary); display:none; align-items:center; gap:4px;">
+                      <i class="ti ti-loader-2 ti-spin"></i> <span>Loading AI Model...</span>
+                    </div>
+                    
+                    <div id="aiBgControls-live" style="display:none; flex-direction:column; gap:10px;">
+                      <div style="display:flex; flex-direction:column; gap:5px;">
+                        <label style="font-size:11px; color:var(--color-text-secondary);">Background Type</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+                          <button type="button" class="nav-btn ai-mode-btn ai-mode-btn-live active" data-mode="transparent" style="font-size:11px; padding:5px 6px; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="ti ti-sparkles"></i> Cutout</button>
+                          <button type="button" class="nav-btn ai-mode-btn ai-mode-btn-live" data-mode="blur" style="font-size:11px; padding:5px 6px; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="ti ti-blur"></i> Blur</button>
+                          <button type="button" class="nav-btn ai-mode-btn ai-mode-btn-live" data-mode="color" style="font-size:11px; padding:5px 6px; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="ti ti-palette"></i> Color</button>
+                          <button type="button" class="nav-btn ai-mode-btn ai-mode-btn-live" data-mode="image" style="font-size:11px; padding:5px 6px; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="ti ti-photo"></i> Image</button>
+                        </div>
+                      </div>
+
+                      <div id="aiBgBlurWrap-live" style="display:none; flex-direction:column; gap:4px;">
+                        <label style="font-size:11px; color:var(--color-text-secondary); display:flex; justify-content:space-between;">Blur Intensity <span id="aiBgBlurLbl-live">12px</span></label>
+                        <input type="range" id="aiBgBlurSlider-live" min="4" max="30" value="12" style="width:100%;">
+                      </div>
+
+                      <div id="aiBgColorWrap-live" style="display:none; flex-direction:column; gap:6px;">
+                        <label style="font-size:11px; color:var(--color-text-secondary);">Solid Color</label>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <input type="color" id="aiBgColorInput-live" value="#00ff00" style="width:36px; height:28px; padding:0; border:1px solid var(--color-border-tertiary); border-radius:4px; cursor:pointer; background:none;">
+                          <div style="display:flex; gap:4px; flex:1;">
+                            <button type="button" class="ai-quick-color" data-color="#00ff00" style="width:22px; height:22px; border-radius:4px; background:#00ff00; border:1px solid #ddd; cursor:pointer;" title="Green Screen"></button>
+                            <button type="button" class="ai-quick-color" data-color="#0000ff" style="width:22px; height:22px; border-radius:4px; background:#0000ff; border:1px solid #ddd; cursor:pointer;" title="Blue Screen"></button>
+                            <button type="button" class="ai-quick-color" data-color="#121212" style="width:22px; height:22px; border-radius:4px; background:#121212; border:1px solid #ddd; cursor:pointer;" title="Black"></button>
+                            <button type="button" class="ai-quick-color" data-color="#ffffff" style="width:22px; height:22px; border-radius:4px; background:#ffffff; border:1px solid #ddd; cursor:pointer;" title="White"></button>
+                            <button type="button" class="ai-quick-color" data-color="#534AB7" style="width:22px; height:22px; border-radius:4px; background:#534AB7; border:1px solid #ddd; cursor:pointer;" title="Church Purple"></button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div id="aiBgImageWrap-live" style="display:none; flex-direction:column; gap:6px;">
+                        <label style="font-size:11px; color:var(--color-text-secondary);">Custom Image</label>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                          <button type="button" class="nav-btn" id="aiBgImageBtn-live" style="flex:1; font-size:11px; padding:5px 8px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="ti ti-upload"></i> Choose Image</button>
+                          <button type="button" class="nav-btn" id="aiBgImageClearBtn-live" style="display:none; font-size:11px; padding:5px 8px; color:var(--danger-color);"><i class="ti ti-trash"></i></button>
+                          <input type="file" id="aiBgImageInput-live" accept="image/png,image/jpeg,image/webp,image/*" style="display:none;">
+                        </div>
+                        <div id="aiBgImagePreviewWrap-live" style="display:none; margin-top:4px; border-radius:4px; overflow:hidden; max-height:60px; border:1px solid var(--color-border-tertiary);">
+                          <img id="aiBgImagePreview-live" style="width:100%; height:60px; object-fit:cover;">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="form-group" style="display:flex; flex-direction:column; gap:6px;">
                     <label style="font-size:12px; color:var(--color-text-secondary);">Camera Device</label>
                     <select id="camDeviceSelect-live" class="form-control" style="font-size:12px; padding:6px;"></select>
@@ -1265,6 +1494,7 @@
 
 <div class="droidcam-overlay circle editor-cam-overlay" style="display:none; width:150px; height:150px; bottom:40px; right:40px; ">
   <video autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+  <canvas class="editor-cam-canvas" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none;"></canvas>
 </div>
 
                         <div class="live-preview ppt-canvas-editor" id="live-preview" style="cursor: default; user-select: none;">
@@ -1352,9 +1582,71 @@
                 </div>
                 <div id="content-quick-camera" style="display:none; flex-direction:column; flex:1; min-height:0; overflow-y:auto; padding:15px; gap:15px;">
                   <button id="btnToggleCamera-quick" class="btn btn-primary" style="width:100%; display:flex; justify-content:center; gap:8px;"><i class="ti ti-video"></i> <span>Start Camera</span></button>
-                  <div style="width:100%; aspect-ratio:16/9; background:#000; border-radius:6px; overflow:hidden; position:relative; margin-top:10px; flex-shrink:0;">
+                  <div class="cam-preview-box" id="localCamBox-quick" style="width:100%; aspect-ratio:16/9; background:#000; border-radius:6px; overflow:hidden; position:relative; margin-top:10px; flex-shrink:0;">
                     <video id="localCamVideo-quick" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+                    <canvas id="localCamCanvas-quick" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none;"></canvas>
                   </div>
+
+                  <!-- AI Background Removal Panel -->
+                  <div class="ai-bg-panel" style="background:var(--color-background-tertiary); border:1px solid var(--color-border-tertiary); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:10px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                      <div style="display:flex; align-items:center; gap:6px;">
+                        <i class="ti ti-wand" style="color:var(--primary-color); font-size:16px;"></i>
+                        <span style="font-size:12px; font-weight:600; color:var(--color-text-primary);">AI Background</span>
+                      </div>
+                      <label class="switch-toggle" style="position:relative; display:inline-block; width:38px; height:20px; margin:0;">
+                        <input type="checkbox" id="aiBgToggle-quick" style="opacity:0; width:0; height:0;">
+                        <span class="switch-slider" style="position:absolute; cursor:pointer; inset:0; background:#ccc; border-radius:20px; transition:0.2s;"></span>
+                      </label>
+                    </div>
+                    <div id="aiBgStatus-quick" style="font-size:11px; color:var(--color-text-secondary); display:none; align-items:center; gap:4px;">
+                      <i class="ti ti-loader-2 ti-spin"></i> <span>Loading AI Model...</span>
+                    </div>
+                    
+                    <div id="aiBgControls-quick" style="display:none; flex-direction:column; gap:10px;">
+                      <div style="display:flex; flex-direction:column; gap:5px;">
+                        <label style="font-size:11px; color:var(--color-text-secondary);">Background Type</label>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+                          <button type="button" class="nav-btn ai-mode-btn ai-mode-btn-quick active" data-mode="transparent" style="font-size:11px; padding:5px 6px; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="ti ti-sparkles"></i> Cutout</button>
+                          <button type="button" class="nav-btn ai-mode-btn ai-mode-btn-quick" data-mode="blur" style="font-size:11px; padding:5px 6px; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="ti ti-blur"></i> Blur</button>
+                          <button type="button" class="nav-btn ai-mode-btn ai-mode-btn-quick" data-mode="color" style="font-size:11px; padding:5px 6px; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="ti ti-palette"></i> Color</button>
+                          <button type="button" class="nav-btn ai-mode-btn ai-mode-btn-quick" data-mode="image" style="font-size:11px; padding:5px 6px; text-align:center; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="ti ti-photo"></i> Image</button>
+                        </div>
+                      </div>
+
+                      <div id="aiBgBlurWrap-quick" style="display:none; flex-direction:column; gap:4px;">
+                        <label style="font-size:11px; color:var(--color-text-secondary); display:flex; justify-content:space-between;">Blur Intensity <span id="aiBgBlurLbl-quick">12px</span></label>
+                        <input type="range" id="aiBgBlurSlider-quick" min="4" max="30" value="12" style="width:100%;">
+                      </div>
+
+                      <div id="aiBgColorWrap-quick" style="display:none; flex-direction:column; gap:6px;">
+                        <label style="font-size:11px; color:var(--color-text-secondary);">Solid Color</label>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <input type="color" id="aiBgColorInput-quick" value="#00ff00" style="width:36px; height:28px; padding:0; border:1px solid var(--color-border-tertiary); border-radius:4px; cursor:pointer; background:none;">
+                          <div style="display:flex; gap:4px; flex:1;">
+                            <button type="button" class="ai-quick-color" data-color="#00ff00" style="width:22px; height:22px; border-radius:4px; background:#00ff00; border:1px solid #ddd; cursor:pointer;" title="Green Screen"></button>
+                            <button type="button" class="ai-quick-color" data-color="#0000ff" style="width:22px; height:22px; border-radius:4px; background:#0000ff; border:1px solid #ddd; cursor:pointer;" title="Blue Screen"></button>
+                            <button type="button" class="ai-quick-color" data-color="#121212" style="width:22px; height:22px; border-radius:4px; background:#121212; border:1px solid #ddd; cursor:pointer;" title="Black"></button>
+                            <button type="button" class="ai-quick-color" data-color="#ffffff" style="width:22px; height:22px; border-radius:4px; background:#ffffff; border:1px solid #ddd; cursor:pointer;" title="White"></button>
+                            <button type="button" class="ai-quick-color" data-color="#534AB7" style="width:22px; height:22px; border-radius:4px; background:#534AB7; border:1px solid #ddd; cursor:pointer;" title="Church Purple"></button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div id="aiBgImageWrap-quick" style="display:none; flex-direction:column; gap:6px;">
+                        <label style="font-size:11px; color:var(--color-text-secondary);">Custom Image</label>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                          <button type="button" class="nav-btn" id="aiBgImageBtn-quick" style="flex:1; font-size:11px; padding:5px 8px; display:flex; align-items:center; justify-content:center; gap:4px;"><i class="ti ti-upload"></i> Choose Image</button>
+                          <button type="button" class="nav-btn" id="aiBgImageClearBtn-quick" style="display:none; font-size:11px; padding:5px 8px; color:var(--danger-color);"><i class="ti ti-trash"></i></button>
+                          <input type="file" id="aiBgImageInput-quick" accept="image/png,image/jpeg,image/webp,image/*" style="display:none;">
+                        </div>
+                        <div id="aiBgImagePreviewWrap-quick" style="display:none; margin-top:4px; border-radius:4px; overflow:hidden; max-height:60px; border:1px solid var(--color-border-tertiary);">
+                          <img id="aiBgImagePreview-quick" style="width:100%; height:60px; object-fit:cover;">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="form-group" style="display:flex; flex-direction:column; gap:6px; margin-top:10px;">
                     <label style="font-size:12px; color:var(--color-text-secondary);">Camera Device</label>
                     <select id="camDeviceSelect-quick" class="form-control" style="font-size:12px; padding:6px;"></select>
@@ -1423,6 +1715,9 @@
                   <button class="fmt-btn" id="quick-fmt-bg-video" title="Set Local Background Video (Temporary)"><i class="ti ti-video"></i></button>
                   <button class="fmt-btn" id="quick-fmt-bg-video-clear" title="Remove Video (Change Back to Solid Background)" style="display:none; color:var(--danger-color, #ef4444);"><i class="ti ti-video-off"></i></button>
                   <input type="file" id="quick-bg-video-input" accept="video/mp4,video/webm,video/ogg,video/*" style="display:none">
+                  <button class="fmt-btn" id="quick-fmt-bg-image" title="Set Local Background Image (Temporary)"><i class="ti ti-photo"></i></button>
+                  <button class="fmt-btn" id="quick-fmt-bg-image-clear" title="Remove Image (Change Back to Solid Background)" style="display:none; color:var(--danger-color, #ef4444);"><i class="ti ti-photo-off"></i></button>
+                  <input type="file" id="quick-bg-image-input" accept="image/png,image/jpeg,image/webp,image/gif,image/*" style="display:none">
                 </div>
 
                 <!-- Editor (Fixed 1920×1080 canvas) -->
@@ -1436,9 +1731,11 @@
                     <div class="ppt-canvas-wrapper" id="editor-canvas-wrapper" style="width: 100%; flex: 1;">
                       <div class="ppt-canvas" id="editor-canvas" style="overflow:hidden;">
                         <video id="editor-bg-video" autoplay loop muted playsinline style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; pointer-events:none;"></video>
+                        <img id="editor-bg-image" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; pointer-events:none;">
 
 <div class="droidcam-overlay circle editor-cam-overlay" style="display:none; width:150px; height:150px; bottom:40px; right:40px; ">
   <video autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+  <canvas class="editor-cam-canvas" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none;"></canvas>
 </div>
 
                         <div id="quick-editor" class="ppt-canvas-editor" style="position:relative; z-index:1;" contenteditable="true" data-placeholder="Click here to type your lyrics..." spellcheck="false"></div>
@@ -1478,7 +1775,12 @@
         <button class="nav-btn" id="qlm-close" style="border:none; padding:4px 8px;"><i class="ti ti-x"></i></button>
       </div>
       <div class="qlm-search">
-        <input type="text" id="qlm-search-input" placeholder="Search songs by title, author, or lyrics...">
+        <input type="text" id="qlm-search-input" placeholder="Search songs and folders...">
+      </div>
+      <div class="qlm-filter-bar" id="qlm-filter-bar">
+        <button class="qlm-filter-pill active" data-type="all">All <span class="qlm-pill-count" id="qlm-count-all">0</span></button>
+        <button class="qlm-filter-pill" data-type="song"><i class="ti ti-music"></i> Songs <span class="qlm-pill-count" id="qlm-count-songs">0</span></button>
+        <button class="qlm-filter-pill" data-type="folder"><i class="ti ti-folder"></i> Folders <span class="qlm-pill-count" id="qlm-count-folders">0</span></button>
       </div>
       <div class="qlm-list" id="qlm-list">
         <!-- Songs populated by JS -->
@@ -2266,7 +2568,12 @@
              temp.innerHTML = s.en;
              mixedText = temp.innerText || temp.textContent;
           }
-          return { id: i + 1, text: mixedText, html: htmlContent };
+          return {
+            id: i + 1,
+            text: mixedText,
+            html: htmlContent,
+            isSongStart: s.isSongStart !== undefined ? !!s.isSongStart : (i === 0)
+          };
       });
       
       quickActiveSlideIndex = 0;
@@ -2893,7 +3200,12 @@
              temp.innerHTML = s.en;
              mixedText = temp.innerText || temp.textContent;
           }
-          return { id: i + 1, text: mixedText, html: htmlContent };
+          return {
+            id: i + 1,
+            text: mixedText,
+            html: htmlContent,
+            isSongStart: s.isSongStart !== undefined ? !!s.isSongStart : (i === 0)
+          };
       });
       
       quickActiveSlideIndex = 0;
@@ -3115,7 +3427,7 @@
     });
 
     // ======================== QUICK PRESENTER (PPT-STYLE RICH EDITOR) ========================
-    let quickSlides = [{ id: 1, text: '', html: '' }];
+    let quickSlides = [{ id: 1, text: '', html: '', isSongStart: true }];
     let quickActiveSlideIndex = 0;
     let quickLiveSlideIndex = null;
     let quickSlideCounter = 1;
@@ -3165,7 +3477,8 @@
           en: s.html || s.text,
           kn: '',
           hi: '',
-          isHtml: true
+          isHtml: true,
+          isSongStart: s.isSongStart !== undefined ? !!s.isSongStart : (i === 0)
        }));
        
        if (slidesToSave.length === 0 && !isAutoSave) {
@@ -3216,11 +3529,12 @@
                return false;
            }
            
+           const hasMultipleSongs = slidesToSave.filter(s => s.isSongStart).length > 1;
            const songData = {
              title: { en: titleStr, kn: '', hi: '' },
              author: 'Quick Presenter',
-             category: 'General',
-             tags: [],
+             category: hasMultipleSongs ? 'Folder' : 'General',
+             tags: hasMultipleSongs ? ['folder'] : [],
              searchIndex: [titleStr.toLowerCase()],
              slides: slidesToSave,
              createdAt: serverTimestamp(),
@@ -3254,7 +3568,8 @@
         en: editorHtml, enIsHtml: true, isQuickPresenter: true,
         kn: '', hi: '', lang: 'en', fontSize: 13, align: 'center',
         theme: t,
-        hasBgVideo: !!window.localBgVideoUrl
+        hasBgVideo: !!window.localBgVideoUrl,
+        hasBgImage: !!window.localBgImageUrl
       } : null;
 
       if (stateObj) {
@@ -3283,12 +3598,25 @@
       const sidebar = document.getElementById('quick-sidebar');
       const filterText = document.getElementById('quick-search')?.value.toLowerCase() || '';
       sidebar.innerHTML = '';
+
+      let songCount = 0;
+      const songNumberMap = {};
+      quickSlides.forEach((s, idx) => {
+        const isStart = s.isSongStart !== undefined ? !!s.isSongStart : (idx === 0);
+        if (isStart) {
+          songCount++;
+          songNumberMap[idx] = songCount;
+        }
+      });
+
       quickSlides.forEach((slide, i) => {
         const plainText = slide.text || '';
         if (filterText && !plainText.toLowerCase().includes(filterText)) return;
         
+        const isStart = slide.isSongStart !== undefined ? !!slide.isSongStart : (i === 0);
         const card = document.createElement('button');
         let classes = 'slide-mini';
+        if (isStart) classes += ' song-start';
         if (i === quickLiveSlideIndex) classes += ' live';
         if (i === quickActiveSlideIndex) classes += ' active';
         card.className = classes;
@@ -3296,14 +3624,49 @@
         const previewText = plainText.split('\n').slice(0, 2).join(' ').substring(0, 60);
         let badgeHTML = '';
         if (i === quickLiveSlideIndex && i === quickActiveSlideIndex) {
-            badgeHTML = `<span style="float:right; font-size:9px; background:#a855f7; color:white; padding:2px 6px; border-radius:4px;">Editing & Live</span>`;
+            badgeHTML = `<span style="font-size:9px; background:#a855f7; color:white; padding:2px 6px; border-radius:4px;">Editing & Live</span>`;
         } else if (i === quickLiveSlideIndex) {
-            badgeHTML = `<span style="float:right; font-size:9px; background:#ef4444; color:white; padding:2px 6px; border-radius:4px;">Live</span>`;
+            badgeHTML = `<span style="font-size:9px; background:#ef4444; color:white; padding:2px 6px; border-radius:4px;">Live</span>`;
         } else if (i === quickActiveSlideIndex) {
-            badgeHTML = `<span style="float:right; font-size:9px; background:var(--primary-color); color:white; padding:2px 6px; border-radius:4px;">Editing</span>`;
+            badgeHTML = `<span style="font-size:9px; background:var(--primary-color); color:white; padding:2px 6px; border-radius:4px;">Editing</span>`;
         }
 
-        card.innerHTML = `<div class="slide-mini-label">Slide ${i + 1} ${badgeHTML}</div><div class="slide-mini-text">${escHtml(previewText || 'Empty slide')}</div>`;
+        const songBadgeHTML = isStart 
+          ? `<span class="song-start-badge">⭐ Song ${songNumberMap[i] || 1}</span>` 
+          : '';
+
+        const starIconClass = isStart ? 'ti-star-filled' : 'ti-star';
+        const starBtnClass = isStart ? 'slide-star-btn marked' : 'slide-star-btn';
+        const starBtnTitle = isStart ? 'Unmark song start' : 'Mark as first slide of song';
+
+        card.innerHTML = `
+          <div class="slide-mini-top-row">
+            <div class="slide-mini-left-labels">
+              <span class="slide-mini-num">Slide ${i + 1}</span>
+              ${songBadgeHTML}
+            </div>
+            <div class="slide-mini-right-actions">
+              ${badgeHTML}
+              <span class="${starBtnClass}" title="${starBtnTitle}" role="button" tabindex="0">
+                <i class="ti ${starIconClass}"></i>
+              </span>
+            </div>
+          </div>
+          <div class="slide-mini-text">${escHtml(previewText || 'Empty slide')}</div>
+        `;
+
+        const starBtn = card.querySelector('.slide-star-btn');
+        if (starBtn) {
+          starBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            saveCurrentEditorContent();
+            slide.isSongStart = !isStart;
+            markQuickUnsaved();
+            renderQuickSidebar();
+          });
+        }
+
         card.addEventListener('click', () => {
           // Save current editor content before switching
           saveCurrentEditorContent();
@@ -3692,6 +4055,11 @@
         const file = e.target.files && e.target.files[0];
         if (!file) return;
 
+        // Clear existing image if any
+        if (window.localBgImageUrl) {
+          clearQuickBgImage(false);
+        }
+
         if (window.localBgVideoUrl) {
           try { URL.revokeObjectURL(window.localBgVideoUrl); } catch(err) {}
         }
@@ -3721,10 +4089,83 @@
       });
     }
 
+    // ── Local Background Image (Temporary, in-memory) ──
+    window.localBgImageUrl = null;
+
+    function clearQuickBgImage(notify = true) {
+      if (window.localBgImageUrl) {
+        try { URL.revokeObjectURL(window.localBgImageUrl); } catch(e) {}
+        window.localBgImageUrl = null;
+      }
+      const img = document.getElementById('editor-bg-image');
+      if (img) {
+        img.removeAttribute('src');
+        img.style.display = 'none';
+      }
+      const clearBtn = document.getElementById('quick-fmt-bg-image-clear');
+      if (clearBtn) clearBtn.style.display = 'none';
+      const imageBtn = document.getElementById('quick-fmt-bg-image');
+      if (imageBtn) imageBtn.classList.remove('active');
+      const input = document.getElementById('quick-bg-image-input');
+      if (input) input.value = '';
+
+      localStorage.setItem('local_bg_image_status', JSON.stringify({ active: false, timestamp: Date.now() }));
+      pushQuickToProjector();
+      if (notify) showToast('Image removed. Switched back to solid background.', 'info');
+    }
+
+    const quickBgImageBtn = document.getElementById('quick-fmt-bg-image');
+    const quickBgImageClearBtn = document.getElementById('quick-fmt-bg-image-clear');
+    const quickBgImageInput = document.getElementById('quick-bg-image-input');
+
+    if (quickBgImageBtn && quickBgImageInput) {
+      quickBgImageBtn.addEventListener('click', () => {
+        quickBgImageInput.click();
+      });
+
+      quickBgImageInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        // Clear existing video if any
+        if (window.localBgVideoUrl) {
+          clearQuickBgVideo(false);
+        }
+
+        if (window.localBgImageUrl) {
+          try { URL.revokeObjectURL(window.localBgImageUrl); } catch(err) {}
+        }
+
+        const imageUrl = URL.createObjectURL(file);
+        window.localBgImageUrl = imageUrl;
+
+        const img = document.getElementById('editor-bg-image');
+        if (img) {
+          img.src = imageUrl;
+          img.style.display = 'block';
+        }
+
+        if (quickBgImageClearBtn) quickBgImageClearBtn.style.display = 'inline-flex';
+        quickBgImageBtn.classList.add('active');
+
+        localStorage.setItem('local_bg_image_status', JSON.stringify({ active: true, url: imageUrl, timestamp: Date.now() }));
+        pushQuickToProjector();
+        showToast('Local background image applied (temporary)', 'success');
+      });
+    }
+
+    if (quickBgImageClearBtn) {
+      quickBgImageClearBtn.addEventListener('click', () => {
+        clearQuickBgImage(true);
+      });
+    }
+
     window.addEventListener('beforeunload', () => {
       localStorage.removeItem('local_bg_video_status');
+      localStorage.removeItem('local_bg_image_status');
     });
     localStorage.removeItem('local_bg_video_status');
+    localStorage.removeItem('local_bg_image_status');
     document.getElementById('quick-color-input').addEventListener('input', (e) => {
       quickCurrentColor = e.target.value;
       document.getElementById('quick-color-swatch').style.background = quickCurrentColor;
@@ -3806,7 +4247,7 @@
     document.getElementById('btn-quick-add-slide').addEventListener('click', () => {
       saveCurrentEditorContent();
       quickSlideCounter++;
-      const newSlide = { id: quickSlideCounter, text: '', html: '' };
+      const newSlide = { id: quickSlideCounter, text: '', html: '', isSongStart: false };
       
       quickSlides.splice(quickActiveSlideIndex + 1, 0, newSlide);
       markQuickUnsaved();
@@ -3877,13 +4318,42 @@
     });
 
     // ── Song Library Picker ──
+    let qlmFilterType = 'all';
+
+    function isSongFolder(s) {
+      return s.category === 'Folder' || 
+             s.isFolder === true || 
+             (typeof s.category === 'string' && s.category.toLowerCase() === 'folder') ||
+             (Array.isArray(s.tags) && s.tags.some(t => t.toLowerCase() === 'folder'));
+    }
+
+    function updateQlmCounts() {
+      const allCount = allSongs.length;
+      const foldersCount = allSongs.filter(isSongFolder).length;
+      const songsCount = allCount - foldersCount;
+
+      const elAll = document.getElementById('qlm-count-all');
+      const elSongs = document.getElementById('qlm-count-songs');
+      const elFolders = document.getElementById('qlm-count-folders');
+      if (elAll) elAll.textContent = allCount;
+      if (elSongs) elSongs.textContent = songsCount;
+      if (elFolders) elFolders.textContent = foldersCount;
+    }
+
     function renderLibraryModal(filterTerm) {
       const list = document.getElementById('qlm-list');
       const term = (filterTerm || '').toLowerCase().trim();
-      
+      updateQlmCounts();
+
       let filtered = allSongs;
+      if (qlmFilterType === 'folder') {
+        filtered = filtered.filter(isSongFolder);
+      } else if (qlmFilterType === 'song') {
+        filtered = filtered.filter(s => !isSongFolder(s));
+      }
+
       if (term) {
-        filtered = allSongs.filter(s => {
+        filtered = filtered.filter(s => {
           const searchable = [
             s.title?.en, s.title?.kn, s.title?.hi,
             s.author, s.category,
@@ -3895,20 +4365,47 @@
       }
 
       if (filtered.length === 0) {
-        list.innerHTML = '<div style="padding:40px; text-align:center; color:var(--color-text-secondary);"><i class="ti ti-music-off" style="font-size:32px; display:block; margin-bottom:8px;"></i>No songs found</div>';
+        const noText = qlmFilterType === 'folder' 
+          ? (term ? 'No folders match your search' : 'No folders found in Song Library')
+          : (qlmFilterType === 'song' ? (term ? 'No songs match your search' : 'No songs found') : 'No songs or folders found');
+        const noIcon = qlmFilterType === 'folder' ? 'ti-folder-off' : 'ti-music-off';
+        list.innerHTML = `<div style="padding:40px; text-align:center; color:var(--color-text-secondary);"><i class="ti ${noIcon}" style="font-size:32px; display:block; margin-bottom:8px; opacity:0.6;"></i>${noText}</div>`;
         return;
       }
 
-      list.innerHTML = filtered.slice(0, 100).map((s, idx) => {
-        const title = s.title?.en || s.title?.kn || s.title?.hi || 'Untitled';
+      list.innerHTML = filtered.slice(0, 100).map((s) => {
+        const isFolder = isSongFolder(s);
+        const title = s.title?.en || s.title?.kn || s.title?.hi || (isFolder ? 'Untitled Folder' : 'Untitled');
         const slideCount = s.slides?.length || 0;
         const author = s.author || '';
         const category = s.category || '';
+
+        let songCount = 0;
+        if (s.slides && s.slides.length > 0) {
+          s.slides.forEach((sl, idx) => {
+            if (sl.isSongStart !== undefined ? !!sl.isSongStart : (idx === 0)) {
+              songCount++;
+            }
+          });
+        }
+
+        const iconHtml = isFolder
+          ? `<div class="qlm-item-icon folder"><i class="ti ti-folder"></i></div>`
+          : `<div class="qlm-item-icon"><i class="ti ti-music"></i></div>`;
+
+        let metaHtml = '';
+        if (isFolder) {
+          const songsText = songCount > 1 ? `${songCount} songs · ` : '';
+          metaHtml = `<span class="qlm-folder-badge">📁 Folder</span> · ${songsText}${slideCount} slide${slideCount !== 1 ? 's' : ''}`;
+        } else {
+          metaHtml = `${escHtml(author)}${category && category !== 'General' ? ' · ' + escHtml(category) : ''} · ${slideCount} slide${slideCount !== 1 ? 's' : ''}`;
+        }
+
         return `<button class="qlm-item" data-song-id="${s.id}">
-          <div class="qlm-item-icon"><i class="ti ti-music"></i></div>
+          ${iconHtml}
           <div class="qlm-item-info">
             <div class="qlm-item-title">${escHtml(title)}</div>
-            <div class="qlm-item-meta">${escHtml(author)}${category ? ' · ' + escHtml(category) : ''} · ${slideCount} slides</div>
+            <div class="qlm-item-meta">${metaHtml}</div>
           </div>
         </button>`;
       }).join('');
@@ -3927,9 +4424,26 @@
       });
     }
 
+    document.querySelectorAll('.qlm-filter-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.qlm-filter-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        qlmFilterType = pill.dataset.type;
+        const searchInput = document.getElementById('qlm-search-input');
+        if (qlmFilterType === 'folder') {
+          searchInput.placeholder = 'Search folders by title...';
+        } else if (qlmFilterType === 'song') {
+          searchInput.placeholder = 'Search songs by title, author, or lyrics...';
+        } else {
+          searchInput.placeholder = 'Search songs and folders...';
+        }
+        renderLibraryModal(searchInput.value);
+      });
+    });
+
     document.getElementById('btn-quick-library').addEventListener('click', () => {
       document.getElementById('quick-library-modal').classList.add('active');
-      renderLibraryModal('');
+      renderLibraryModal(document.getElementById('qlm-search-input')?.value || '');
       setTimeout(() => document.getElementById('qlm-search-input').focus(), 100);
     });
 
@@ -4038,16 +4552,392 @@ window.currentShape = 'circle';
 window.camW = 150;
 window.camH = 150;
 window.camOffsetX = 50;
-window.currentShape = 'circle';
 window.editorDragStartX = 0;
 window.editorDragStartY = 0;
 window.isDraggingEditorCam = false;
 window.camStream = null;
 
+// ======================== AI BACKGROUND REMOVAL LOGIC ========================
+window.aiBgActive = false;
+window.aiBgMode = 'transparent'; // 'transparent' | 'blur' | 'color' | 'image'
+window.aiBgColor = '#00ff00';
+window.aiBgBlur = 12;
+window.aiBgCustomImg = null;
+window.aiBgCustomImgData = '';
+window.aiModelLoading = false;
+window.aiModelReady = false;
+
+const aiVideoSource = document.createElement('video');
+aiVideoSource.autoplay = true;
+aiVideoSource.muted = true;
+aiVideoSource.playsInline = true;
+
+const masterProcessedCanvas = document.createElement('canvas');
+const masterCtx = masterProcessedCanvas.getContext('2d');
+window.masterProcessedCanvas = masterProcessedCanvas;
+
+const maskCanvas = document.createElement('canvas');
+const maskCtx = maskCanvas.getContext('2d');
+
+const aiInputCanvas = document.createElement('canvas');
+const aiInputCtx = aiInputCanvas.getContext('2d');
+
+let selfieSegmentationInstance = null;
+let isSegmentingFrame = false;
+let aiRafId = null;
+let lastAiFrameTime = 0;
+
+function loadAiBgConfig() {
+  const saved = localStorage.getItem('droidcam_ai_bg');
+  if (saved) {
+    try {
+      const cfg = JSON.parse(saved);
+      window.aiBgActive = !!cfg.active;
+      window.aiBgMode = cfg.mode || 'transparent';
+      window.aiBgColor = cfg.color || '#00ff00';
+      window.aiBgBlur = parseInt(cfg.blur) || 12;
+      window.aiBgCustomImgData = cfg.imgData || '';
+      if (window.aiBgCustomImgData) {
+        const img = new Image();
+        img.onload = () => { window.aiBgCustomImg = img; };
+        img.src = window.aiBgCustomImgData;
+      }
+    } catch(e) {
+      console.warn('Failed to parse droidcam_ai_bg:', e);
+    }
+  }
+}
+
+function saveAiBgConfig() {
+  const cfg = {
+    active: window.aiBgActive,
+    mode: window.aiBgMode,
+    color: window.aiBgColor,
+    blur: window.aiBgBlur,
+    imgData: window.aiBgCustomImgData || ''
+  };
+  try {
+    localStorage.setItem('droidcam_ai_bg', JSON.stringify(cfg));
+  } catch(e) {
+    console.warn('Failed to save droidcam_ai_bg:', e);
+  }
+}
+
+async function initSelfieSegmentation() {
+  if (selfieSegmentationInstance) return selfieSegmentationInstance;
+  if (typeof SelfieSegmentation === 'undefined') {
+    throw new Error('MediaPipe SelfieSegmentation library is not loaded');
+  }
+
+  window.aiModelLoading = true;
+  updateAiBgUI();
+
+  try {
+    const segmenter = new SelfieSegmentation({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`
+    });
+
+    segmenter.setOptions({
+      modelSelection: 0, // 0: Fast general model (3x-4x faster, smooth real-time 30-60fps)
+      selfieMode: false
+    });
+
+    segmenter.onResults(onAiResults);
+    
+    selfieSegmentationInstance = segmenter;
+    window.aiModelReady = true;
+    window.aiModelLoading = false;
+    updateAiBgUI();
+    return segmenter;
+  } catch(err) {
+    window.aiModelLoading = false;
+    updateAiBgUI();
+    throw err;
+  }
+}
+
+function onAiResults(results) {
+  isSegmentingFrame = false;
+  if (!window.aiBgActive) return;
+
+  const w = results.image.width || 640;
+  const h = results.image.height || 360;
+
+  if (masterProcessedCanvas.width !== w || masterProcessedCanvas.height !== h) {
+    masterProcessedCanvas.width = w;
+    masterProcessedCanvas.height = h;
+    maskCanvas.width = w;
+    maskCanvas.height = h;
+  }
+
+  // 1. Isolate the person on maskCanvas
+  maskCtx.save();
+  maskCtx.clearRect(0, 0, w, h);
+  maskCtx.drawImage(results.segmentationMask, 0, 0, w, h);
+  maskCtx.globalCompositeOperation = 'source-in';
+  maskCtx.drawImage(results.image, 0, 0, w, h);
+  maskCtx.restore();
+
+  // 2. Composite onto masterProcessedCanvas based on mode
+  masterCtx.save();
+  masterCtx.clearRect(0, 0, w, h);
+
+  if (window.aiBgMode === 'transparent') {
+    // 100% transparent background
+    masterCtx.drawImage(maskCanvas, 0, 0, w, h);
+  } else if (window.aiBgMode === 'blur') {
+    masterCtx.filter = `blur(${window.aiBgBlur || 12}px)`;
+    masterCtx.drawImage(results.image, 0, 0, w, h);
+    masterCtx.filter = 'none';
+    masterCtx.drawImage(maskCanvas, 0, 0, w, h);
+  } else if (window.aiBgMode === 'color') {
+    masterCtx.fillStyle = window.aiBgColor || '#00ff00';
+    masterCtx.fillRect(0, 0, w, h);
+    masterCtx.drawImage(maskCanvas, 0, 0, w, h);
+  } else if (window.aiBgMode === 'image') {
+    if (window.aiBgCustomImg && window.aiBgCustomImg.complete && window.aiBgCustomImg.naturalWidth > 0) {
+      const img = window.aiBgCustomImg;
+      const imgRatio = img.naturalWidth / img.naturalHeight;
+      const canvasRatio = w / h;
+      let drawW, drawH, drawX, drawY;
+      if (imgRatio > canvasRatio) {
+        drawH = h;
+        drawW = h * imgRatio;
+        drawX = (w - drawW) / 2;
+        drawY = 0;
+      } else {
+        drawW = w;
+        drawH = w / imgRatio;
+        drawX = 0;
+        drawY = (h - drawH) / 2;
+      }
+      masterCtx.drawImage(img, drawX, drawY, drawW, drawH);
+    } else {
+      masterCtx.fillStyle = '#222222';
+      masterCtx.fillRect(0, 0, w, h);
+    }
+    masterCtx.drawImage(maskCanvas, 0, 0, w, h);
+  }
+  masterCtx.restore();
+
+  // 3. Render onto local previews and editor overlays
+  renderProcessedFrameToTargets(w, h);
+}
+
+function renderProcessedFrameToTargets(w, h) {
+  // Sidebar previews
+  ['live', 'quick'].forEach(view => {
+    const canvas = document.getElementById(`localCamCanvas-${view}`);
+    if (canvas && canvas.offsetParent !== null) {
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w; canvas.height = h;
+      }
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, w, h);
+      ctx.drawImage(masterProcessedCanvas, 0, 0, w, h);
+    }
+  });
+
+  // Slide Editor Overlays
+  document.querySelectorAll('.editor-cam-overlay').forEach(ov => {
+    if (ov.style.display !== 'none') {
+      const c = ov.querySelector('canvas.editor-cam-canvas');
+      if (c) {
+        if (c.width !== w || c.height !== h) {
+          c.width = w; c.height = h;
+        }
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(masterProcessedCanvas, 0, 0, w, h);
+      }
+    }
+  });
+}
+
+function startAiLoop() {
+  if (!window.camStream || !window.aiBgActive) return;
+  if (aiVideoSource.srcObject !== window.camStream) {
+    aiVideoSource.srcObject = window.camStream;
+  }
+  aiVideoSource.play().catch(e => console.log('aiVideoSource play notice:', e));
+  lastAiFrameTime = 0;
+
+  async function aiFrameStep() {
+    if (!window.aiBgActive || !window.camActive) {
+      isSegmentingFrame = false;
+      return;
+    }
+
+    const now = performance.now();
+    // Cap inference at ~30 FPS (32ms minimum interval) to eliminate GPU backlog and CPU thermal throttling
+    if (!isSegmentingFrame && aiVideoSource.readyState >= 2 && selfieSegmentationInstance && (now - lastAiFrameTime >= 32)) {
+      lastAiFrameTime = now;
+      isSegmentingFrame = true;
+
+      // Downscale video to 640px wide for lightning-fast MediaPipe neural inference
+      const vw = aiVideoSource.videoWidth || 640;
+      const vh = aiVideoSource.videoHeight || 360;
+      const aspect = vh / vw;
+      const targetW = 640;
+      const targetH = Math.round(targetW * aspect);
+
+      if (aiInputCanvas.width !== targetW || aiInputCanvas.height !== targetH) {
+        aiInputCanvas.width = targetW;
+        aiInputCanvas.height = targetH;
+      }
+      aiInputCtx.drawImage(aiVideoSource, 0, 0, targetW, targetH);
+
+      try {
+        await selfieSegmentationInstance.send({ image: aiInputCanvas });
+      } catch (err) {
+        console.warn('AI segmentation send error:', err);
+        isSegmentingFrame = false;
+      }
+    }
+
+    if (window.aiBgActive && window.camActive) {
+      if ('requestVideoFrameCallback' in aiVideoSource) {
+        aiVideoSource.requestVideoFrameCallback(aiFrameStep);
+      } else {
+        aiRafId = requestAnimationFrame(aiFrameStep);
+      }
+    }
+  }
+
+  if ('requestVideoFrameCallback' in aiVideoSource) {
+    aiVideoSource.requestVideoFrameCallback(aiFrameStep);
+  } else {
+    aiRafId = requestAnimationFrame(aiFrameStep);
+  }
+}
+
+function stopAiLoop() {
+  if (aiRafId) {
+    cancelAnimationFrame(aiRafId);
+    aiRafId = null;
+  }
+  isSegmentingFrame = false;
+  aiVideoSource.pause();
+  aiVideoSource.srcObject = null;
+}
+
+function setAiBgActive(active) {
+  window.aiBgActive = !!active;
+  saveAiBgConfig();
+  updateAiBgUI();
+  syncCameraUI();
+  updateEditorOverlays();
+
+  if (window.aiBgActive) {
+    if (!window.aiModelReady) {
+      initSelfieSegmentation().then(() => {
+        if (window.aiBgActive && window.camActive) {
+          startAiLoop();
+        }
+      }).catch(err => {
+        alert("Failed to initialize AI background model: " + err.message);
+        window.aiBgActive = false;
+        saveAiBgConfig();
+        updateAiBgUI();
+        syncCameraUI();
+        updateEditorOverlays();
+      });
+    } else {
+      if (window.camActive) {
+        startAiLoop();
+      }
+    }
+  } else {
+    stopAiLoop();
+  }
+}
+
+function updateAiBgUI() {
+  ['live', 'quick'].forEach(view => {
+    const toggle = document.getElementById(`aiBgToggle-${view}`);
+    const status = document.getElementById(`aiBgStatus-${view}`);
+    const controls = document.getElementById(`aiBgControls-${view}`);
+    const blurWrap = document.getElementById(`aiBgBlurWrap-${view}`);
+    const colorWrap = document.getElementById(`aiBgColorWrap-${view}`);
+    const imageWrap = document.getElementById(`aiBgImageWrap-${view}`);
+    const imgPreviewWrap = document.getElementById(`aiBgImagePreviewWrap-${view}`);
+    const imgPreview = document.getElementById(`aiBgImagePreview-${view}`);
+    const imgClearBtn = document.getElementById(`aiBgImageClearBtn-${view}`);
+
+    if (toggle) toggle.checked = window.aiBgActive;
+    if (controls) controls.style.display = window.aiBgActive ? 'flex' : 'none';
+    if (status) {
+      if (window.aiModelLoading) {
+        status.style.display = 'flex';
+        status.innerHTML = '<i class="ti ti-loader-2 ti-spin"></i> <span>Loading AI Model...</span>';
+      } else {
+        status.style.display = 'none';
+      }
+    }
+
+    document.querySelectorAll(`.ai-mode-btn-${view}`).forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === window.aiBgMode);
+    });
+
+    if (blurWrap) blurWrap.style.display = (window.aiBgMode === 'blur') ? 'flex' : 'none';
+    if (colorWrap) colorWrap.style.display = (window.aiBgMode === 'color') ? 'flex' : 'none';
+    if (imageWrap) imageWrap.style.display = (window.aiBgMode === 'image') ? 'flex' : 'none';
+
+    const blurSlider = document.getElementById(`aiBgBlurSlider-${view}`);
+    const blurLbl = document.getElementById(`aiBgBlurLbl-${view}`);
+    if (blurSlider) blurSlider.value = window.aiBgBlur || 12;
+    if (blurLbl) blurLbl.innerText = (window.aiBgBlur || 12) + 'px';
+
+    const colorInput = document.getElementById(`aiBgColorInput-${view}`);
+    if (colorInput) colorInput.value = window.aiBgColor || '#00ff00';
+
+    if (imgPreview && imgPreviewWrap && imgClearBtn) {
+      if (window.aiBgCustomImgData) {
+        imgPreview.src = window.aiBgCustomImgData;
+        imgPreviewWrap.style.display = 'block';
+        imgClearBtn.style.display = 'inline-flex';
+      } else {
+        imgPreview.removeAttribute('src');
+        imgPreviewWrap.style.display = 'none';
+        imgClearBtn.style.display = 'none';
+      }
+    }
+  });
+}
+
+function compressAndSaveBgImage(img, dataUrl) {
+  try {
+    const maxW = 1280;
+    const maxH = 720;
+    let w = img.naturalWidth || img.width;
+    let h = img.naturalHeight || img.height;
+    const ratio = Math.min(1, maxW / w, maxH / h);
+    const c = document.createElement('canvas');
+    c.width = Math.round(w * ratio);
+    c.height = Math.round(h * ratio);
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    const compressedDataUrl = c.toDataURL('image/jpeg', 0.85);
+    window.aiBgCustomImg = img;
+    window.aiBgCustomImgData = compressedDataUrl;
+    saveAiBgConfig();
+    updateAiBgUI();
+  } catch(e) {
+    window.aiBgCustomImg = img;
+    window.aiBgCustomImgData = dataUrl;
+    saveAiBgConfig();
+    updateAiBgUI();
+  }
+}
+
 function syncCameraUI() {
   ['live', 'quick'].forEach(v => {
     const btn = document.getElementById(`btnToggleCamera-${v}`);
     const projBtn = document.getElementById(`btnProjectCamera-${v}`);
+    const vid = document.getElementById(`localCamVideo-${v}`);
+    const can = document.getElementById(`localCamCanvas-${v}`);
+    const box = document.getElementById(`localCamBox-${v}`);
+
     if(!btn) return;
     if (window.camActive) {
       btn.innerHTML = `<i class="ti ti-video-off"></i> <span>Stop Camera</span>`;
@@ -4072,12 +4962,33 @@ function syncCameraUI() {
       }
     }
     
-    // Ensure the stream is attached to the preview video if active
+    // Preview video / canvas switching
     if (window.camActive && window.camStream) {
-      const vid = document.getElementById(`localCamVideo-${v}`);
-      if (vid && vid.srcObject !== window.camStream) {
-        vid.srcObject = window.camStream;
+      if (window.aiBgActive) {
+        if (vid) vid.style.display = 'none';
+        if (can) can.style.display = 'block';
+        if (box) {
+          if (window.aiBgMode === 'transparent') {
+            box.classList.add('ai-transparent-bg');
+          } else {
+            box.classList.remove('ai-transparent-bg');
+          }
+        }
+      } else {
+        if (vid) {
+          vid.style.display = 'block';
+          if (vid.srcObject !== window.camStream) vid.srcObject = window.camStream;
+        }
+        if (can) can.style.display = 'none';
+        if (box) box.classList.remove('ai-transparent-bg');
       }
+    } else {
+      if (vid) {
+        vid.srcObject = null;
+        vid.style.display = 'block';
+      }
+      if (can) can.style.display = 'none';
+      if (box) box.classList.remove('ai-transparent-bg');
     }
     
     document.querySelectorAll(`.cam-shape-btn-${v}`).forEach(b => {
@@ -4106,15 +5017,37 @@ function updateEditorOverlays() {
       if (window.currentShape === 'circle') br = '50%';
       if (window.currentShape === 'full') { w = 1920; h = 1080; br = '0'; ov.style.left = '0px'; ov.style.top = '0px'; }
       ov.style.width = w + 'px'; ov.style.height = h + 'px'; ov.style.borderRadius = br;
+      
       const v = ov.querySelector('video');
-      if (v) {
-        if (v.srcObject !== window.camStream) v.srcObject = window.camStream;
-        v.style.objectPosition = `${window.camOffsetX}% 50%`;
+      const c = ov.querySelector('canvas.editor-cam-canvas');
+
+      if (window.aiBgActive) {
+        if (v) v.style.display = 'none';
+        if (c) {
+          c.style.display = 'block';
+          c.style.objectPosition = `${window.camOffsetX}% 50%`;
+        }
+        if (window.currentShape !== 'full' && window.aiBgMode === 'transparent') {
+          ov.classList.add('ai-cutout');
+        } else {
+          ov.classList.remove('ai-cutout');
+        }
+      } else {
+        if (v) {
+          v.style.display = 'block';
+          if (v.srcObject !== window.camStream) v.srcObject = window.camStream;
+          v.style.objectPosition = `${window.camOffsetX}% 50%`;
+        }
+        if (c) c.style.display = 'none';
+        ov.classList.remove('ai-cutout');
       }
     } else {
       ov.style.display = 'none';
       const v = ov.querySelector('video');
       if (v) v.srcObject = null;
+      const c = ov.querySelector('canvas.editor-cam-canvas');
+      if (c) c.style.display = 'none';
+      ov.classList.remove('ai-cutout');
     }
   });
 }
@@ -4145,6 +5078,17 @@ async function startLocalCam() {
     window.camActive = true;
     syncCameraUI();
     updateEditorOverlays();
+
+    // If AI background removal is enabled, start the processing loop
+    if (window.aiBgActive) {
+      if (!window.aiModelReady) {
+        initSelfieSegmentation().then(() => {
+          if (window.aiBgActive && window.camActive) startAiLoop();
+        }).catch(e => console.warn('AI init notice:', e));
+      } else {
+        startAiLoop();
+      }
+    }
   } catch (err) {
     console.error("Camera error:", err); alert("Could not access camera: " + err.message);
     window.camActive = false; syncCameraUI();
@@ -4152,6 +5096,7 @@ async function startLocalCam() {
 }
 
 function stopLocalCam() {
+  stopAiLoop();
   if (window.camStream) {
     window.camStream.getTracks().forEach(t => t.stop());
     window.camStream = null;
@@ -4179,7 +5124,8 @@ function toggleProjectCamera() {
   }));
   
   if (window.camProjected) {
-    // Force sync shape and position
+    // Force sync shape, position, and AI settings
+    saveAiBgConfig();
     localStorage.setItem('droidcam_shape', JSON.stringify({ w: window.camW, h: window.camH, shape: window.currentShape, offsetX: window.camOffsetX }));
     if (window.lastDroppedLeftPct !== undefined) {
       localStorage.setItem('droidcam_position', JSON.stringify({ leftPct: window.lastDroppedLeftPct, topPct: window.lastDroppedTopPct }));
@@ -4283,7 +5229,89 @@ async function populateCameraList() {
       syncCameraUI(); updateEditorOverlays();
     });
   });
+
+  // AI Background Toggle Switch
+  const aiToggle = document.getElementById(`aiBgToggle-${v}`);
+  if (aiToggle) {
+    aiToggle.addEventListener('change', (e) => {
+      setAiBgActive(e.target.checked);
+    });
+  }
+
+  // AI Mode buttons
+  document.querySelectorAll(`.ai-mode-btn-${v}`).forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      window.aiBgMode = e.currentTarget.dataset.mode;
+      saveAiBgConfig();
+      updateAiBgUI();
+      syncCameraUI();
+      updateEditorOverlays();
+    });
+  });
+
+  // AI Blur Slider
+  const blurSlider = document.getElementById(`aiBgBlurSlider-${v}`);
+  if (blurSlider) {
+    blurSlider.addEventListener('input', (e) => {
+      window.aiBgBlur = parseInt(e.target.value);
+      const lbl = document.getElementById(`aiBgBlurLbl-${v}`);
+      if (lbl) lbl.innerText = window.aiBgBlur + 'px';
+      saveAiBgConfig();
+    });
+  }
+
+  // AI Color Input
+  const colorInput = document.getElementById(`aiBgColorInput-${v}`);
+  if (colorInput) {
+    colorInput.addEventListener('input', (e) => {
+      window.aiBgColor = e.target.value;
+      saveAiBgConfig();
+      updateAiBgUI();
+    });
+  }
+
+  // AI Quick Color buttons
+  document.querySelectorAll(`#aiBgColorWrap-${v} .ai-quick-color`).forEach(qb => {
+    qb.addEventListener('click', () => {
+      window.aiBgColor = qb.dataset.color;
+      saveAiBgConfig();
+      updateAiBgUI();
+    });
+  });
+
+  // AI Custom Image button & file input
+  const imgBtn = document.getElementById(`aiBgImageBtn-${v}`);
+  const imgInput = document.getElementById(`aiBgImageInput-${v}`);
+  const imgClear = document.getElementById(`aiBgImageClearBtn-${v}`);
+  if (imgBtn && imgInput) {
+    imgBtn.addEventListener('click', () => imgInput.click());
+    imgInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target.result;
+        const img = new Image();
+        img.onload = () => {
+          compressAndSaveBgImage(img, dataUrl);
+        };
+        img.src = dataUrl;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  if (imgClear) {
+    imgClear.addEventListener('click', () => {
+      window.aiBgCustomImg = null;
+      window.aiBgCustomImgData = '';
+      saveAiBgConfig();
+      updateAiBgUI();
+    });
+  }
 });
+
+loadAiBgConfig();
+updateAiBgUI();
 
 try {
   const savedShape = localStorage.getItem('droidcam_shape');

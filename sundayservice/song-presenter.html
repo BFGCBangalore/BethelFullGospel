@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Song Presenter — Bethel Full Gospel Church</title>
     <link rel="icon" type="image/png" href="../logo.png">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400;500;600&display=swap');
 
@@ -411,6 +412,18 @@
   display: block;
   pointer-events: none;
 }
+.droidcam-overlay canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+.droidcam-overlay.ai-cutout {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
 .droidcam-resize-handle {
   position: absolute;
   bottom: 0;
@@ -454,6 +467,8 @@
         <div class="slide-canvas" id="slideCanvas">
             <!-- Background video (Local / Temporary) -->
             <video id="presenterBgVideo" autoplay loop muted playsinline style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; pointer-events:none;"></video>
+            <!-- Background image (Local / Temporary) -->
+            <img id="presenterBgImage" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; pointer-events:none;">
 
             <!-- Background gradient -->
             <div class="bg-gradient"></div>
@@ -797,6 +812,7 @@
     <!-- DroidCam Camera Overlay (MUST be before the camera script) -->
     <div class="droidcam-overlay circle" id="droidcamOverlay" style="display:none; width:150px; height:150px; bottom:40px; right:40px;">
       <video id="droidcamVideo" autoplay muted playsinline></video>
+      <canvas id="droidcamCanvas" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none;"></canvas>
       <div class="droidcam-resize-handle" id="droidcamResize"></div>
     </div>
 
@@ -804,6 +820,7 @@
     // DroidCam Overlay Logic
     const overlay = document.getElementById('droidcamOverlay');
     const video = document.getElementById('droidcamVideo');
+    const droidcamCanvas = document.getElementById('droidcamCanvas');
     const resizeHandle = document.getElementById('droidcamResize');
     
     let camShape = 'circle';
@@ -816,6 +833,8 @@
     let dragStartX, dragStartY;
     let overlayStartX, overlayStartY;
     let startW, startH;
+
+    let presenterAiRaf = null;
 
     function applySavedShapeAndSize() {
       const savedShape = localStorage.getItem('droidcam_shape');
@@ -846,6 +865,7 @@
       }
       
       video.style.objectPosition = `${camOffsetX}% 50%`;
+      if (droidcamCanvas) droidcamCanvas.style.objectPosition = `${camOffsetX}% 50%`;
     }
 
     function applySavedPosition() {
@@ -866,6 +886,72 @@
       }
     }
 
+    let isAiBgActive = false;
+    let aiBgMode = 'transparent';
+
+    function checkAiBgStatus() {
+      const statusStr = localStorage.getItem('droidcam_ai_bg');
+      let active = false;
+      let mode = 'transparent';
+      if (statusStr) {
+        try {
+          const parsed = JSON.parse(statusStr);
+          active = !!parsed.active;
+          mode = parsed.mode || 'transparent';
+        } catch(e) {}
+      }
+      isAiBgActive = active;
+      aiBgMode = mode;
+
+      if (active && overlay.style.display !== 'none') {
+        video.style.display = 'none';
+        if (droidcamCanvas) droidcamCanvas.style.display = 'block';
+        if (camShape !== 'full' && mode === 'transparent') {
+          overlay.classList.add('ai-cutout');
+        } else {
+          overlay.classList.remove('ai-cutout');
+        }
+        startPresenterAiLoop();
+      } else {
+        video.style.display = 'block';
+        if (droidcamCanvas) droidcamCanvas.style.display = 'none';
+        overlay.classList.remove('ai-cutout');
+        stopPresenterAiLoop();
+      }
+    }
+
+    function startPresenterAiLoop() {
+      if (presenterAiRaf) return;
+      const ctx = droidcamCanvas.getContext('2d');
+
+      function step() {
+        if (!isAiBgActive || overlay.style.display === 'none') {
+          stopPresenterAiLoop();
+          return;
+        }
+
+        if (window.opener && window.opener.masterProcessedCanvas && window.opener.masterProcessedCanvas.width > 0) {
+          const src = window.opener.masterProcessedCanvas;
+          if (droidcamCanvas.width !== src.width || droidcamCanvas.height !== src.height) {
+            droidcamCanvas.width = src.width;
+            droidcamCanvas.height = src.height;
+          }
+          ctx.clearRect(0, 0, droidcamCanvas.width, droidcamCanvas.height);
+          ctx.drawImage(src, 0, 0);
+        }
+
+        presenterAiRaf = requestAnimationFrame(step);
+      }
+      presenterAiRaf = requestAnimationFrame(step);
+    }
+
+    function stopPresenterAiLoop() {
+      if (presenterAiRaf) {
+        cancelAnimationFrame(presenterAiRaf);
+        presenterAiRaf = null;
+      }
+    }
+
     function checkCameraStatus() {
       const statusStr = localStorage.getItem('droidcam_status');
       if (statusStr) {
@@ -875,14 +961,17 @@
             video.srcObject = window.opener.camStream;
             overlay.style.display = 'block';
             applySavedShapeAndSize();
+            checkAiBgStatus();
           } else {
             video.srcObject = null;
             overlay.style.display = 'none';
+            checkAiBgStatus();
           }
         } catch(e) { console.warn('Failed to parse droidcam_status:', e); }
       } else {
           video.srcObject = null;
           overlay.style.display = 'none';
+          checkAiBgStatus();
       }
     }
 
@@ -919,7 +1008,36 @@
       }
     }
 
+    function checkBgImageStatus() {
+      const bgImg = document.getElementById('presenterBgImage');
+      if (!bgImg) return;
+      let active = false;
+      let imageUrl = '';
+      const statusStr = localStorage.getItem('local_bg_image_status');
+      if (statusStr) {
+        try {
+          const parsed = JSON.parse(statusStr);
+          active = !!parsed.active;
+          imageUrl = parsed.url || '';
+        } catch(e) {}
+      }
+      if (!imageUrl && window.opener && window.opener.localBgImageUrl) {
+        active = true;
+        imageUrl = window.opener.localBgImageUrl;
+      }
+      if (active && imageUrl) {
+        if (bgImg.src !== imageUrl) {
+          bgImg.src = imageUrl;
+        }
+        bgImg.style.display = 'block';
+      } else {
+        bgImg.removeAttribute('src');
+        bgImg.style.display = 'none';
+      }
+    }
+
     checkBgVideoStatus();
+    checkBgImageStatus();
 
     window.addEventListener('storage', (e) => {
       if (e.key === 'droidcam_status') {
@@ -931,8 +1049,14 @@
       if (e.key === 'droidcam_position') {
         applySavedPosition();
       }
+      if (e.key === 'droidcam_ai_bg') {
+        checkAiBgStatus();
+      }
       if (e.key === 'local_bg_video_status') {
         checkBgVideoStatus();
+      }
+      if (e.key === 'local_bg_image_status') {
+        checkBgImageStatus();
       }
     });
 

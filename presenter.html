@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Bible Presenter - Bethel Full Gospel Church</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js" crossorigin="anonymous"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=Inter:wght@400;500;600&display=swap');
     
@@ -171,6 +172,7 @@
   <!-- DroidCam Camera Overlay -->
   <div class="droidcam-overlay circle" id="droidcamOverlay" style="display:none; width:150px; height:150px; bottom:40px; right:40px;">
     <video id="droidcamVideo" autoplay muted playsinline></video>
+    <canvas id="droidcamCanvas" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none;"></canvas>
     <div class="droidcam-resize-handle" id="droidcamResize"></div>
   </div>
 
@@ -189,6 +191,10 @@
       transition: border-radius 0.3s ease, box-shadow 0.3s ease;
       user-select: none;
       touch-action: none;
+    }
+    .droidcam-overlay.ai-cutout {
+      box-shadow: none !important;
+      background: transparent !important;
     }
     .droidcam-overlay.circle {
       border-radius: 50%;
@@ -216,6 +222,13 @@
       box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 0 4px rgba(108, 92, 255, 0.5);
     }
     .droidcam-overlay video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+    .droidcam-overlay canvas {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -360,7 +373,76 @@
 
     const overlay = document.getElementById('droidcamOverlay');
     const video = document.getElementById('droidcamVideo');
+    const droidcamCanvas = document.getElementById('droidcamCanvas');
     const resizeHandle = document.getElementById('droidcamResize');
+
+    let presenterAiRaf = null;
+
+    let isAiBgActive = false;
+    let aiBgMode = 'transparent';
+
+    function checkAiBgStatus() {
+      const statusStr = localStorage.getItem('droidcam_ai_bg');
+      let active = false;
+      let mode = 'transparent';
+      if (statusStr) {
+        try {
+          const parsed = JSON.parse(statusStr);
+          active = !!parsed.active;
+          mode = parsed.mode || 'transparent';
+        } catch(e) {}
+      }
+      isAiBgActive = active;
+      aiBgMode = mode;
+
+      if (active && overlay.style.display !== 'none') {
+        video.style.display = 'none';
+        if (droidcamCanvas) droidcamCanvas.style.display = 'block';
+        if (camShape !== 'full' && mode === 'transparent') {
+          overlay.classList.add('ai-cutout');
+        } else {
+          overlay.classList.remove('ai-cutout');
+        }
+        startPresenterAiLoop();
+      } else {
+        video.style.display = 'block';
+        if (droidcamCanvas) droidcamCanvas.style.display = 'none';
+        overlay.classList.remove('ai-cutout');
+        stopPresenterAiLoop();
+      }
+    }
+
+    function startPresenterAiLoop() {
+      if (presenterAiRaf) return;
+      const ctx = droidcamCanvas.getContext('2d');
+
+      function step() {
+        if (!isAiBgActive || overlay.style.display === 'none') {
+          stopPresenterAiLoop();
+          return;
+        }
+
+        if (window.opener && window.opener.masterProcessedCanvas && window.opener.masterProcessedCanvas.width > 0) {
+          const src = window.opener.masterProcessedCanvas;
+          if (droidcamCanvas.width !== src.width || droidcamCanvas.height !== src.height) {
+            droidcamCanvas.width = src.width;
+            droidcamCanvas.height = src.height;
+          }
+          ctx.clearRect(0, 0, droidcamCanvas.width, droidcamCanvas.height);
+          ctx.drawImage(src, 0, 0);
+        }
+
+        presenterAiRaf = requestAnimationFrame(step);
+      }
+      presenterAiRaf = requestAnimationFrame(step);
+    }
+
+    function stopPresenterAiLoop() {
+      if (presenterAiRaf) {
+        cancelAnimationFrame(presenterAiRaf);
+        presenterAiRaf = null;
+      }
+    }
 
     // Presenter no longer captures the camera itself.
     // It receives the MediaStream from bible.js via window.opener
@@ -405,11 +487,17 @@
             video.srcObject = window.opener.camStream;
             overlay.style.display = 'block';
             applySavedPositionAndSize();
+            checkAiBgStatus();
           } else {
             video.srcObject = null;
             overlay.style.display = 'none';
+            checkAiBgStatus();
           }
-        } catch(e) {}
+        } catch(e) {
+          checkAiBgStatus();
+        }
+      } else {
+        checkAiBgStatus();
       }
     }
 
@@ -420,6 +508,9 @@
     window.addEventListener('storage', (e) => {
       if (e.key === 'droidcam_status') {
         checkCameraStatus();
+      }
+      if (e.key === 'droidcam_ai_bg') {
+        checkAiBgStatus();
       }
     });
 
