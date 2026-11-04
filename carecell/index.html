@@ -557,6 +557,7 @@ select.customized {
       <button class="header-btn" onclick="openContactSupport()"><i class="ti ti-headset"></i></button>
     </div>
     <div class="scroll-body">
+      <div id="globalDisclaimerBannerAdmin"></div>
       <div id="globalBroadcastBannerAdmin"></div>
       <div id="adminHolidayBanner"></div>
       <div id="adminHighPriorityPrayerBanner"></div>
@@ -1020,6 +1021,7 @@ select.customized {
       <button class="header-btn" onclick="openContactSupport()"><i class="ti ti-headset"></i></button>
     </div>
     <div class="scroll-body" style="padding-bottom:120px;">
+      <div id="globalDisclaimerBannerLeader"></div>
       <div id="globalBroadcastBannerLeader"></div>
       <div id="leaderHolidayBanner"></div>
       <div id="leaderHighPriorityPrayerBanner"></div>
@@ -1107,6 +1109,7 @@ select.customized {
       <button class="header-btn" onclick="logout()"><i class="ti ti-logout"></i></button>
     </div>
     <div class="scroll-body">
+      <div id="globalDisclaimerBannerMember"></div>
       <div id="globalBroadcastBannerMember"></div>
       <div id="memberHighPriorityPrayerBanner"></div>
       <div id="parentKidsList">
@@ -2137,7 +2140,20 @@ let _prLoaded = false;
 window.addEventListener('firebase-ready', async () => {
   await seedDatabaseIfNeeded();
   
-  const { db, collection, onSnapshot } = window.firebase;
+  const { db, collection, doc, onSnapshot } = window.firebase;
+
+  // Carecell Disclaimer listener from Developer Hub
+  let lastCcDisclaimerText = '';
+  onSnapshot(doc(db, 'config', 'disclaimer'), snap => {
+    if (snap.exists()) {
+      window.carecellDisclaimer = snap.data();
+      if (window.carecellDisclaimer.text && window.carecellDisclaimer.text !== lastCcDisclaimerText) {
+        sessionStorage.removeItem('cc_disclaimer_dismissed');
+        lastCcDisclaimerText = window.carecellDisclaimer.text;
+      }
+      renderCarecellDisclaimer();
+    }
+  });
 
   onSnapshot(collection(db, 'cc_users'), snap => {
     DB.users = snap.docs.map(doc => doc.data());
@@ -2308,9 +2324,50 @@ function checkIfLoaded() {
 }
 
 /* =========================================================
+   CARECELL IN-APP DISCLAIMER BANNER (Developer Hub)
+   ========================================================= */
+function renderCarecellDisclaimer() {
+  const slots = ['globalDisclaimerBannerAdmin', 'globalDisclaimerBannerLeader', 'globalDisclaimerBannerMember'];
+  const disc = window.carecellDisclaimer;
+  const isDismissed = sessionStorage.getItem('cc_disclaimer_dismissed') === 'true';
+
+  if (!disc || !disc.enabled || !disc.text || isDismissed) {
+    slots.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.innerHTML = ''; el.style.display = 'none'; }
+    });
+    return;
+  }
+
+  const html = `
+    <div class="inapp-disclaimer-card" style="background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(217,119,6,0.06)); border: 1.5px solid rgba(245,158,11,0.35); border-radius: 14px; padding: 12px 16px; margin-bottom: 16px; box-shadow: 0 4px 14px rgba(245,158,11,0.06); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+      <div style="display:flex; align-items:flex-start; gap:10px;">
+        <span style="background: #f59e0b; color: #000; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;"><i class="ti ti-alert-triangle-filled"></i> Notice</span>
+        <div style="font-size: 13px; line-height: 1.5; color: var(--text-main); font-weight: 500;">${disc.text}</div>
+      </div>
+      <button type="button" onclick="dismissCarecellDisclaimer()" style="background: rgba(245,158,11,0.15); border: none; color: #f59e0b; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: 0.15s;" title="Dismiss Disclaimer" aria-label="Dismiss"><i class="ti ti-x"></i></button>
+    </div>
+  `;
+
+  slots.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.innerHTML = html;
+      el.style.display = 'block';
+    }
+  });
+}
+
+window.dismissCarecellDisclaimer = function() {
+  sessionStorage.setItem('cc_disclaimer_dismissed', 'true');
+  renderCarecellDisclaimer();
+};
+
+/* =========================================================
    ADMIN LOGIC (Overview)
    ========================================================= */
 function renderAdmin() {
+  renderCarecellDisclaimer();
   const adminHolidayContainer = document.getElementById('adminHolidayBanner');
   if (adminHolidayContainer) {
     adminHolidayContainer.innerHTML = getUpcomingHolidayBanner();
@@ -3956,6 +4013,7 @@ async function mngSaveChanges() {
 
 
 function renderLeader() {
+  renderCarecellDisclaimer();
   currentLeaderCarecell = DB.classes.find(c => (c.leaderPhones || []).includes(currentUser.phone));
   
   const leaderHolidayContainer = document.getElementById('leaderHolidayBanner');
@@ -4314,6 +4372,7 @@ async function submitAttendance() {
    PARENT LOGIC
    ========================================================= */
 function updateMemberDash() {
+  renderCarecellDisclaimer();
   const memberPrayerBanner = document.getElementById('memberHighPriorityPrayerBanner');
   if (memberPrayerBanner) {
     memberPrayerBanner.innerHTML = getHighPriorityPrayerBanner('member');

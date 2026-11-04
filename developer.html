@@ -1,203 +1,1885 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Developer Control Panel</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #0b0f1a;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: radial-gradient(circle at center, #1a1a2e 0%, #0b0f1a 100%);
-        }
-        .panel {
-            background: rgba(20, 25, 40, 0.8);
-            padding: 3rem 4rem;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
-            text-align: center;
-            backdrop-filter: blur(20px);
-        }
-        h1 { 
-            margin-top: 0; 
-            font-weight: 800;
-            font-size: 2.5rem;
-            background: linear-gradient(135deg, #fff, #a0a0a0);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        p {
-            color: #8892b0;
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
-        }
-        
-        /* Toggle Switch */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 100px;
-            height: 50px;
-            margin: 1.5rem 0 2.5rem 0;
-        }
-        .switch input { 
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #2a2f4c;
-            transition: .4s;
-            border-radius: 50px;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 40px;
-            width: 40px;
-            left: 5px;
-            bottom: 5px;
-            background-color: #fff;
-            transition: .4s;
-            border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-        input:checked + .slider {
-            background-color: #ff0055;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2), 0 0 20px rgba(255, 0, 85, 0.4);
-        }
-        input:checked + .slider:before {
-            transform: translateX(50px);
-        }
-        
-        .status {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #00eeff;
-            text-shadow: 0 0 15px rgba(0, 238, 255, 0.3);
-            transition: all 0.3s ease;
-        }
-        .status.crashed { 
-            color: #ff0055; 
-            text-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer Control Hub | Bethel Full Gospel Church</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg-dark: #0a0e17;
+      --bg-card: rgba(18, 24, 38, 0.75);
+      --bg-card-hover: rgba(26, 34, 52, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(108, 92, 255, 0.5);
+      --primary: #6c5cff;
+      --primary-gradient: linear-gradient(135deg, #6c5cff 0%, #8a3ffc 100%);
+      --accent-cyan: #00e5ff;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-sub: #64748b;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-color);
+      --shadow-glow: 0 0 30px -5px rgba(108, 92, 255, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(108, 92, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(0, 229, 255, 0.06) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    /* Top Navigation Header */
+    .header {
+      background: rgba(10, 14, 23, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(108, 92, 255, 0.4);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge-dev {
+      background: rgba(108, 92, 255, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(108, 92, 255, 0.3);
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.9); }
+    }
+
+    .btn-header {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-header:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Main Container */
+    .main-wrap {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      flex: 1;
+    }
+
+    /* Tabs Navigation */
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 20, 32, 0.7);
+      padding: 6px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      margin-bottom: 24px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .tabs-nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      background: var(--primary-gradient);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(108, 92, 255, 0.35);
+    }
+
+    /* Tab Content Panes */
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-card);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(108, 92, 255, 0.12);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .card-icon.cyan { background: rgba(0, 229, 255, 0.12); color: var(--accent-cyan); }
+    .card-icon.green { background: rgba(16, 185, 129, 0.12); color: var(--accent-green); }
+    .card-icon.red { background: rgba(239, 68, 68, 0.12); color: var(--accent-red); }
+    .card-icon.amber { background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .card-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Switch Toggles */
+    .switch-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 10px;
+      transition: background 0.15s ease;
+    }
+
+    .switch-wrap:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .switch-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .switch-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .switch-desc {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #fff;
+      border-radius: 50%;
+      transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider.red {
+      background-color: var(--accent-red);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Input & Textareas */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      background: rgba(10, 14, 23, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.85rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 255, 0.2);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.5;
+    }
+
+    /* Preset Select Button Group */
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: rgba(10, 14, 23, 0.6);
+      padding: 4px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-group-btn {
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-group-btn.active {
+      background: rgba(108, 92, 255, 0.25);
+      color: #fff;
+      border: 1px solid rgba(108, 92, 255, 0.5);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(108, 92, 255, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(108, 92, 255, 0.45);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .btn-danger:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.45);
+    }
+
+    /* Floating Save Bar */
+    .floating-save-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(18, 24, 38, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-focus);
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), var(--shadow-glow);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 1000;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .floating-save-bar.visible {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .save-bar-text {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: rgba(18, 24, 38, 0.95);
+      border: 1px solid var(--border-color);
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      z-index: 2000;
+      transform: translateY(-50px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .toast.success { border-color: rgba(16, 185, 129, 0.4); }
+    .toast.success i { color: var(--accent-green); }
+
+    /* Security PIN Gate Modal */
+    .pin-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 14, 23, 0.92);
+      backdrop-filter: blur(24px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .pin-modal {
+      background: rgba(20, 26, 42, 0.95);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), var(--shadow-glow);
+    }
+
+    .pin-input {
+      width: 180px;
+      letter-spacing: 12px;
+      font-size: 1.8rem;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 10px;
+      border-radius: var(--radius-md);
+      background: rgba(10, 14, 23, 0.8);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      margin: 20px auto;
+      outline: none;
+      display: block;
+    }
+
+    .pin-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 255, 0.25);
+    }
+
+    /* Free Tier Stats Pill Box */
+    .stats-strip {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stat-sub {
+      font-size: 0.7rem;
+      color: var(--accent-green);
+    }
+
+    /* Quick Links Box */
+    .tool-link-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      margin-bottom: 8px;
+    }
+
+    .tool-link-card:hover {
+      background: rgba(108, 92, 255, 0.1);
+      border-color: rgba(108, 92, 255, 0.3);
+      transform: translateX(4px);
+    }
+
+    @media (max-width: 640px) {
+      .main-wrap { padding: 16px; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .header { padding: 12px 16px; }
+      .pin-modal { padding: 24px 20px; }
+    }
+  </style>
 </head>
 <body>
-    <div class="panel">
-        <h1>Developer Controls</h1>
-        
-        <div style="margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
-            <p>Presenter Kill Switch (Affects ALL Presenter Screens)</p>
-            <label class="switch">
-                <input type="checkbox" id="crashToggle">
-                <span class="slider"></span>
-            </label>
-            <div class="status" id="statusText">Connecting...</div>
-        </div>
 
-        <div>
-            <p>Sunday School Kill Switch (Blocks Login Access)</p>
-            <label class="switch">
-                <input type="checkbox" id="ssCrashToggle">
-                <span class="slider"></span>
-            </label>
-            <div class="status" id="ssStatusText">Connecting...</div>
+  <!-- Top Header -->
+  <header class="header">
+    <div class="brand-wrap">
+      <div class="brand-logo"><i class="fa-solid fa-code"></i></div>
+      <div>
+        <div class="brand-title">
+          <span>Bethel Full Gospel Church</span>
+          <span class="badge-dev">Dev Hub</span>
         </div>
+        <div style="font-size:0.7rem; color:var(--text-sub);">Central Feature & Disclaimer Controls</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="status-pill" id="cloudStatusPill">
+        <span class="status-dot"></span>
+        <span>Firebase Free Tier ($0.00)</span>
+      </div>
+      <button class="btn-header" onclick="saveAllChanges(true)" title="Force Sync to Cloud">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Sync
+      </button>
+      <button class="btn-header" onclick="lockSession()" title="Lock Session">
+        <i class="fa-solid fa-lock"></i> Lock
+      </button>
+    </div>
+  </header>
+
+  <!-- Security PIN Gate -->
+  <div class="pin-modal-backdrop" id="pinGateModal">
+    <div class="pin-modal">
+      <div class="card-icon" style="margin: 0 auto 16px auto; width: 48px; height: 48px; font-size: 20px;">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h2 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 6px;">Developer Access</h2>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">Enter your 4-digit Master Developer PIN</p>
+      
+      <input type="password" id="pinInput" class="pin-input" maxlength="4" placeholder="••••" autocomplete="off" autofocus>
+      <div id="pinError" style="font-size: 0.78rem; color: var(--accent-red); height: 18px; margin-bottom: 12px;"></div>
+      
+      <button class="btn-primary" style="width: 100%;" onclick="verifyPin()">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i> Unlock Control Hub
+      </button>
+      <div style="font-size: 0.7rem; color: var(--text-sub); margin-top: 14px;">Default Developer PIN: <strong>7777</strong></div>
+    </div>
+  </div>
+
+  <!-- Main Content Wrap -->
+  <main class="main-wrap">
+
+    <!-- Free-Tier Resource Stats Strip -->
+    <div class="stats-strip">
+      <div class="stat-box">
+        <span class="stat-label">Firestore Daily Reads</span>
+        <span class="stat-value"><i class="fa-solid fa-bolt" style="color:var(--accent-cyan); font-size:14px;"></i> 1 Doc / Read</span>
+        <span class="stat-sub">Free limit: 50,000 / day</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Firestore Daily Writes</span>
+        <span class="stat-value"><i class="fa-solid fa-pen-nib" style="color:var(--primary); font-size:14px;"></i> On Save Only</span>
+        <span class="stat-sub">Free limit: 20,000 / day</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">AI Segmentation Engine</span>
+        <span class="stat-value"><i class="fa-solid fa-microchip" style="color:var(--accent-green); font-size:14px;"></i> Client GPU</span>
+        <span class="stat-sub">0 Cloud Cost (MediaPipe WASM)</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-label">Server Maintenance Cost</span>
+        <span class="stat-value"><i class="fa-solid fa-shield-check" style="color:var(--accent-green); font-size:14px;"></i> ₹0.00</span>
+        <span class="stat-sub">100% Free Tier Guaranteed</span>
+      </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+    <!-- Navigation Tabs -->
+    <nav class="tabs-nav">
+      <button class="tab-btn active" data-tab="features"><i class="fa-solid fa-sliders"></i> Features & AI Camera</button>
+      <button class="tab-btn" data-tab="disclaimers"><i class="fa-solid fa-bullhorn"></i> Individual Disclaimers</button>
+      <button class="tab-btn" data-tab="emergency"><i class="fa-solid fa-triangle-exclamation"></i> Emergency & Kill Switches</button>
+      <button class="tab-btn" data-tab="roles"><i class="fa-solid fa-users-gear"></i> Roles & Permissions</button>
+      <button class="tab-btn" data-tab="database"><i class="fa-solid fa-database"></i> Database Hygiene</button>
+      <button class="tab-btn" data-tab="security"><i class="fa-solid fa-key"></i> Security PIN</button>
+    </nav>
 
-        // APP 1: CARECELL (Presenter)
-        const firebaseConfigCarecell = {
-          apiKey: "AIzaSyBd_8BSq9RnIQNMJCEI9QUr2OOvjcuUe-Y",
-          authDomain: "bfgc-carecell.firebaseapp.com",
-          projectId: "bfgc-carecell",
-          storageBucket: "bfgc-carecell.firebasestorage.app",
-          messagingSenderId: "367487491092",
-          appId: "1:367487491092:web:754ecadcaa6527c6995b01"
+    <!-- TAB 1: FEATURES & AI CAMERA -->
+    <section class="tab-pane active" id="tab-features">
+      <div class="grid-2">
+        <!-- Camera Hardware & Master Flags -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon cyan"><i class="fa-solid fa-video"></i></div>
+              <div>
+                <div class="card-title">Camera Integration Controls</div>
+                <div class="card-subtitle">Global & per-module camera hardware access</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="switch-wrap">
+            <div class="switch-info">
+              <span class="switch-label">Global Camera Feature</span>
+              <span class="switch-desc">Master switch to permit camera feeds across all applications</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="flagCameraMaster" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-wrap">
+            <div class="switch-info">
+              <span class="switch-label">Sunday Service Camera</span>
+              <span class="switch-desc">Permit webcam / DroidCam in Sunday Service Presenter</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="flagCameraSundayService" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-wrap">
+            <div class="switch-info">
+              <span class="switch-label">Holy Bible Reader Camera</span>
+              <span class="switch-desc">Permit camera stream in Bible live monitor preview</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="flagCameraBible" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- AI Background Removal Feature -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+              <div>
+                <div class="card-title">AI Background Removal Controls</div>
+                <div class="card-subtitle">Real-time person segmentation & background cutout</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="switch-wrap">
+            <div class="switch-info">
+              <span class="switch-label">Global AI Background Removal</span>
+              <span class="switch-desc">Master switch for real-time person segmentation</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="flagAiBgMaster" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-wrap">
+            <div class="switch-info">
+              <span class="switch-label">Sunday Service AI Background</span>
+              <span class="switch-desc">Allow Cutout / Blur / Custom Image in Sunday Service</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="flagAiBgSundayService" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-wrap">
+            <div class="switch-info">
+              <span class="switch-label">Holy Bible AI Background</span>
+              <span class="switch-desc">Allow Cutout / Blur / Custom Image in Bible Live Monitor</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="flagAiBgBible" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="form-group" style="margin-top: 14px;">
+            <label class="form-label">
+              <span>AI Performance Engine Preset</span>
+              <span style="font-size:0.7rem; color:var(--accent-green);">Optimized for laptops</span>
+            </label>
+            <div class="btn-group">
+              <button type="button" class="btn-group-btn active" id="btnPresetFast" onclick="setAiPreset('fast')">
+                <i class="fa-solid fa-bolt"></i> Fast (Model 0 / 640p)
+              </button>
+              <button type="button" class="btn-group-btn" id="btnPresetHQ" onclick="setAiPreset('hq')">
+                <i class="fa-solid fa-gem"></i> High-Quality (Model 1)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sunday Service Presenter Media & Slide Controls -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon amber"><i class="fa-solid fa-photo-film"></i></div>
+              <div>
+                <div class="card-title">Sunday Service Presenter Media & Slides</div>
+                <div class="card-subtitle">Control projection, motion loops & remote slide triggers</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="switch-wrap">
+            <div class="switch-info">
+              <span class="switch-label">Slide Projection Access</span>
+              <span class="switch-desc">Permit worship operators to push lyrics & slides live</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="flagProjectSlideSundayService" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-wrap">
+            <div class="switch-info">
+              <span class="switch-label">Video Backgrounds (Motion Loops)</span>
+              <span class="switch-desc">Permit motion video loops (.mp4, .webm) behind lyrics</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="flagVideoBgSundayService" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="switch-wrap">
+            <div class="switch-info">
+              <span class="switch-label">Image Backgrounds (Custom Graphics)</span>
+              <span class="switch-desc">Permit custom graphics & slides behind lyrics</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="flagImageBgSundayService" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Live Slide Remote Control Pad -->
+          <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+            <div style="font-size: 0.72rem; color: var(--text-sub); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 8px;">
+              <i class="fa-solid fa-gamepad" style="color: var(--accent-cyan); margin-right: 4px;"></i> Live Slide Remote Control
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap: 8px; margin-bottom: 12px;">
+              <button type="button" class="btn-header" style="justify-content: center; font-size: 0.75rem; padding: 7px 10px; background: rgba(108, 92, 255, 0.15); color: #c7d2fe; border-color: rgba(108, 92, 255, 0.35);" onclick="sendSlideCommand('project')" title="Push Current Slide Live">
+                <i class="fa-solid fa-broadcast-tower"></i> Project Slide
+              </button>
+              <button type="button" class="btn-header" style="justify-content: center; font-size: 0.75rem; padding: 7px 10px;" onclick="sendSlideCommand('prev')" title="Previous Slide">
+                <i class="fa-solid fa-chevron-left"></i> Prev Slide
+              </button>
+              <button type="button" class="btn-header" style="justify-content: center; font-size: 0.75rem; padding: 7px 10px;" onclick="sendSlideCommand('next')" title="Next Slide">
+                Next Slide <i class="fa-solid fa-chevron-right"></i>
+              </button>
+              <button type="button" class="btn-header" style="justify-content: center; font-size: 0.75rem; padding: 7px 10px; background: rgba(245, 158, 11, 0.12); color: #fde68a; border-color: rgba(245, 158, 11, 0.3);" onclick="sendSlideCommand('black')" title="Toggle Black Screen">
+                <i class="fa-solid fa-square"></i> Black Screen
+              </button>
+              <button type="button" class="btn-header" style="justify-content: center; font-size: 0.75rem; padding: 7px 10px; background: rgba(239, 68, 68, 0.12); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3);" onclick="sendSlideCommand('clear')" title="Clear Projected Lyrics">
+                <i class="fa-solid fa-eraser"></i> Clear Slide
+              </button>
+            </div>
+          </div>
+
+          <div style="padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">
+              <i class="fa-solid fa-circle-info" style="color: var(--accent-cyan); margin-right: 4px;"></i>
+              Disabling will prevent operators from projecting slides and clear active lyrics.
+            </div>
+            <button type="button" class="btn-header" style="white-space: nowrap; font-size: 0.75rem; padding: 6px 12px; background: rgba(239, 68, 68, 0.12); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3);" onclick="forceResetPresenterMedia()">
+              <i class="fa-solid fa-ban"></i> Reset Live Media
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: INDIVIDUAL DISCLAIMERS -->
+    <section class="tab-pane" id="tab-disclaimers">
+      <div class="grid-2">
+        <!-- Sunday Service Disclaimer -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon"><i class="fa-solid fa-hands-praying"></i></div>
+              <div>
+                <div class="card-title">Sunday Service Disclaimer</div>
+                <div class="card-subtitle">Live stream recording & worship notice</div>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="discSundayServiceActive" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Disclaimer Text</label>
+            <textarea class="form-control" id="discSundayServiceText" placeholder="Enter Sunday Service disclaimer text..." oninput="markUnsaved()"></textarea>
+          </div>
+          <div style="font-size:0.72rem; color:var(--text-sub);">
+            <i class="fa-solid fa-circle-info"></i> Displays as an alert banner across Sunday Service presentation screens.
+          </div>
+        </div>
+
+        <!-- Sunday School Disclaimer -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon amber"><i class="fa-solid fa-graduation-cap"></i></div>
+              <div>
+                <div class="card-title">Sunday School Disclaimer</div>
+                <div class="card-subtitle">Student records & support contact</div>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="discSundaySchoolActive" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Disclaimer Text</label>
+            <textarea class="form-control" id="discSundaySchoolText" placeholder="Enter Sunday School disclaimer text..." oninput="markUnsaved()"></textarea>
+          </div>
+          <div style="font-size:0.72rem; color:var(--text-sub);">
+            <i class="fa-solid fa-circle-info"></i> Replaces the static attendance card in Sunday School with this live developer message.
+          </div>
+        </div>
+
+        <!-- Carecell Disclaimer -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon green"><i class="fa-solid fa-house-chimney-user"></i></div>
+              <div>
+                <div class="card-title">Carecell Fellowship Disclaimer</div>
+                <div class="card-subtitle">Weekly Bible study & member notes</div>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="discCarecellActive" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Disclaimer Text</label>
+            <textarea class="form-control" id="discCarecellText" placeholder="Enter Carecell disclaimer text..." oninput="markUnsaved()"></textarea>
+          </div>
+          <div style="font-size:0.72rem; color:var(--text-sub);">
+            <i class="fa-solid fa-circle-info"></i> Displays at the top of weekly Carecell group study sessions.
+          </div>
+        </div>
+
+        <!-- Holy Bible Disclaimer -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon cyan"><i class="fa-solid fa-book-bible"></i></div>
+              <div>
+                <div class="card-title">Holy Bible Reader Disclaimer</div>
+                <div class="card-subtitle">Scripture copyright & study notes</div>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="discBibleActive" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Disclaimer Text</label>
+            <textarea class="form-control" id="discBibleText" placeholder="Enter Holy Bible disclaimer text..." oninput="markUnsaved()"></textarea>
+          </div>
+          <div style="font-size:0.72rem; color:var(--text-sub);">
+            <i class="fa-solid fa-circle-info"></i> Appears in the Holy Bible scripture viewer and presentation selector.
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Broadcast Marquee Card -->
+      <div class="card" style="margin-top: 20px; border-color: rgba(245, 158, 11, 0.3);">
+        <div class="card-header">
+          <div class="card-title-wrap">
+            <div class="card-icon amber"><i class="fa-solid fa-tower-broadcast"></i></div>
+            <div>
+              <div class="card-title">Live Presentation Ticker / Urgent Announcement</div>
+              <div class="card-subtitle">Broadcasts instantly to the bottom of all active presenter screens</div>
+            </div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="broadcastActive" onchange="markUnsaved()">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="form-group">
+          <input type="text" class="form-control" id="broadcastMessage" placeholder="e.g. Youth Fellowship immediately after the 2nd service in the Upper Hall..." oninput="markUnsaved()">
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: EMERGENCY & KILL SWITCHES -->
+    <section class="tab-pane" id="tab-emergency">
+      <div class="grid-2">
+        <!-- Presenter Kill Switch -->
+        <div class="card" style="border-color: rgba(239, 68, 68, 0.25);">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon red"><i class="fa-solid fa-skull-crossbones"></i></div>
+              <div>
+                <div class="card-title">Presenter Kill Switch</div>
+                <div class="card-subtitle">Freezes or blocks all Carecell / Sunday Presenter screens</div>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="killSwitchPresenter" onchange="onPresenterKillChange(this.checked)">
+              <span class="slider red"></span>
+            </label>
+          </div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">
+            Current State: <strong id="lblPresenterStatus" style="color:var(--accent-green);">Online & Active</strong>
+          </div>
+          <div style="font-size:0.72rem; color:var(--text-sub); line-height: 1.4;">
+            <i class="fa-solid fa-shield"></i> Synced directly with Firestore document <code>bfgc-carecell / config / status</code>.
+          </div>
+        </div>
+
+        <!-- Sunday School Access Lock -->
+        <div class="card" style="border-color: rgba(239, 68, 68, 0.25);">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon red"><i class="fa-solid fa-user-lock"></i></div>
+              <div>
+                <div class="card-title">Sunday School Kill Switch</div>
+                <div class="card-subtitle">Locks out student & teacher logins</div>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="killSwitchSundaySchool" onchange="onSundaySchoolKillChange(this.checked)">
+              <span class="slider red"></span>
+            </label>
+          </div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">
+            Current State: <strong id="lblSundaySchoolStatus" style="color:var(--accent-green);">Online & Active</strong>
+          </div>
+          <div style="font-size:0.72rem; color:var(--text-sub); line-height: 1.4;">
+            <i class="fa-solid fa-shield"></i> Synced directly with Firestore document <code>bfgc-website / ss_settings / system</code>.
+          </div>
+        </div>
+
+        <!-- Projector Emergency Blackout -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon"><i class="fa-solid fa-desktop"></i></div>
+              <div>
+                <div class="card-title">Emergency Projector Blank</div>
+                <div class="card-subtitle">Forces all live slides and video to blackout instantly</div>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="flagEmergencyBlackout" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.5;">
+            Use during unexpected interruptions or sensitive prayer ministry moments to hide projected lyrics and camera overlays immediately.
+          </p>
+        </div>
+
+        <!-- Maintenance Mode Redirect -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon amber"><i class="fa-solid fa-hammer"></i></div>
+              <div>
+                <div class="card-title">Scheduled Maintenance Mode</div>
+                <div class="card-subtitle">Show Under Construction to public visitors</div>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="flagMaintenanceMode" onchange="markUnsaved()">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.5;">
+            Redirects general website visitors to the church's under-construction maintenance page.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: ROLES & PERMISSIONS -->
+    <section class="tab-pane" id="tab-roles">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-wrap">
+            <div class="card-icon"><i class="fa-solid fa-user-shield"></i></div>
+            <div>
+              <div class="card-title">Role-Based Access Matrix</div>
+              <div class="card-subtitle">Church system permission distribution</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.82rem; text-align:left;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border-color); color:var(--text-muted);">
+                <th style="padding:10px 14px;">Role</th>
+                <th style="padding:10px 14px;">Presenter & Bible</th>
+                <th style="padding:10px 14px;">Camera & AI BG</th>
+                <th style="padding:10px 14px;">Sunday School</th>
+                <th style="padding:10px 14px;">Developer Hub</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                <td style="padding:12px 14px; font-weight:700; color:var(--primary);"><i class="fa-solid fa-crown"></i> Super Admin / Dev</td>
+                <td style="padding:12px 14px;"><span style="color:var(--accent-green);"><i class="fa-solid fa-check"></i> Full</span></td>
+                <td style="padding:12px 14px;"><span style="color:var(--accent-green);"><i class="fa-solid fa-check"></i> Master Control</span></td>
+                <td style="padding:12px 14px;"><span style="color:var(--accent-green);"><i class="fa-solid fa-check"></i> Full Access</span></td>
+                <td style="padding:12px 14px;"><span style="color:var(--accent-green);"><i class="fa-solid fa-check"></i> Yes (PIN Gate)</span></td>
+              </tr>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                <td style="padding:12px 14px; font-weight:600;"><i class="fa-solid fa-tv"></i> Media Team / Presenter</td>
+                <td style="padding:12px 14px;"><span style="color:var(--accent-green);"><i class="fa-solid fa-check"></i> Operate</span></td>
+                <td style="padding:12px 14px;"><span style="color:var(--accent-cyan);"><i class="fa-solid fa-check"></i> Operate (When enabled)</span></td>
+                <td style="padding:12px 14px; color:var(--text-sub);"><i class="fa-solid fa-minus"></i> No</td>
+                <td style="padding:12px 14px; color:var(--accent-red);"><i class="fa-solid fa-lock"></i> Locked</td>
+              </tr>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                <td style="padding:12px 14px; font-weight:600;"><i class="fa-solid fa-chalkboard-user"></i> Sunday School Teacher</td>
+                <td style="padding:12px 14px; color:var(--text-sub);"><i class="fa-solid fa-minus"></i> No</td>
+                <td style="padding:12px 14px; color:var(--text-sub);"><i class="fa-solid fa-minus"></i> No</td>
+                <td style="padding:12px 14px;"><span style="color:var(--accent-green);"><i class="fa-solid fa-check"></i> Marks & Attendance</span></td>
+                <td style="padding:12px 14px; color:var(--accent-red);"><i class="fa-solid fa-lock"></i> Locked</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 14px; font-weight:600; color:var(--text-muted);"><i class="fa-solid fa-user"></i> Congregation Member</td>
+                <td style="padding:12px 14px; color:var(--text-sub);"><i class="fa-solid fa-minus"></i> Public View Only</td>
+                <td style="padding:12px 14px; color:var(--text-sub);"><i class="fa-solid fa-minus"></i> No</td>
+                <td style="padding:12px 14px; color:var(--text-sub);"><i class="fa-solid fa-minus"></i> Student Portal Only</td>
+                <td style="padding:12px 14px; color:var(--accent-red);"><i class="fa-solid fa-lock"></i> Locked</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: DATABASE SAFETY & BACKUPS -->
+    <section class="tab-pane" id="tab-database">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon" style="background:rgba(16,185,129,0.15); color:var(--accent-green);"><i class="fa-solid fa-shield-halved"></i></div>
+              <div>
+                <div class="card-title">Database Safety & Lock Status</div>
+                <div class="card-subtitle">Zero data loss protection for church records</div>
+              </div>
+            </div>
+            <span class="status-pill" style="color:var(--accent-green); background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.3);">
+              <i class="fa-solid fa-lock"></i> All Cleanups Locked
+            </span>
+          </div>
+
+          <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:var(--radius-sm); padding:14px; margin-bottom:16px;">
+            <div style="font-weight:700; font-size:0.85rem; color:var(--accent-green); margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+              <i class="fa-solid fa-circle-check"></i> Production Protection Active
+            </div>
+            <div style="font-size:0.78rem; color:var(--text-muted); line-height:1.5;">
+              All database purge tools have been <b>safely disabled</b> with code-level safety locks (<code>SAFETY_LOCK_ENABLED = true</code>). Destructive deletion is blocked to guarantee that worship songs, Sunday School student profiles, and Carecell histories remain safe.
+            </div>
+          </div>
+          
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="tool-link-card" style="opacity:0.6; cursor:not-allowed; border-color:rgba(255,255,255,0.04);">
+              <span><i class="fa-solid fa-lock" style="color:var(--accent-red); margin-right:8px;"></i> Sunday Service Song Cleanup Tool</span>
+              <span style="font-size:0.7rem; color:var(--accent-red); font-weight:700; background:rgba(239,68,68,0.12); padding:2px 8px; border-radius:4px;">LOCKED</span>
+            </div>
+            <div class="tool-link-card" style="opacity:0.6; cursor:not-allowed; border-color:rgba(255,255,255,0.04);">
+              <span><i class="fa-solid fa-lock" style="color:var(--accent-red); margin-right:8px;"></i> Carecell Database Cleaner</span>
+              <span style="font-size:0.7rem; color:var(--accent-red); font-weight:700; background:rgba(239,68,68,0.12); padding:2px 8px; border-radius:4px;">LOCKED</span>
+            </div>
+            <div class="tool-link-card" style="opacity:0.6; cursor:not-allowed; border-color:rgba(255,255,255,0.04);">
+              <span><i class="fa-solid fa-lock" style="color:var(--accent-red); margin-right:8px;"></i> Sunday School Database Cleaner</span>
+              <span style="font-size:0.7rem; color:var(--accent-red); font-weight:700; background:rgba(239,68,68,0.12); padding:2px 8px; border-radius:4px;">LOCKED</span>
+            </div>
+          </div>
+          <div style="font-size:0.72rem; color:var(--text-sub); margin-top:10px;">
+            <i class="fa-solid fa-info-circle"></i> To re-enable any tool in the future, open its HTML file and set <code>SAFETY_LOCK_ENABLED = false</code>.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon cyan"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+              <div>
+                <div class="card-title">1-Click JSON Backup Exporter</div>
+                <div class="card-subtitle">Download local safety snapshots to your PC</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:14px; line-height:1.5;">
+            Download an instant, offline JSON backup of church collections before making any major system adjustments:
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <button class="btn-primary" style="background:rgba(108,92,255,0.15); color:#a5b4fc; border:1px solid rgba(108,92,255,0.3); font-size:0.8rem; padding:10px 14px; width:100%; display:flex; justify-content:space-between; align-items:center;" onclick="exportSundaySchoolBackup()">
+              <span><i class="fa-solid fa-chalkboard-user" style="margin-right:8px;"></i> Export Sunday School Data (JSON)</span>
+              <i class="fa-solid fa-download"></i>
+            </button>
+            <button class="btn-primary" style="background:rgba(0,229,255,0.15); color:#67e8f9; border:1px solid rgba(0,229,255,0.3); font-size:0.8rem; padding:10px 14px; width:100%; display:flex; justify-content:space-between; align-items:center;" onclick="exportCarecellBackup()">
+              <span><i class="fa-solid fa-people-roof" style="margin-right:8px;"></i> Export Carecell Data (JSON)</span>
+              <i class="fa-solid fa-download"></i>
+            </button>
+            <button class="btn-primary" style="background:rgba(245,158,11,0.15); color:#fde68a; border:1px solid rgba(245,158,11,0.3); font-size:0.8rem; padding:10px 14px; width:100%; display:flex; justify-content:space-between; align-items:center;" onclick="exportSongsBackup()">
+              <span><i class="fa-solid fa-music" style="margin-right:8px;"></i> Export Worship Songs Library (JSON)</span>
+              <i class="fa-solid fa-download"></i>
+            </button>
+          </div>
+          <div id="exportStatus" style="font-size:0.75rem; color:var(--accent-green); margin-top:10px; display:none;"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-wrap">
+              <div class="card-icon cyan"><i class="fa-solid fa-circle-nodes"></i></div>
+              <div>
+                <div class="card-title">Firebase Multi-Project Overview</div>
+                <div class="card-subtitle">Active configurations</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="font-size:0.8rem; color:var(--text-muted); line-height:1.6;">
+            <div style="margin-bottom:8px;">
+              <strong>App 1: Main Church Website & Sunday School</strong><br>
+              <code>bfgc-website.firebaseapp.com</code> (Spark Free Plan)
+            </div>
+            <div>
+              <strong>App 2: Carecell & Stage Presenter</strong><br>
+              <code>bfgc-carecell.firebaseapp.com</code> (Spark Free Plan)
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: SECURITY PIN -->
+    <section class="tab-pane" id="tab-security">
+      <div class="card" style="max-width: 500px; margin: 0 auto;">
+        <div class="card-header">
+          <div class="card-title-wrap">
+            <div class="card-icon"><i class="fa-solid fa-key"></i></div>
+            <div>
+              <div class="card-title">Change Master Developer PIN</div>
+              <div class="card-subtitle">Update your 4-digit security code</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Current PIN</label>
+          <input type="password" class="form-control" id="currentPinField" maxlength="4" placeholder="••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label">New 4-Digit PIN</label>
+          <input type="password" class="form-control" id="newPinField" maxlength="4" placeholder="••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New PIN</label>
+          <input type="password" class="form-control" id="confirmPinField" maxlength="4" placeholder="••••">
+        </div>
+        <div id="pinChangeError" style="font-size:0.78rem; color:var(--accent-red); margin-bottom:12px;"></div>
+
+        <button class="btn-primary" style="width:100%;" onclick="updateMasterPin()">
+          <i class="fa-solid fa-floppy-disk"></i> Update Security PIN
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Floating Save Bar -->
+  <div class="floating-save-bar" id="saveBar">
+    <div class="save-bar-text">
+      <i class="fa-solid fa-pen-ruler" style="color:var(--accent-cyan);"></i>
+      <span>Unsaved Changes</span>
+    </div>
+    <button class="btn-primary" onclick="saveAllChanges()">
+      <i class="fa-solid fa-cloud-arrow-up"></i> Save & Sync to Church Cloud
+    </button>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toastBox">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toastMsg">Changes saved successfully!</span>
+  </div>
+
+  <!-- Firebase Integration Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+    // 1. App: WEBSITE (Hub Config, SS settings)
+    const firebaseConfigWebsite = {
+      apiKey: "AIzaSyBwlAFcnTEMB6BR7ggxYE6zW-50DbWUhP8",
+      authDomain: "bfgc-website.firebaseapp.com",
+      projectId: "bfgc-website",
+      storageBucket: "bfgc-website.firebasestorage.app",
+      messagingSenderId: "547547229174",
+      appId: "1:547547229174:web:c5685fc38d342f97e3f5d7"
+    };
+    const appWebsite = initializeApp(firebaseConfigWebsite, "website");
+    const dbWebsite = getFirestore(appWebsite);
+
+    // 2. App: CARECELL (Presenter kill switch)
+    const firebaseConfigCarecell = {
+      apiKey: "AIzaSyBd_8BSq9RnIQNMJCEI9QUr2OOvjcuUe-Y",
+      authDomain: "bfgc-carecell.firebaseapp.com",
+      projectId: "bfgc-carecell",
+      storageBucket: "bfgc-carecell.firebasestorage.app",
+      messagingSenderId: "367487491092",
+      appId: "1:367487491092:web:754ecadcaa6527c6995b01"
+    };
+    const appCarecell = initializeApp(firebaseConfigCarecell, "carecell");
+    const dbCarecell = getFirestore(appCarecell);
+
+    // Document References
+    const hubDocRef = doc(dbWebsite, "system_config", "developer_hub");
+    const ssDocRef = doc(dbWebsite, "ss_settings", "system");
+    const carecellDocRef = doc(dbCarecell, "config", "status");
+
+    // Local State
+    let localConfig = {
+      features: {
+        camera_master: true,
+        camera_sundayservice: true,
+        camera_bible: true,
+        ai_bg_master: true,
+        ai_bg_sundayservice: true,
+        ai_bg_bible: true,
+        ai_preset: "fast",
+        video_bg_sundayservice: true,
+        image_bg_sundayservice: true,
+        project_slide_sundayservice: true,
+        media_reset_timestamp: 0
+      },
+      remote_slide_command: null,
+      disclaimers: {
+        sundayservice: { enabled: false, text: "This worship service is being live-streamed and recorded for church broadcast." },
+        sundayschool: { enabled: true, text: "If you face any issues please report to Developer Rahul immediately, especially while taking attendance, or contact using the Contact Us option." },
+        carecell: { enabled: false, text: "Carecell weekly Bible study materials are for registered church members." },
+        bible: { enabled: false, text: "Scripture references and reading plans for congregational worship." }
+      },
+      broadcast: {
+        enabled: false,
+        message: ""
+      },
+      emergency: {
+        blackout: false,
+        maintenance: false
+      },
+      pin: "7777"
+    };
+
+    let hasUnsaved = false;
+
+    // PIN Authentication
+    function checkPinSession() {
+      const auth = sessionStorage.getItem("bfgc_dev_auth");
+      const modal = document.getElementById("pinGateModal");
+      if (auth === "true") {
+        modal.style.display = "none";
+      } else {
+        modal.style.display = "flex";
+        setTimeout(() => document.getElementById("pinInput")?.focus(), 100);
+      }
+    }
+
+    window.verifyPin = function() {
+      const entered = document.getElementById("pinInput").value.trim();
+      const err = document.getElementById("pinError");
+      const currentPin = localConfig.pin || "7777";
+
+      if (entered === currentPin) {
+        sessionStorage.setItem("bfgc_dev_auth", "true");
+        document.getElementById("pinGateModal").style.display = "none";
+        showToast("Unlocked Developer Hub", "success");
+      } else {
+        err.textContent = "Invalid Developer PIN. Please try again.";
+        document.getElementById("pinInput").value = "";
+        document.getElementById("pinInput").focus();
+      }
+    };
+
+    window.lockSession = function() {
+      sessionStorage.removeItem("bfgc_dev_auth");
+      document.getElementById("pinInput").value = "";
+      document.getElementById("pinGateModal").style.display = "flex";
+      showToast("Developer Session Locked", "success");
+    };
+
+    document.getElementById("pinInput")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") window.verifyPin();
+    });
+
+    // Tab Navigation
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        const target = btn.dataset.tab;
+        document.getElementById(`tab-${target}`)?.classList.add("active");
+      });
+    });
+
+    // Cloud Listener: Master Developer Hub Config
+    onSnapshot(hubDocRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        localConfig = {
+          features: { ...localConfig.features, ...(data.features || {}) },
+          disclaimers: { ...localConfig.disclaimers, ...(data.disclaimers || {}) },
+          broadcast: { ...localConfig.broadcast, ...(data.broadcast || {}) },
+          emergency: { ...localConfig.emergency, ...(data.emergency || {}) },
+          pin: data.pin || localConfig.pin
         };
-        const appCarecell = initializeApp(firebaseConfigCarecell, "carecell");
-        const dbCarecell = getFirestore(appCarecell);
-        
-        const toggle = document.getElementById('crashToggle');
-        const statusText = document.getElementById('statusText');
-        const docRefCarecell = doc(dbCarecell, "config", "status");
+        populateUI();
+      } else {
+        // First run: save defaults
+        saveAllChanges(false);
+      }
+    });
 
-        onSnapshot(docRefCarecell, (docSnap) => {
-            if (docSnap.exists()) {
-                const isCrashed = docSnap.data().is_crashed;
-                toggle.checked = isCrashed;
-                if (isCrashed) {
-                    statusText.textContent = "Presenter is CRASHED";
-                    statusText.classList.add('crashed');
-                } else {
-                    statusText.textContent = "Presenter is Online";
-                    statusText.classList.remove('crashed');
-                }
-            } else {
-                statusText.textContent = "Presenter is Online";
-            }
-        });
+    // Cloud Listener: Sunday School Kill Switch
+    onSnapshot(ssDocRef, (snap) => {
+      const toggle = document.getElementById("killSwitchSundaySchool");
+      const lbl = document.getElementById("lblSundaySchoolStatus");
+      if (snap.exists() && snap.data().is_crashed) {
+        if (toggle) toggle.checked = true;
+        if (lbl) { lbl.textContent = "Sunday School is LOCKED (Kill Switch Active)"; lbl.style.color = "var(--accent-red)"; }
+      } else {
+        if (toggle) toggle.checked = false;
+        if (lbl) { lbl.textContent = "Online & Active"; lbl.style.color = "var(--accent-green)"; }
+      }
+    });
 
-        toggle.addEventListener('change', async (e) => {
-            const isCrashed = e.target.checked;
-            statusText.textContent = "Updating...";
-            await setDoc(docRefCarecell, { is_crashed: isCrashed }, { merge: true });
-        });
+    // Cloud Listener: Carecell Presenter Kill Switch
+    onSnapshot(carecellDocRef, (snap) => {
+      const toggle = document.getElementById("killSwitchPresenter");
+      const lbl = document.getElementById("lblPresenterStatus");
+      if (snap.exists() && snap.data().is_crashed) {
+        if (toggle) toggle.checked = true;
+        if (lbl) { lbl.textContent = "Presenter is CRASHED (Kill Switch Active)"; lbl.style.color = "var(--accent-red)"; }
+      } else {
+        if (toggle) toggle.checked = false;
+        if (lbl) { lbl.textContent = "Online & Active"; lbl.style.color = "var(--accent-green)"; }
+      }
+    });
 
-        // APP 2: WEBSITE (Sunday School)
-        const firebaseConfigWebsite = {
-          apiKey: "AIzaSyBwlAFcnTEMB6BR7ggxYE6zW-50DbWUhP8",
-          authDomain: "bfgc-website.firebaseapp.com",
-          projectId: "bfgc-website",
-          storageBucket: "bfgc-website.firebasestorage.app",
-          messagingSenderId: "547547229174",
-          appId: "1:547547229174:web:c5685fc38d342f97e3f5d7"
+    function populateUI() {
+      // Features
+      document.getElementById("flagCameraMaster").checked = !!localConfig.features.camera_master;
+      document.getElementById("flagCameraSundayService").checked = !!localConfig.features.camera_sundayservice;
+      document.getElementById("flagCameraBible").checked = !!localConfig.features.camera_bible;
+      document.getElementById("flagAiBgMaster").checked = !!localConfig.features.ai_bg_master;
+      document.getElementById("flagAiBgSundayService").checked = !!localConfig.features.ai_bg_sundayservice;
+      document.getElementById("flagAiBgBible").checked = !!localConfig.features.ai_bg_bible;
+      document.getElementById("flagProjectSlideSundayService").checked = localConfig.features.project_slide_sundayservice !== false;
+      document.getElementById("flagVideoBgSundayService").checked = localConfig.features.video_bg_sundayservice !== false;
+      document.getElementById("flagImageBgSundayService").checked = localConfig.features.image_bg_sundayservice !== false;
+
+      const preset = localConfig.features.ai_preset || "fast";
+      document.getElementById("btnPresetFast").classList.toggle("active", preset === "fast");
+      document.getElementById("btnPresetHQ").classList.toggle("active", preset === "hq");
+
+      // Disclaimers
+      document.getElementById("discSundayServiceActive").checked = !!localConfig.disclaimers.sundayservice?.enabled;
+      document.getElementById("discSundayServiceText").value = localConfig.disclaimers.sundayservice?.text || "";
+
+      document.getElementById("discSundaySchoolActive").checked = !!localConfig.disclaimers.sundayschool?.enabled;
+      document.getElementById("discSundaySchoolText").value = localConfig.disclaimers.sundayschool?.text || "";
+
+      document.getElementById("discCarecellActive").checked = !!localConfig.disclaimers.carecell?.enabled;
+      document.getElementById("discCarecellText").value = localConfig.disclaimers.carecell?.text || "";
+
+      document.getElementById("discBibleActive").checked = !!localConfig.disclaimers.bible?.enabled;
+      document.getElementById("discBibleText").value = localConfig.disclaimers.bible?.text || "";
+
+      // Broadcast
+      document.getElementById("broadcastActive").checked = !!localConfig.broadcast?.enabled;
+      document.getElementById("broadcastMessage").value = localConfig.broadcast?.message || "";
+
+      // Emergency
+      document.getElementById("flagEmergencyBlackout").checked = !!localConfig.emergency?.blackout;
+      document.getElementById("flagMaintenanceMode").checked = !!localConfig.emergency?.maintenance;
+
+      hideSaveBar();
+    }
+
+    window.markUnsaved = function() {
+      hasUnsaved = true;
+      document.getElementById("saveBar").classList.add("visible");
+    };
+
+    function hideSaveBar() {
+      hasUnsaved = false;
+      document.getElementById("saveBar").classList.remove("visible");
+    }
+
+    window.setAiPreset = function(preset) {
+      localConfig.features.ai_preset = preset;
+      document.getElementById("btnPresetFast").classList.toggle("active", preset === "fast");
+      document.getElementById("btnPresetHQ").classList.toggle("active", preset === "hq");
+      markUnsaved();
+    };
+
+    window.sendSlideCommand = async function(action) {
+      const cmd = {
+        action: action,
+        timestamp: Date.now()
+      };
+      localConfig.remote_slide_command = cmd;
+      try {
+        await setDoc(hubDocRef, {
+          remote_slide_command: cmd,
+          updated_at: new Date().toISOString(),
+          updated_by: "Rahul (Developer)"
+        }, { merge: true });
+
+        try {
+          localStorage.setItem('bfgc_remote_slide_cmd', JSON.stringify(cmd));
+        } catch(e) {}
+
+        const labels = {
+          project: "Project Slide command dispatched!",
+          next: "Next Slide command dispatched!",
+          prev: "Previous Slide command dispatched!",
+          black: "Black Screen toggle dispatched!",
+          clear: "Clear Slide lyrics dispatched!"
         };
-        const appWebsite = initializeApp(firebaseConfigWebsite, "website");
-        const dbWebsite = getFirestore(appWebsite);
+        showToast(labels[action] || "Slide command sent!", "success");
+      } catch(err) {
+        console.error("Failed to send slide command:", err);
+        showToast("Error sending slide command: " + err.message, "error");
+      }
+    };
 
-        const ssToggle = document.getElementById('ssCrashToggle');
-        const ssStatusText = document.getElementById('ssStatusText');
-        const docRefWebsite = doc(dbWebsite, "ss_settings", "system");
+    window.forceResetPresenterMedia = async function() {
+      if (!confirm("Reset all active video and image backgrounds on Sunday Service screens back to solid black?")) {
+        return;
+      }
+      localConfig.features.media_reset_timestamp = Date.now();
+      await saveAllChanges(false);
+      showToast("Live Presenter Media Reset Signal Sent!", "success");
+    };
 
-        onSnapshot(docRefWebsite, (docSnap) => {
-            if (docSnap.exists()) {
-                const isCrashed = docSnap.data().is_crashed;
-                ssToggle.checked = isCrashed;
-                if (isCrashed) {
-                    ssStatusText.textContent = "Sunday School is CRASHED";
-                    ssStatusText.classList.add('crashed');
-                } else {
-                    ssStatusText.textContent = "Sunday School is Online";
-                    ssStatusText.classList.remove('crashed');
-                }
-            } else {
-                ssStatusText.textContent = "Sunday School is Online";
-            }
-        });
+    window.saveAllChanges = async function(showFeedback = true) {
+      // Gather UI values
+      localConfig.features.camera_master = document.getElementById("flagCameraMaster").checked;
+      localConfig.features.camera_sundayservice = document.getElementById("flagCameraSundayService").checked;
+      localConfig.features.camera_bible = document.getElementById("flagCameraBible").checked;
+      localConfig.features.ai_bg_master = document.getElementById("flagAiBgMaster").checked;
+      localConfig.features.ai_bg_sundayservice = document.getElementById("flagAiBgSundayService").checked;
+      localConfig.features.ai_bg_bible = document.getElementById("flagAiBgBible").checked;
+      localConfig.features.project_slide_sundayservice = document.getElementById("flagProjectSlideSundayService").checked;
+      localConfig.features.video_bg_sundayservice = document.getElementById("flagVideoBgSundayService").checked;
+      localConfig.features.image_bg_sundayservice = document.getElementById("flagImageBgSundayService").checked;
 
-        ssToggle.addEventListener('change', async (e) => {
-            const isCrashed = e.target.checked;
-            ssStatusText.textContent = "Updating...";
-            await setDoc(docRefWebsite, { is_crashed: isCrashed }, { merge: true });
-        });
-    </script>
+      localConfig.disclaimers.sundayservice = {
+        enabled: document.getElementById("discSundayServiceActive").checked,
+        text: document.getElementById("discSundayServiceText").value.trim()
+      };
+      localConfig.disclaimers.sundayschool = {
+        enabled: document.getElementById("discSundaySchoolActive").checked,
+        text: document.getElementById("discSundaySchoolText").value.trim()
+      };
+      localConfig.disclaimers.carecell = {
+        enabled: document.getElementById("discCarecellActive").checked,
+        text: document.getElementById("discCarecellText").value.trim()
+      };
+      localConfig.disclaimers.bible = {
+        enabled: document.getElementById("discBibleActive").checked,
+        text: document.getElementById("discBibleText").value.trim()
+      };
+
+      localConfig.broadcast = {
+        enabled: document.getElementById("broadcastActive").checked,
+        message: document.getElementById("broadcastMessage").value.trim()
+      };
+
+      localConfig.emergency.blackout = document.getElementById("flagEmergencyBlackout").checked;
+      localConfig.emergency.maintenance = document.getElementById("flagMaintenanceMode").checked;
+
+      try {
+        await setDoc(hubDocRef, {
+          ...localConfig,
+          updated_at: new Date().toISOString(),
+          updated_by: "Rahul (Developer)"
+        }, { merge: true });
+
+        // Also sync Carecell disclaimer to Carecell cloud database
+        if (localConfig.disclaimers && localConfig.disclaimers.carecell) {
+          try {
+            await setDoc(doc(dbCarecell, "config", "disclaimer"), {
+              ...localConfig.disclaimers.carecell,
+              updated_at: new Date().toISOString()
+            }, { merge: true });
+          } catch(ce) {
+            console.warn("Carecell disclaimer sync warning:", ce);
+          }
+        }
+
+        hideSaveBar();
+        if (showFeedback) showToast("All changes synced to Church Cloud!", "success");
+      } catch (err) {
+        console.error("Save failed:", err);
+        showToast("Error saving changes: " + err.message, "error");
+      }
+    };
+
+    // Kill Switches Immediate Handlers
+    window.onPresenterKillChange = async function(isCrashed) {
+      try {
+        await setDoc(carecellDocRef, { is_crashed: isCrashed }, { merge: true });
+        showToast(isCrashed ? "Presenter has been CRASHED" : "Presenter restored Online", "success");
+      } catch (e) {
+        showToast("Error updating presenter kill switch: " + e.message, "error");
+      }
+    };
+
+    window.onSundaySchoolKillChange = async function(isCrashed) {
+      try {
+        await setDoc(ssDocRef, { is_crashed: isCrashed }, { merge: true });
+        showToast(isCrashed ? "Sunday School has been LOCKED" : "Sunday School restored Online", "success");
+      } catch (e) {
+        showToast("Error updating Sunday School kill switch: " + e.message, "error");
+      }
+    };
+
+    // PIN Change
+    window.updateMasterPin = async function() {
+      const cur = document.getElementById("currentPinField").value.trim();
+      const n1 = document.getElementById("newPinField").value.trim();
+      const n2 = document.getElementById("confirmPinField").value.trim();
+      const err = document.getElementById("pinChangeError");
+
+      if (cur !== (localConfig.pin || "7777")) {
+        err.textContent = "Current PIN is incorrect.";
+        return;
+      }
+      if (!n1 || n1.length !== 4 || isNaN(n1)) {
+        err.textContent = "New PIN must be exactly 4 digits.";
+        return;
+      }
+      if (n1 !== n2) {
+        err.textContent = "New PINs do not match.";
+        return;
+      }
+
+      err.textContent = "";
+      localConfig.pin = n1;
+      await saveAllChanges(false);
+
+      document.getElementById("currentPinField").value = "";
+      document.getElementById("newPinField").value = "";
+      document.getElementById("confirmPinField").value = "";
+      showToast("Master Security PIN Updated Successfully!", "success");
+    };
+
+    // =========================================================================
+    // 1-CLICK JSON BACKUP EXPORTER (Zero Cost Local Safety Snapshots)
+    // =========================================================================
+    function triggerDownload(filename, dataObj) {
+      const blob = new Blob([JSON.stringify(dataObj, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    window.exportSundaySchoolBackup = async function() {
+      const statusEl = document.getElementById("exportStatus");
+      if (statusEl) { statusEl.textContent = "⏳ Fetching Sunday School records..."; statusEl.style.display = "block"; }
+      showToast("Starting Sunday School export...", "info");
+
+      try {
+        const backup = {
+          export_timestamp: new Date().toISOString(),
+          source: "bfgc-website",
+          ss_students: [],
+          ss_classes: [],
+          ss_attendance_records: [],
+          ss_schedules: []
+        };
+
+        const [stSnap, clSnap, attSnap, schSnap] = await Promise.all([
+          getDocs(collection(dbWebsite, "ss_students")),
+          getDocs(collection(dbWebsite, "ss_classes")),
+          getDocs(collection(dbWebsite, "ss_attendance_records")),
+          getDocs(collection(dbWebsite, "ss_schedules"))
+        ]);
+
+        stSnap.forEach(d => backup.ss_students.push({ id: d.id, ...d.data() }));
+        clSnap.forEach(d => backup.ss_classes.push({ id: d.id, ...d.data() }));
+        attSnap.forEach(d => backup.ss_attendance_records.push({ id: d.id, ...d.data() }));
+        schSnap.forEach(d => backup.ss_schedules.push({ id: d.id, ...d.data() }));
+
+        const today = new Date().toISOString().split("T")[0];
+        triggerDownload(`bfgc-sundayschool-backup-${today}.json`, backup);
+
+        if (statusEl) statusEl.textContent = `✅ Saved ${backup.ss_students.length} students & ${backup.ss_attendance_records.length} attendance records.`;
+        showToast("Sunday School backup downloaded successfully!", "success");
+      } catch(e) {
+        console.error(e);
+        if (statusEl) statusEl.textContent = "❌ Export failed: " + e.message;
+        showToast("Export failed: " + e.message, "error");
+      }
+    };
+
+    window.exportCarecellBackup = async function() {
+      const statusEl = document.getElementById("exportStatus");
+      if (statusEl) { statusEl.textContent = "⏳ Fetching Carecell records..."; statusEl.style.display = "block"; }
+      showToast("Starting Carecell export...", "info");
+
+      try {
+        const backup = {
+          export_timestamp: new Date().toISOString(),
+          source: "bfgc-carecell",
+          cc_members: [],
+          cc_carecells: [],
+          cc_attendance_records: [],
+          cc_schedules: []
+        };
+
+        const [mSnap, cSnap, attSnap, schSnap] = await Promise.all([
+          getDocs(collection(dbCarecell, "cc_members")),
+          getDocs(collection(dbCarecell, "cc_carecells")),
+          getDocs(collection(dbCarecell, "cc_attendance_records")),
+          getDocs(collection(dbCarecell, "cc_schedules"))
+        ]);
+
+        mSnap.forEach(d => backup.cc_members.push({ id: d.id, ...d.data() }));
+        cSnap.forEach(d => backup.cc_carecells.push({ id: d.id, ...d.data() }));
+        attSnap.forEach(d => backup.cc_attendance_records.push({ id: d.id, ...d.data() }));
+        schSnap.forEach(d => backup.cc_schedules.push({ id: d.id, ...d.data() }));
+
+        const today = new Date().toISOString().split("T")[0];
+        triggerDownload(`bfgc-carecell-backup-${today}.json`, backup);
+
+        if (statusEl) statusEl.textContent = `✅ Saved ${backup.cc_members.length} members & ${backup.cc_carecells.length} carecells.`;
+        showToast("Carecell backup downloaded successfully!", "success");
+      } catch(e) {
+        console.error(e);
+        if (statusEl) statusEl.textContent = "❌ Export failed: " + e.message;
+        showToast("Export failed: " + e.message, "error");
+      }
+    };
+
+    window.exportSongsBackup = async function() {
+      const statusEl = document.getElementById("exportStatus");
+      if (statusEl) { statusEl.textContent = "⏳ Fetching Worship Songs Library..."; statusEl.style.display = "block"; }
+      showToast("Starting Worship Songs export...", "info");
+
+      try {
+        const backup = {
+          export_timestamp: new Date().toISOString(),
+          source: "bfgc-website",
+          songs: []
+        };
+
+        const songsSnap = await getDocs(collection(dbWebsite, "songs"));
+        songsSnap.forEach(d => backup.songs.push({ id: d.id, ...d.data() }));
+
+        const today = new Date().toISOString().split("T")[0];
+        triggerDownload(`bfgc-songs-backup-${today}.json`, backup);
+
+        if (statusEl) statusEl.textContent = `✅ Saved ${backup.songs.length} worship songs.`;
+        showToast(`Downloaded ${backup.songs.length} songs successfully!`, "success");
+      } catch(e) {
+        console.error(e);
+        if (statusEl) statusEl.textContent = "❌ Export failed: " + e.message;
+        showToast("Export failed: " + e.message, "error");
+      }
+    };
+
+    // Toast Utility
+    function showToast(msg, type = "success") {
+      const box = document.getElementById("toastBox");
+      const txt = document.getElementById("toastMsg");
+      txt.textContent = msg;
+      box.className = `toast ${type} show`;
+      setTimeout(() => box.classList.remove("show"), 3500);
+    }
+
+    // Startup
+    checkPinSession();
+  </script>
 </body>
 </html>
