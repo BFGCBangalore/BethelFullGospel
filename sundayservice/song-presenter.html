@@ -450,9 +450,28 @@
   border-right: 2px solid white;
   border-bottom: 2px solid white;
 }
+@keyframes presenterMarquee {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}
 </style>
 </head>
 <body>
+    <!-- Developer Emergency Blackout Overlay -->
+    <div id="blackout-overlay" style="display:none; position:fixed; inset:0; background:#000000; z-index:999999; pointer-events:none;"></div>
+
+    <!-- Live Urgent Announcement Ticker -->
+    <div id="presenter-ticker-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; height:46px; background:rgba(0,0,0,0.88); border-top:2px solid #f59e0b; color:#fff; z-index:99999; overflow:hidden; font-family:'Inter', sans-serif;">
+        <div style="height:100%; display:flex; align-items:center;">
+            <div style="background:#f59e0b; color:#000; font-weight:800; font-size:12px; padding:0 14px; height:100%; display:flex; align-items:center; text-transform:uppercase; letter-spacing:0.8px; flex-shrink:0;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-right:6px;"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg> Announcement
+            </div>
+            <div style="flex:1; overflow:hidden; white-space:nowrap; position:relative;">
+                <div id="presenter-ticker-text" style="display:inline-block; padding-left:100%; animation:presenterMarquee 25s linear infinite; font-size:16px; font-weight:600; color:#ffffff;"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Blank screen overlay -->
     <div class="blank-overlay" id="blankOverlay"></div>
 
@@ -602,6 +621,20 @@
 
         /* ── Render lyrics ── */
         function renderPresenter(state) {
+            let projAllowed = true;
+            try {
+                const raw = localStorage.getItem('bfgc_hub_config');
+                if (raw) {
+                    const cfg = JSON.parse(raw);
+                    if (cfg.features && cfg.features.project_slide_sundayservice === false) {
+                        projAllowed = false;
+                    }
+                }
+            } catch(e) {}
+
+            if (!projAllowed) {
+                state = null;
+            }
 
             if (!state) {
                 // No data — show waiting
@@ -980,6 +1013,27 @@
     function checkBgVideoStatus() {
       const bgVid = document.getElementById('presenterBgVideo');
       if (!bgVid) return;
+
+      // Check Developer Hub permission
+      let devAllowed = true;
+      try {
+        const raw = localStorage.getItem('bfgc_hub_config');
+        if (raw) {
+          const cfg = JSON.parse(raw);
+          if (cfg.features && cfg.features.video_bg_sundayservice === false) {
+            devAllowed = false;
+          }
+        }
+      } catch(e) {}
+
+      if (!devAllowed) {
+        bgVid.pause();
+        bgVid.removeAttribute('src');
+        bgVid.load();
+        bgVid.style.display = 'none';
+        return;
+      }
+
       let active = false;
       let videoUrl = '';
       const statusStr = localStorage.getItem('local_bg_video_status');
@@ -1011,6 +1065,25 @@
     function checkBgImageStatus() {
       const bgImg = document.getElementById('presenterBgImage');
       if (!bgImg) return;
+
+      // Check Developer Hub permission
+      let devAllowed = true;
+      try {
+        const raw = localStorage.getItem('bfgc_hub_config');
+        if (raw) {
+          const cfg = JSON.parse(raw);
+          if (cfg.features && cfg.features.image_bg_sundayservice === false) {
+            devAllowed = false;
+          }
+        }
+      } catch(e) {}
+
+      if (!devAllowed) {
+        bgImg.removeAttribute('src');
+        bgImg.style.display = 'none';
+        return;
+      }
+
       let active = false;
       let imageUrl = '';
       const statusStr = localStorage.getItem('local_bg_image_status');
@@ -1038,8 +1111,64 @@
 
     checkBgVideoStatus();
     checkBgImageStatus();
+    checkDeveloperHubStatus();
+
+    function checkDeveloperHubStatus() {
+      try {
+        const raw = localStorage.getItem('bfgc_hub_config');
+        const blackoutEl = document.getElementById('blackout-overlay');
+        const tickerEl = document.getElementById('presenter-ticker-banner');
+        const tickerText = document.getElementById('presenter-ticker-text');
+        if (!raw) {
+          if (blackoutEl) blackoutEl.style.display = 'none';
+          if (tickerEl) tickerEl.style.display = 'none';
+          return;
+        }
+        const cfg = JSON.parse(raw);
+        if (blackoutEl) {
+          blackoutEl.style.display = (cfg.emergency && cfg.emergency.blackout) ? 'block' : 'none';
+        }
+        if (tickerEl && tickerText) {
+          if (cfg.broadcast && cfg.broadcast.enabled && cfg.broadcast.message) {
+            tickerText.textContent = cfg.broadcast.message;
+            tickerEl.style.display = 'block';
+          } else {
+            tickerEl.style.display = 'none';
+          }
+        }
+
+        // Media Reset Signal
+        if (cfg.features && cfg.features.media_reset_timestamp) {
+          const resetTs = Number(cfg.features.media_reset_timestamp) || 0;
+          if (resetTs > (window.lastMediaResetTimestamp || 0)) {
+            window.lastMediaResetTimestamp = resetTs;
+            localStorage.removeItem('local_bg_video_status');
+            localStorage.removeItem('local_bg_image_status');
+            const bgVid = document.getElementById('presenterBgVideo');
+            if (bgVid) { bgVid.pause(); bgVid.removeAttribute('src'); bgVid.load(); bgVid.style.display = 'none'; }
+            const bgImg = document.getElementById('presenterBgImage');
+            if (bgImg) { bgImg.removeAttribute('src'); bgImg.style.display = 'none'; }
+          }
+        }
+
+        // Check slide projection permission
+        if (cfg.features && cfg.features.project_slide_sundayservice === false) {
+          if (lyricsContent) lyricsContent.innerHTML = '';
+          if (slideLabel) { slideLabel.classList.remove('visible'); slideLabel.textContent = ''; }
+          if (songTitleText) songTitleText.textContent = '';
+          if (waitingMessage) waitingMessage.classList.add('visible');
+        }
+
+        // Re-check background media permissions under updated feature flags
+        checkBgVideoStatus();
+        checkBgImageStatus();
+      } catch(e) {}
+    }
 
     window.addEventListener('storage', (e) => {
+      if (e.key === 'bfgc_hub_config' || e.key === null) {
+        checkDeveloperHubStatus();
+      }
       if (e.key === 'droidcam_status') {
         checkCameraStatus();
       }

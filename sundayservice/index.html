@@ -1242,6 +1242,15 @@
         </div>
       </div>
 
+      <!-- Sunday Service In-App Disclaimer Banner -->
+      <div id="ss-disclaimer-banner" style="display:none; margin: 12px 20px 0 20px; padding: 10px 16px; background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(217,119,6,0.06)); border: 1.5px solid rgba(245,158,11,0.35); border-radius: 12px; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: #f59e0b; box-shadow: 0 4px 14px rgba(245,158,11,0.06);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="background:#f59e0b; color:#000; font-size:10px; font-weight:800; padding:2px 7px; border-radius:5px; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:4px;"><i class="ti ti-alert-triangle-filled"></i> Notice</span>
+          <span id="ss-disclaimer-text" style="line-height: 1.4; color: var(--color-text-primary); font-weight: 500;"></span>
+        </div>
+        <button type="button" onclick="dismissSsDisclaimer()" style="background: rgba(245,158,11,0.15); border: none; color: #f59e0b; cursor: pointer; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.15s;" title="Dismiss Disclaimer" aria-label="Dismiss"><i class="ti ti-x"></i></button>
+      </div>
+
       <div class="content">
         <!-- VIEW: Song Library -->
         <div id="view-library" class="view-section padded-view active">
@@ -1834,7 +1843,7 @@
     // ------------------------
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
     // Firebase Init
     const app = initializeApp({
@@ -1848,6 +1857,236 @@
     });
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // ========================================================
+    // DEVELOPER CONTROL HUB REAL-TIME CLIENT INTEGRATION
+    // ========================================================
+    try {
+      const hubRef = doc(db, "system_config", "developer_hub");
+      onSnapshot(hubRef, (snap) => {
+        if (snap.exists()) {
+          applyDeveloperHubConfig(snap.data());
+        }
+      }, (err) => console.warn("Developer Hub listener warning:", err));
+    } catch(e) {
+      console.warn("Could not attach Developer Hub listener:", e);
+    }
+
+    let lastSsDisclaimerText = '';
+    window.applyDeveloperHubConfig = function(config) {
+      if (!config) return;
+      window.bfgcDevConfig = config;
+
+      // 1. Camera Master & Sunday Service Camera Feature Flag
+      const camAllowed = (config.features?.camera_master !== false) && (config.features?.camera_sundayservice !== false);
+      const camTabs = [document.getElementById('tab-live-camera'), document.getElementById('tab-quick-camera')];
+      camTabs.forEach(t => {
+        if (t) t.style.display = camAllowed ? '' : 'none';
+      });
+      if (!camAllowed) {
+        const liveCamTab = document.getElementById('tab-live-camera');
+        if (liveCamTab && liveCamTab.classList.contains('active') && typeof switchSidebarTab === 'function') {
+          switchSidebarTab('live', 'slides');
+        }
+        const quickCamTab = document.getElementById('tab-quick-camera');
+        if (quickCamTab && quickCamTab.classList.contains('active') && typeof switchSidebarTab === 'function') {
+          switchSidebarTab('quick', 'slides');
+        }
+        if (window.camActive && typeof stopLocalCam === 'function') {
+          stopLocalCam();
+        }
+      }
+
+      // 2. AI Background Removal Feature Flag
+      const aiAllowed = camAllowed && (config.features?.ai_bg_master !== false) && (config.features?.ai_bg_sundayservice !== false);
+      document.querySelectorAll('.ai-bg-panel').forEach(p => {
+        p.style.display = aiAllowed ? '' : 'none';
+      });
+      if (!aiAllowed && window.aiBgActive && typeof window.setAiBgActive === 'function') {
+        window.setAiBgActive(false);
+      }
+
+      // 3. AI Performance Engine Preset (fast vs hq)
+      if (config.features?.ai_preset) {
+        window.aiModelPreset = config.features.ai_preset;
+        if (window.selfieSegmentation) {
+          try {
+            window.selfieSegmentation.setOptions({
+              modelSelection: config.features.ai_preset === 'hq' ? 1 : 0
+            });
+          } catch(e) {}
+        }
+      }
+
+      // 4. Video & Image Background Feature Flags (Sunday Service)
+      const videoAllowed = config.features?.video_bg_sundayservice !== false;
+      const imageAllowed = config.features?.image_bg_sundayservice !== false;
+
+      const quickVideoBtn = document.getElementById('quick-fmt-bg-video');
+      const quickVideoClearBtn = document.getElementById('quick-fmt-bg-video-clear');
+      if (quickVideoBtn) {
+        quickVideoBtn.style.display = videoAllowed ? '' : 'none';
+      }
+      if (!videoAllowed) {
+        if (quickVideoClearBtn) quickVideoClearBtn.style.display = 'none';
+        if (typeof window.clearQuickBgVideo === 'function') {
+          window.clearQuickBgVideo(false);
+        } else if (typeof clearQuickBgVideo === 'function') {
+          clearQuickBgVideo(false);
+        }
+      }
+
+      const quickImageBtn = document.getElementById('quick-fmt-bg-image');
+      const quickImageClearBtn = document.getElementById('quick-fmt-bg-image-clear');
+      if (quickImageBtn) {
+        quickImageBtn.style.display = imageAllowed ? '' : 'none';
+      }
+      if (!imageAllowed) {
+        if (quickImageClearBtn) quickImageClearBtn.style.display = 'none';
+        if (typeof window.clearQuickBgImage === 'function') {
+          window.clearQuickBgImage(false);
+        } else if (typeof clearQuickBgImage === 'function') {
+          clearQuickBgImage(false);
+        }
+      }
+
+      // Media Reset Signal from Developer Hub
+      if (config.features?.media_reset_timestamp) {
+        const resetTs = Number(config.features.media_reset_timestamp) || 0;
+        if (resetTs > (window.lastMediaResetTimestamp || 0)) {
+          window.lastMediaResetTimestamp = resetTs;
+          if (typeof window.clearQuickBgVideo === 'function') window.clearQuickBgVideo(false);
+          else if (typeof clearQuickBgVideo === 'function') clearQuickBgVideo(false);
+
+          if (typeof window.clearQuickBgImage === 'function') window.clearQuickBgImage(false);
+          else if (typeof clearQuickBgImage === 'function') clearQuickBgImage(false);
+        }
+      }
+
+      // 5. Slide Projection Feature Flag & Remote Commands
+      const projectSlideAllowed = config.features?.project_slide_sundayservice !== false;
+      const btnQuickProject = document.getElementById('btn-quick-project');
+      if (btnQuickProject) {
+        if (!projectSlideAllowed) {
+          btnQuickProject.style.opacity = '0.45';
+          btnQuickProject.style.cursor = 'not-allowed';
+          btnQuickProject.title = 'Slide projection is disabled by Developer Hub';
+        } else {
+          btnQuickProject.style.opacity = '';
+          btnQuickProject.style.cursor = '';
+          btnQuickProject.title = 'Project Slide';
+        }
+      }
+      if (!projectSlideAllowed) {
+        localStorage.removeItem('song_presenter_state');
+        localStorage.removeItem('stage_display_state');
+        quickLiveSlideIndex = null;
+        if (typeof renderQuickSidebar === 'function') renderQuickSidebar();
+      }
+
+      // Remote Slide Command
+      if (config.remote_slide_command && config.remote_slide_command.timestamp) {
+        const cmdTs = Number(config.remote_slide_command.timestamp) || 0;
+        if (cmdTs > (window.lastRemoteSlideCmdTimestamp || 0)) {
+          window.lastRemoteSlideCmdTimestamp = cmdTs;
+          if (typeof window.handleRemoteSlideCommand === 'function') {
+            window.handleRemoteSlideCommand(config.remote_slide_command.action);
+          }
+        }
+      }
+
+      // 6. Sunday Service Disclaimer
+      const ssDisc = config.disclaimers?.sundayservice;
+      const banner = document.getElementById('ss-disclaimer-banner');
+      const bannerText = document.getElementById('ss-disclaimer-text');
+      if (banner && bannerText) {
+        if (ssDisc && ssDisc.enabled && ssDisc.text) {
+          if (ssDisc.text !== lastSsDisclaimerText) {
+            sessionStorage.removeItem('ss_disclaimer_dismissed');
+            lastSsDisclaimerText = ssDisc.text;
+          }
+          const isDismissed = sessionStorage.getItem('ss_disclaimer_dismissed') === 'true';
+          if (!isDismissed) {
+            bannerText.textContent = ssDisc.text;
+            banner.style.display = 'flex';
+          } else {
+            banner.style.display = 'none';
+          }
+        } else {
+          banner.style.display = 'none';
+        }
+      }
+
+      // 7. Broadcast to local storage for song presenter screens
+      try {
+        localStorage.setItem('bfgc_hub_config', JSON.stringify({
+          broadcast: config.broadcast || null,
+          emergency: config.emergency || null,
+          features: config.features || null
+        }));
+      } catch(e) {}
+    };
+
+    window.handleRemoteSlideCommand = function(action) {
+      if (window.bfgcDevConfig && window.bfgcDevConfig.features && window.bfgcDevConfig.features.project_slide_sundayservice === false && action === 'project') {
+        showToast('Slide projection is disabled by Developer Hub', 'warning');
+        return;
+      }
+      switch (action) {
+        case 'project':
+          const projBtn = document.getElementById('btn-quick-project');
+          if (projBtn) projBtn.click();
+          break;
+        case 'next':
+          const qNext = document.getElementById('quick-btn-next');
+          const lNext = document.getElementById('btn-next');
+          if (qNext && qNext.offsetParent) qNext.click();
+          else if (lNext && lNext.offsetParent) lNext.click();
+          else if (qNext) qNext.click();
+          break;
+        case 'prev':
+          const qPrev = document.getElementById('quick-btn-prev');
+          const lPrev = document.getElementById('btn-prev');
+          if (qPrev && qPrev.offsetParent) qPrev.click();
+          else if (lPrev && lPrev.offsetParent) lPrev.click();
+          else if (qPrev) qPrev.click();
+          break;
+        case 'black':
+          const qBlack = document.getElementById('quick-btn-black');
+          const lBlack = document.getElementById('btn-black');
+          if (qBlack && qBlack.offsetParent) qBlack.click();
+          else if (lBlack && lBlack.offsetParent) lBlack.click();
+          else if (qBlack) qBlack.click();
+          break;
+        case 'clear':
+          localStorage.removeItem('song_presenter_state');
+          localStorage.removeItem('stage_display_state');
+          quickLiveSlideIndex = null;
+          if (typeof renderQuickSidebar === 'function') renderQuickSidebar();
+          showToast('Projected lyrics cleared via Developer Hub', 'info');
+          break;
+      }
+    };
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'bfgc_remote_slide_cmd' && e.newValue) {
+        try {
+          const cmd = JSON.parse(e.newValue);
+          if (cmd && cmd.timestamp > (window.lastRemoteSlideCmdTimestamp || 0)) {
+            window.lastRemoteSlideCmdTimestamp = cmd.timestamp;
+            if (typeof window.handleRemoteSlideCommand === 'function') {
+              window.handleRemoteSlideCommand(cmd.action);
+            }
+          }
+        } catch(err) {}
+      }
+    });
+
+    window.dismissSsDisclaimer = function() {
+      sessionStorage.setItem('ss_disclaimer_dismissed', 'true');
+      const banner = document.getElementById('ss-disclaimer-banner');
+      if (banner) banner.style.display = 'none';
+    };
 
     // Clear presenter state on load so it starts empty
     localStorage.removeItem('song_presenter_state');
@@ -4042,12 +4281,18 @@
       if (notify) showToast('Video removed. Switched back to solid background.', 'info');
     }
 
+    window.clearQuickBgVideo = clearQuickBgVideo;
+
     const quickBgVideoBtn = document.getElementById('quick-fmt-bg-video');
     const quickBgVideoClearBtn = document.getElementById('quick-fmt-bg-video-clear');
     const quickBgVideoInput = document.getElementById('quick-bg-video-input');
 
     if (quickBgVideoBtn && quickBgVideoInput) {
       quickBgVideoBtn.addEventListener('click', () => {
+        if (window.bfgcDevConfig && window.bfgcDevConfig.features && window.bfgcDevConfig.features.video_bg_sundayservice === false) {
+          showToast('Video backgrounds are currently disabled by Developer Hub', 'warning');
+          return;
+        }
         quickBgVideoInput.click();
       });
 
@@ -4113,6 +4358,7 @@
       pushQuickToProjector();
       if (notify) showToast('Image removed. Switched back to solid background.', 'info');
     }
+    window.clearQuickBgImage = clearQuickBgImage;
 
     const quickBgImageBtn = document.getElementById('quick-fmt-bg-image');
     const quickBgImageClearBtn = document.getElementById('quick-fmt-bg-image-clear');
@@ -4120,6 +4366,10 @@
 
     if (quickBgImageBtn && quickBgImageInput) {
       quickBgImageBtn.addEventListener('click', () => {
+        if (window.bfgcDevConfig && window.bfgcDevConfig.features && window.bfgcDevConfig.features.image_bg_sundayservice === false) {
+          showToast('Image backgrounds are currently disabled by Developer Hub', 'warning');
+          return;
+        }
         quickBgImageInput.click();
       });
 
@@ -4308,6 +4558,10 @@
     });
 
     document.getElementById('btn-quick-project').addEventListener('click', () => {
+      if (window.bfgcDevConfig && window.bfgcDevConfig.features && window.bfgcDevConfig.features.project_slide_sundayservice === false) {
+        showToast('Slide projection is currently disabled by Developer Hub', 'warning');
+        return;
+      }
       saveCurrentEditorContent();
       pushQuickToProjector();
       showToast('Slide Projected!', 'success');

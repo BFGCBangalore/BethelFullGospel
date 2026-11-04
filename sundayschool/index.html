@@ -2200,6 +2200,8 @@ select.customized {
    IN-APP DISCLAIMER BANNER (Imported from disclaimer.html)
    ========================================================= */
 let cachedDisclaimerHTML = null;
+let ssHubDisclaimerConfig = null;
+let lastSsDisclaimerText = '';
 
 async function getDisclaimerHTML() {
   if (cachedDisclaimerHTML !== null) return cachedDisclaimerHTML;
@@ -2215,10 +2217,51 @@ async function getDisclaimerHTML() {
   return null;
 }
 
+function setupSsHubDisclaimerListener() {
+  if (!window.firebase || !window.firebase.db || !window.firebase.onSnapshot) return;
+  try {
+    const hubRef = window.firebase.doc(window.firebase.db, "system_config", "developer_hub");
+    window.firebase.onSnapshot(hubRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (data.disclaimers && data.disclaimers.sundayschool) {
+          ssHubDisclaimerConfig = data.disclaimers.sundayschool;
+          if (ssHubDisclaimerConfig.text && ssHubDisclaimerConfig.text !== lastSsDisclaimerText) {
+            sessionStorage.removeItem('ss_disclaimer_dismissed');
+            lastSsDisclaimerText = ssHubDisclaimerConfig.text;
+          }
+          renderInAppDisclaimerBanners();
+        }
+      }
+    }, (err) => console.warn("SS Developer Hub listener warning:", err));
+  } catch(e) {
+    console.warn("Could not attach SS Developer Hub listener:", e);
+  }
+}
+
+if (window.firebase && window.firebase.db) {
+  setupSsHubDisclaimerListener();
+} else {
+  window.addEventListener('firebase-ready', setupSsHubDisclaimerListener, { once: true });
+}
+
 async function renderInAppDisclaimerBanners() {
-  const isDismissed = sessionStorage.getItem('ss_disclaimer_dismissed') === 'true';
   const slots = ['teacherDisclaimerSlot', 'attDisclaimerSlot', 'adminDisclaimerSlot', 'parentDisclaimerSlot'];
   
+  // 1. Check if disabled by Developer Hub
+  if (ssHubDisclaimerConfig && ssHubDisclaimerConfig.enabled === false) {
+    slots.forEach(slotId => {
+      const el = document.getElementById(slotId);
+      if (el) {
+        el.innerHTML = '';
+        el.style.display = 'none';
+      }
+    });
+    return;
+  }
+
+  // 2. Check if dismissed for current session
+  const isDismissed = sessionStorage.getItem('ss_disclaimer_dismissed') === 'true';
   if (isDismissed) {
     slots.forEach(slotId => {
       const el = document.getElementById(slotId);
@@ -2230,8 +2273,19 @@ async function renderInAppDisclaimerBanners() {
     return;
   }
   
-  const html = await getDisclaimerHTML();
+  let html = await getDisclaimerHTML();
   if (!html) return;
+
+  // 3. Inject custom text if specified in Developer Hub
+  if (ssHubDisclaimerConfig && ssHubDisclaimerConfig.text) {
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    const textEl = tempDiv.querySelector('.idc-text');
+    if (textEl) {
+      textEl.textContent = ssHubDisclaimerConfig.text;
+    }
+    html = tempDiv.innerHTML;
+  }
   
   slots.forEach(slotId => {
     const el = document.getElementById(slotId);
